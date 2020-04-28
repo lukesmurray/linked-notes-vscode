@@ -3,11 +3,12 @@ import * as vscode from "vscode";
 import {
   extractMatchesLineProcessingStrategy,
   getWorkspaceMarkdownDocuments,
-  getWorkspaceMarkdownFiles,
+  findAllMarkdownFilesInWorkspace,
   processDocumentLineByLine,
   processFileLineByLine,
-  readFirstLine
+  readFirstLine,
 } from "./util";
+import { LinkedNotesStore } from "./store";
 
 /**
  * Based interface for markdown completion strategies
@@ -124,9 +125,9 @@ class MarkdownCompletionStrategyWikiLink
   readonly matchGroup = 2;
   readonly completionKind = vscode.CompletionItemKind.File;
   readonly additionalStrategy = async () => {
-    const files = await getWorkspaceMarkdownFiles();
+    const files = await findAllMarkdownFilesInWorkspace();
     const names = await Promise.all(
-      files.map(async f => {
+      files.map(async (f) => {
         const firstLine = await readFirstLine(f);
         if (firstLine.startsWith("# ")) {
           return firstLine.slice(2);
@@ -149,15 +150,19 @@ const markdownCompletionStrategies: MarkdownCompletionStrategy[] = [
   new MarkdownCompletionStrategyPerson(),
   new MarkdownCompletionStrategyTag(),
   new MarkdownCompletionStrategyProject(),
-  new MarkdownCompletionStrategyWikiLink()
+  new MarkdownCompletionStrategyWikiLink(),
 ];
 
 export const markdownCompletionTriggerChars = markdownCompletionStrategies.map(
-  strategy => strategy.trigger
+  (strategy) => strategy.trigger
 );
 
 export class MarkdownCompletionProvider
   implements vscode.CompletionItemProvider {
+  private store: LinkedNotesStore;
+  constructor(store: LinkedNotesStore) {
+    this.store = store;
+  }
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -183,9 +188,9 @@ export class MarkdownCompletionProvider
     }
 
     const openDocuments = await getWorkspaceMarkdownDocuments();
-    const documentNameSet = new Set(openDocuments.map(doc => doc.fileName));
-    const files = (await getWorkspaceMarkdownFiles()).filter(
-      f => documentNameSet.has(f.fsPath) === false
+    const documentNameSet = new Set(openDocuments.map((doc) => doc.fileName));
+    const files = (await findAllMarkdownFilesInWorkspace()).filter(
+      (f) => documentNameSet.has(f.fsPath) === false
     );
     const outputMatches: string[] = [];
     const matchingStrategy = extractMatchesLineProcessingStrategy(
@@ -194,10 +199,10 @@ export class MarkdownCompletionProvider
       outputMatches
     );
     await Promise.all(
-      files.map(file => processFileLineByLine(file, matchingStrategy))
+      files.map((file) => processFileLineByLine(file, matchingStrategy))
     );
     await Promise.all(
-      openDocuments.map(document =>
+      openDocuments.map((document) =>
         processDocumentLineByLine(document, matchingStrategy)
       )
     );
@@ -207,12 +212,17 @@ export class MarkdownCompletionProvider
     return [...new Set(outputMatches)]
       .sort()
       .map(
-        match => new vscode.CompletionItem(match, foundStrategy?.completionKind)
+        (match) =>
+          new vscode.CompletionItem(match, foundStrategy?.completionKind)
       );
   }
 }
 
 export class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
+  private store: LinkedNotesStore;
+  constructor(store: LinkedNotesStore) {
+    this.store = store;
+  }
   public async provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -239,14 +249,14 @@ export class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
       .trim()
       .replace(/\s+/g, "-") // Convert whitespace to hyphens
       .toLowerCase();
-    const files = await getWorkspaceMarkdownFiles().then(f =>
-      f.filter(f => parse(f.path).name === sluggedFileName)
+    const files = await findAllMarkdownFilesInWorkspace().then((f) =>
+      f.filter((f) => parse(f.path).name === sluggedFileName)
     );
     if (files.length === 0 && vscode.workspace.workspaceFolders !== undefined) {
       const rootURI = vscode.workspace.workspaceFolders?.[0].uri;
       const newPath = format({
         dir: rootURI?.fsPath,
-        base: sluggedFileName + ".md"
+        base: sluggedFileName + ".md",
       });
       const newURI = vscode.Uri.file(newPath);
       await vscode.workspace.fs.writeFile(

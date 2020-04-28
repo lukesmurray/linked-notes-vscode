@@ -1,7 +1,13 @@
 import * as vscode from "vscode";
+import { LinkedNotesStore } from "./store";
 
 export class MarkdownSnippetCompletionItemProvider
   implements vscode.CompletionItemProvider {
+  private store: LinkedNotesStore;
+  constructor(store: LinkedNotesStore) {
+    this.store = store;
+  }
+
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -73,7 +79,7 @@ export class MarkdownSnippetCompletionItemProvider
       dateSnippet,
       meetingSnippet,
       memoSnippet,
-      dueSnippet
+      dueSnippet,
     ];
   }
 }
