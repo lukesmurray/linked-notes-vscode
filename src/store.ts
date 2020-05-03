@@ -9,8 +9,8 @@ import rootReducer, { RootState } from "./reducers";
 const store = configureStore({
   reducer: rootReducer,
   middleware: [
-    loggerMiddleware as Middleware<RootState>,
-    ...getDefaultMiddleware<RootState>(),
+    // loggerMiddleware as Middleware<RootState>,
+    // ...getDefaultMiddleware<RootState>(),
   ],
 });
 

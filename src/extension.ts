@@ -14,7 +14,7 @@ import {
   documentDeleted,
   convertTextDocumentToLinkedNotesDocument,
   getLinkedNotesDocumentIdFromTextDocument,
-  getSyntaxTreeFromTextDocumentSync,
+  getSyntaxTreeFromTextDocument,
 } from "./reducers/documents";
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -58,11 +58,13 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  vscode.workspace.onDidChangeTextDocument((e) => {
+  vscode.workspace.onDidChangeTextDocument(async (e) => {
     store.dispatch(
       documentUpdated({
         id: getLinkedNotesDocumentIdFromTextDocument(e.document),
-        changes: { syntaxTree: getSyntaxTreeFromTextDocumentSync(e.document) },
+        changes: {
+          syntaxTree: await getSyntaxTreeFromTextDocument(e.document),
+        },
       })
     );
   });

@@ -47,34 +47,22 @@ function createMarkdownProcessor() {
     });
 }
 
-// TODO(lukemurray): REMOVE THIS METHOD SYNC IS TERRIBLE
 /**
- * Get a syntax tree from a text document synchronously
+ * Get a syntax tree from a text document assynchronously
  * @param doc a vscode text document
  */
-export function getSyntaxTreeFromTextDocumentSync(
+export async function getSyntaxTreeFromTextDocument(
   doc: vscode.TextDocument
-): mdastRoot {
+): Promise<mdastRoot> {
   const processor = createMarkdownProcessor();
   const docText = doc.getText();
   // TODO(lukemurray): find a better way to get rid of circular references
   // since we store the syntax tree in redux we want all references to be
   // unique but the mdast shares references to things like internal arrays
   const syntaxTree = JSON.parse(
-    JSON.stringify(processor.runSync(processor.parse(docText)))
+    JSON.stringify(await processor.run(processor.parse(docText)))
   ) as mdastRoot;
   return syntaxTree;
-}
-
-/**
- * Get a syntax tree from a text document asynchronously
- * @param doc a vscode text document
- */
-export function getSyntaxTreeFromTextDocument(
-  doc: vscode.TextDocument
-): Promise<mdastRoot> {
-  // TODO(lukemurray): replace this with async
-  return Promise.resolve(getSyntaxTreeFromTextDocumentSync(doc));
 }
 
 /**
@@ -157,28 +145,32 @@ export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   (doc) => unistSelectAll("wikiLink", doc!.syntaxTree) as WikiLink[]
 );
 
-export const selectWikiLinkCompletions = createSelector(
-  selectDocumentWikiLinksByDocumentId,
-  (wikiLinksByDocumentId) => {
-    return [
-      ...new Set(
-        Object.values(wikiLinksByDocumentId)
-          .flat()
-          .map((v) => v.data.alias)
-      ),
-    ].sort();
-  }
-);
-
 const selectDocumentHeadingsByDocumentId = createObjectSelector(
   selectDocumentEntities,
   (doc) =>
     (unistSelect(`heading[depth="1"]`, doc!.syntaxTree) as Heading) ?? undefined
 );
 
-const selectDocumentHeadingTextById = createObjectSelector(
+const selectDocumentHeadingTextByDocumentId = createObjectSelector(
   selectDocumentHeadingsByDocumentId,
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
+);
+
+export const selectWikiLinkCompletions = createSelector(
+  selectDocumentWikiLinksByDocumentId,
+  selectDocumentHeadingTextByDocumentId,
+  (wikiLinksByDocumentId, headingTextByDocumentId) => {
+    return [
+      ...new Set([
+        // the wiki link aliases
+        ...Object.values(wikiLinksByDocumentId)
+          .flat()
+          .map((v) => v.data.alias),
+        // the heading text
+        ...Object.values(headingTextByDocumentId).flat(),
+      ]),
+    ].sort();
+  }
 );
 
 // export reducer as the default
