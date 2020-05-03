@@ -1,7 +1,6 @@
+import * as vscode from "vscode";
 import { selectWikiLinkCompletions } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import * as vscode from "vscode";
-import { getWikiLinkForPosition } from "./util";
 
 class MarkdownWikiLinkCompletionProvider
   implements vscode.CompletionItemProvider {
@@ -15,13 +14,13 @@ class MarkdownWikiLinkCompletionProvider
     _token: vscode.CancellationToken,
     context: vscode.CompletionContext
   ) {
-    // provide wiki link completions for wiki links
-    const overlappingWikiLink = getWikiLinkForPosition(
-      this.store,
-      document,
-      position
+    let range = document.getWordRangeAtPosition(
+      position,
+      // positive look behind whitespace or start of line followed by open wiki link
+      // followed by anything except close link or new line
+      /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g
     );
-    if (overlappingWikiLink) {
+    if (range) {
       return selectWikiLinkCompletions(this.store.getState()).map(
         (match) =>
           new vscode.CompletionItem(match, vscode.CompletionItemKind.File)
