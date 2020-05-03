@@ -9,19 +9,13 @@ import store from "./store";
 import { findAllMarkdownFilesInWorkspace } from "./util";
 import {
   documentAdded,
-  getDocumentIdFromUri,
-  documentRenamed,
-  documentDeleted as documentRemoved,
+  getLinkedNotesDocumentIdFromUri,
+  documentUpdated,
+  documentDeleted,
+  convertTextDocumentToLinkedNotesDocument,
+  getLinkedNotesDocumentIdFromTextDocument,
+  getSyntaxTreeFromTextDocumentSync,
 } from "./reducers/documents";
-
-/* TODO(lukemurray): ideas
-- codelens for actions on links (https://code.visualstudio.com/api/references/vscode-api#CodeLens)
-- decorations for references inline (https://code.visualstudio.com/api/references/vscode-api#DecorationInstanceRenderOptions)
-- codeAction for missing wiki style links (https://code.visualstudio.com/api/references/vscode-api#CodeActionProvider)
-  - https://github.com/microsoft/vscode-extension-samples/tree/master/code-actions-sample
-- rename provider for links, tags, people, etc
-- document link provider for wiki links https://code.visualstudio.com/api/references/vscode-api#DocumentLink
-*/
 
 /* TODO(lukemurray): tasks
 - refactor completions to be lazy
@@ -64,35 +58,36 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  await findAllMarkdownFilesInWorkspace().then((fileUris) => {
-    fileUris.map((uri) =>
-      vscode.workspace.openTextDocument(uri).then((textDoc) => {
-        store.dispatch(documentAdded(textDoc));
-      })
-    );
-  });
-
   // Add all of the event listeners
 
   vscode.workspace.onDidCreateFiles((e) => {
     for (let fileUri of e.files) {
-      vscode.workspace.openTextDocument(fileUri).then((textDoc) => {
-        store.dispatch(documentAdded(textDoc));
-      });
+      vscode.workspace
+        .openTextDocument(fileUri)
+        .then(convertTextDocumentToLinkedNotesDocument)
+        .then((textDoc) => {
+          store.dispatch(documentAdded(textDoc));
+        });
     }
   });
 
   vscode.workspace.onDidChangeTextDocument((e) => {
-    // TODO(lukemurray): handle changes in text documents
-    console.log("TODO: handle changes text document");
+    store.dispatch(
+      documentUpdated({
+        id: getLinkedNotesDocumentIdFromTextDocument(e.document),
+        changes: { syntaxTree: getSyntaxTreeFromTextDocumentSync(e.document) },
+      })
+    );
   });
 
   vscode.workspace.onDidRenameFiles((e) => {
     for (let file of e.files) {
       store.dispatch(
-        documentRenamed({
-          id: getDocumentIdFromUri(file.oldUri),
-          changes: { uri: file.newUri },
+        documentUpdated({
+          id: getLinkedNotesDocumentIdFromUri(file.oldUri),
+          changes: {
+            id: getLinkedNotesDocumentIdFromUri(file.newUri),
+          },
         })
       );
     }
@@ -100,7 +95,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidDeleteFiles((e) => {
     for (let fileUri of e.files) {
-      store.dispatch(documentRemoved(getDocumentIdFromUri(fileUri)));
+      store.dispatch(documentDeleted(getLinkedNotesDocumentIdFromUri(fileUri)));
     }
+  });
+
+  findAllMarkdownFilesInWorkspace().then((fileUris) => {
+    fileUris.map((uri) =>
+      vscode.workspace
+        .openTextDocument(uri)
+        .then(convertTextDocumentToLinkedNotesDocument)
+        .then((textDoc) => {
+          store.dispatch(documentAdded(textDoc));
+        })
+    );
   });
 }

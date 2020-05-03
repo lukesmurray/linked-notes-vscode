@@ -1,0 +1,56 @@
+diff --git a/node_modules/@types/mdast/index.d.ts b/node_modules/@types/mdast/index.d.ts
+index 817fcce..e34226f 100644
+--- a/node_modules/@types/mdast/index.d.ts
++++ b/node_modules/@types/mdast/index.d.ts
+@@ -42,7 +42,7 @@ export type TableContent = TableRow;
+ 
+ export type RowContent = TableCell;
+ 
+-export type PhrasingContent = StaticPhrasingContent | Link | LinkReference;
++export type PhrasingContent = StaticPhrasingContent | Link | LinkReference | WikiLink;
+ 
+ export type StaticPhrasingContent =
+     | Text
+@@ -197,6 +197,42 @@ export interface FootnoteReference extends Node, Association {
+     type: 'footnoteReference';
+ }
+ 
++export interface WikiLink extends Node {
++    type: "wikiLink"
++    data: {
++        /**
++         * the display name for the page
++         */
++        alias: string;
++        /**
++         * permalink to the page
++         */
++        permalink: string;
++        /**
++         * whether the page exists
++         */
++        exists: boolean;
++        /**
++         * Properties to add for hast see https://github.com/syntax-tree/mdast-util-to-hast#hproperties
++         */
++        hProperties: {
++            /**
++             * class name for rendered a in html
++             */
++            className: string;
++            /**
++             * href value for rendered a in html
++             */
++            href: string;
++        },
++        /**
++         * HTML content to add for hast see https://github.com/syntax-tree/mdast-util-to-hast#hchildren
++         */
++        hChildren: {type: string, value: string}[]
++    }
++
++}
++
+ // Mixin
+ export interface Resource {
+     url: string;
