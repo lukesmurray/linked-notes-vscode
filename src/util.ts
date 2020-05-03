@@ -23,15 +23,13 @@ export function getWikiLinkForPosition(
   position: vscode.Position
 ) {
   // get all the wiki links by document id
-  const documentWikiLinksById: {
-    [key: string]: WikiLink[];
-  } = getAllWikiLinksByDocumentId(store);
+  const documentWikiLinksById = getAllWikiLinksByDocumentId(store);
   // get the document id
   const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
   // get the wiki links for the document
   const wikiLinks = documentWikiLinksById[documentId];
   // get the overlapping wiki link
-  const overlappingWikiLink = wikiLinks.find((v) =>
+  const overlappingWikiLink = wikiLinks?.find((v) =>
     isPositionInsideNode(position, v)
   );
   return overlappingWikiLink;
@@ -39,7 +37,7 @@ export function getWikiLinkForPosition(
 
 export function getAllWikiLinksByDocumentId(
   store: LinkedNotesStore
-): { [key: string]: WikiLink[] } {
+): { [key: string]: WikiLink[] | undefined } {
   return selectDocumentWikiLinksByDocumentId(store.getState());
 }
 

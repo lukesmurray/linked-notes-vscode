@@ -19,7 +19,7 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     ];
 
     return allWikiLinks
-      .filter((v) => v.position !== undefined)
+      ?.filter((v) => v.position !== undefined)
       .map(
         (v) =>
           new vscode.DocumentLink(
