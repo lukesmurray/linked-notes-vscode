@@ -1,10 +1,6 @@
 import * as vscode from "vscode";
-import {
-  MarkdownCompletionProvider,
-  markdownCompletionTriggerChars,
-  MarkdownDefinitionProvider,
-} from "./completions";
-import { MarkdownSnippetCompletionItemProvider } from "./snippets";
+import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
+import MarkdownSnippetCompletionItemProvider from "./MarkdownSnippetCompletionItemProvider";
 import store from "./store";
 import { findAllMarkdownFilesInWorkspace } from "./util";
 import {
@@ -16,6 +12,8 @@ import {
   getLinkedNotesDocumentIdFromTextDocument,
   getSyntaxTreeFromTextDocument,
 } from "./reducers/documents";
+import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
+import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -23,12 +21,12 @@ export async function activate(context: vscode.ExtensionContext) {
     wordPattern: /([\+\@\#\.\/\\\-\w]+)/,
   });
 
-  // provide general autocomplete
+  // wiki link autocomplete
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       md,
-      new MarkdownCompletionProvider(store),
-      ...markdownCompletionTriggerChars
+      new MarkdownWikiLinkCompletionProvider(store),
+      "["
     )
   );
   // provide go to definition
@@ -43,6 +41,13 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerCompletionItemProvider(
       md,
       new MarkdownSnippetCompletionItemProvider(store)
+    )
+  );
+  // provide document links
+  context.subscriptions.push(
+    vscode.languages.registerDocumentLinkProvider(
+      md,
+      new MarkdownDocumentLinkProvider(store)
     )
   );
 
