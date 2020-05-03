@@ -15,6 +15,7 @@ import {
 import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 import { debounce } from "lodash";
+import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -49,6 +50,13 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerDocumentLinkProvider(
       md,
       new MarkdownDocumentLinkProvider(store)
+    )
+  );
+  // provide document references
+  context.subscriptions.push(
+    vscode.languages.registerReferenceProvider(
+      md,
+      new MarkdownReferenceProvider(store)
     )
   );
 

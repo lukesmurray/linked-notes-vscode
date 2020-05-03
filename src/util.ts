@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
 import type { LinkedNotesStore } from "./store";
-import type { WikiLink } from "mdast";
+import type { WikiLink, Heading } from "mdast";
 import {
   getLinkedNotesDocumentIdFromTextDocument,
   selectDocumentWikiLinksByDocumentId,
+  selectDocumentHeadingByDocumentId,
+  getLinkedNotesDocumentIdFromUri,
 } from "./reducers/documents";
 import type { Node as UnistNode, Position as UnistPosition } from "unist";
 import { format } from "path";
@@ -15,6 +17,23 @@ export async function findAllMarkdownFilesInWorkspace() {
   return (await vscode.workspace.findFiles("**/*")).filter(
     (f) => f.scheme === "file" && f.path.match(/\.(md)$/i)
   );
+}
+
+export function getHeadingForPosition(
+  store: LinkedNotesStore,
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  const documentHeadingById = getHeadingByDocumentId(store);
+  // get the document id
+  const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+  // get the wiki links for the document
+  const heading = documentHeadingById[documentId];
+  // get the overlapping wiki link
+  if (heading !== undefined && isPositionInsideNode(position, heading)) {
+    return heading;
+  }
+  return undefined;
 }
 
 export function getWikiLinkForPosition(
@@ -39,6 +58,12 @@ export function getAllWikiLinksByDocumentId(
   store: LinkedNotesStore
 ): { [key: string]: WikiLink[] | undefined } {
   return selectDocumentWikiLinksByDocumentId(store.getState());
+}
+
+export function getHeadingByDocumentId(
+  store: LinkedNotesStore
+): { [key: string]: Heading | undefined } {
+  return selectDocumentHeadingByDocumentId(store.getState());
 }
 
 export function isPositionInsideNode(
@@ -115,4 +140,17 @@ export function convertWikiLinkPermalinkToURI(
   });
   const newURI = vscode.Uri.file(newPath);
   return newURI;
+}
+
+export function getDocumentIdFromWikiLink(wikiLink: WikiLink) {
+  const uri = convertWikiLinkPermalinkToURI(wikiLink.data.permalink);
+  // create a document id from the uri
+  if (uri) {
+    return getLinkedNotesDocumentIdFromUri(uri);
+  }
+  return undefined;
+}
+
+export function createDocumentUriFromDocumentId(documentId: string) {
+  return vscode.Uri.file(documentId);
 }

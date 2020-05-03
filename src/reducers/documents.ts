@@ -16,7 +16,11 @@ import {
 import mdastNodeToString from "mdast-util-to-string";
 import { createObjectSelector, createArraySelector } from "reselect-map";
 import { Node } from "unist";
-import { convertUnistPositionToVscodeRange } from "../util";
+import {
+  convertUnistPositionToVscodeRange,
+  getDocumentIdFromWikiLink,
+} from "../util";
+import { groupBy } from "lodash";
 
 export interface LinkedNotesDocument {
   /**
@@ -146,14 +150,14 @@ export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   (doc) => unistSelectAll("wikiLink", doc!.syntaxTree) as WikiLink[]
 );
 
-const selectDocumentHeadingsByDocumentId = createObjectSelector(
+export const selectDocumentHeadingByDocumentId = createObjectSelector(
   selectDocumentEntities,
   (doc) =>
     (unistSelect(`heading[depth="1"]`, doc!.syntaxTree) as Heading) ?? undefined
 );
 
 const selectDocumentHeadingTextByDocumentId = createObjectSelector(
-  selectDocumentHeadingsByDocumentId,
+  selectDocumentHeadingByDocumentId,
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
 );
 
@@ -168,6 +172,33 @@ export const selectDocumentLinksByDocumentId = createObjectSelector(
             convertUnistPositionToVscodeRange(v.position!)
           )
       )
+);
+
+export const selectWikiLinkBackReferencesToDocumentId = createSelector(
+  selectDocumentWikiLinksByDocumentId,
+  (allLinks) => {
+    const output: {
+      [key: string]: { containingDocumentId: string; wikiLink: WikiLink }[];
+    } = {};
+
+    for (let containingDocumentId of Object.keys(allLinks)) {
+      for (let wikiLink of (allLinks as { [key: string]: WikiLink[] })[
+        containingDocumentId
+      ]) {
+        const wikiLinkReferenceDocumentId = getDocumentIdFromWikiLink(wikiLink);
+        if (wikiLinkReferenceDocumentId !== undefined) {
+          if (output[wikiLinkReferenceDocumentId] === undefined) {
+            output[wikiLinkReferenceDocumentId] = [];
+          }
+          output[wikiLinkReferenceDocumentId].push({
+            containingDocumentId: containingDocumentId,
+            wikiLink,
+          });
+        }
+      }
+    }
+    return output;
+  }
 );
 
 export const selectWikiLinkCompletions = createSelector(
