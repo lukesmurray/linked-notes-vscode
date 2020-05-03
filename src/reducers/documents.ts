@@ -16,6 +16,7 @@ import {
 import mdastNodeToString from "mdast-util-to-string";
 import { createObjectSelector, createArraySelector } from "reselect-map";
 import { Node } from "unist";
+import { convertUnistPositionToVscodeRange } from "../util";
 
 export interface LinkedNotesDocument {
   /**
@@ -154,6 +155,19 @@ const selectDocumentHeadingsByDocumentId = createObjectSelector(
 const selectDocumentHeadingTextByDocumentId = createObjectSelector(
   selectDocumentHeadingsByDocumentId,
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
+);
+
+export const selectDocumentLinksByDocumentId = createObjectSelector(
+  selectDocumentWikiLinksByDocumentId,
+  (allWikiLinks) =>
+    allWikiLinks
+      ?.filter((v) => v.position !== undefined)
+      .map(
+        (v) =>
+          new vscode.DocumentLink(
+            convertUnistPositionToVscodeRange(v.position!)
+          )
+      )
 );
 
 export const selectWikiLinkCompletions = createSelector(

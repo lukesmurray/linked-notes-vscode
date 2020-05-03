@@ -1,5 +1,8 @@
 import * as vscode from "vscode";
-import { getLinkedNotesDocumentIdFromTextDocument } from "./reducers/documents";
+import {
+  getLinkedNotesDocumentIdFromTextDocument,
+  selectDocumentLinksByDocumentId,
+} from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
   convertUnistPositionToVscodeRange,
@@ -14,18 +17,9 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     document: vscode.TextDocument,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DocumentLink[]> {
-    const allWikiLinks = getAllWikiLinksByDocumentId(this.store)[
-      getLinkedNotesDocumentIdFromTextDocument(document)
-    ];
-
-    return allWikiLinks
-      ?.filter((v) => v.position !== undefined)
-      .map(
-        (v) =>
-          new vscode.DocumentLink(
-            convertUnistPositionToVscodeRange(v.position!)
-          )
-      );
+    return (selectDocumentLinksByDocumentId(this.store.getState()) as {
+      [key: string]: vscode.DocumentLink[];
+    })[getLinkedNotesDocumentIdFromTextDocument(document)];
   }
 }
 

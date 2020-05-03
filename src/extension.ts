@@ -14,6 +14,7 @@ import {
 } from "./reducers/documents";
 import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
+import { debounce } from "lodash";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -63,16 +64,22 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  vscode.workspace.onDidChangeTextDocument(async (e) => {
-    store.dispatch(
-      documentUpdated({
-        id: getLinkedNotesDocumentIdFromTextDocument(e.document),
-        changes: {
-          syntaxTree: await getSyntaxTreeFromTextDocument(e.document),
-        },
-      })
-    );
-  });
+  vscode.workspace.onDidChangeTextDocument(
+    debounce(
+      async (e) => {
+        store.dispatch(
+          documentUpdated({
+            id: getLinkedNotesDocumentIdFromTextDocument(e.document),
+            changes: {
+              syntaxTree: await getSyntaxTreeFromTextDocument(e.document),
+            },
+          })
+        );
+      },
+      150,
+      { maxWait: 15000 }
+    )
+  );
 
   vscode.workspace.onDidRenameFiles((e) => {
     for (let file of e.files) {
