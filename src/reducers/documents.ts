@@ -1,10 +1,21 @@
-import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { Root as mdastRoot } from "mdast";
+import {
+  createEntityAdapter,
+  createSlice,
+  createSelector,
+} from "@reduxjs/toolkit";
+import type { Root as mdastRoot, WikiLink, Heading } from "mdast";
 import markdown from "remark-parse";
 import unified from "unified";
 import * as vscode from "vscode";
 import { RootState } from ".";
 import wikiLinkPlugin from "remark-wiki-link";
+import {
+  selectAll as unistSelectAll,
+  select as unistSelect,
+} from "unist-util-select";
+import mdastNodeToString from "mdast-util-to-string";
+import { createObjectSelector, createArraySelector } from "reselect-map";
+import { Node } from "unist";
 
 export interface LinkedNotesDocument {
   /**
@@ -18,11 +29,29 @@ export interface LinkedNotesDocument {
   syntaxTree: mdastRoot;
 }
 
+/**
+ * Create the unified markdown processor for parsing text documents and
+ * creating syntax trees
+ */
 function createMarkdownProcessor() {
-  return unified().use(markdown).use(wikiLinkPlugin);
+  return unified()
+    .use(markdown)
+    .use(wikiLinkPlugin, {
+      pageResolver: (pageName) => [
+        pageName
+          .replace(/[^\w\s-]/g, "") // Remove non-ASCII characters
+          .trim()
+          .replace(/\s+/g, "-") // Convert whitespace to hyphens
+          .toLocaleLowerCase(), // add the markdown extension
+      ],
+    });
 }
 
 // TODO(lukemurray): REMOVE THIS METHOD SYNC IS TERRIBLE
+/**
+ * Get a syntax tree from a text document synchronously
+ * @param doc a vscode text document
+ */
 export function getSyntaxTreeFromTextDocumentSync(
   doc: vscode.TextDocument
 ): mdastRoot {
@@ -37,12 +66,21 @@ export function getSyntaxTreeFromTextDocumentSync(
   return syntaxTree;
 }
 
+/**
+ * Get a syntax tree from a text document asynchronously
+ * @param doc a vscode text document
+ */
 export function getSyntaxTreeFromTextDocument(
   doc: vscode.TextDocument
 ): Promise<mdastRoot> {
+  // TODO(lukemurray): replace this with async
   return Promise.resolve(getSyntaxTreeFromTextDocumentSync(doc));
 }
 
+/**
+ * Convert a vscode document to a linked notes document
+ * @param doc a vscode document
+ */
 export function convertTextDocumentToLinkedNotesDocument(
   doc: vscode.TextDocument
 ): Promise<LinkedNotesDocument> {
@@ -54,12 +92,16 @@ export function convertTextDocumentToLinkedNotesDocument(
   });
 }
 
+/**
+ * Get the documents slice id from the text document.
+ * @param doc the text document in the workspace
+ */
 export const getLinkedNotesDocumentIdFromTextDocument: (
   uri: vscode.TextDocument
 ) => string = (doc) => getLinkedNotesDocumentIdFromUri(doc.uri);
 
 /**
- * Get the documents slice id from the text document uri
+ * Get the documents slice id from the text document uri.
  * @param uri the uri from a vscode.TextDocument
  */
 export const getLinkedNotesDocumentIdFromUri: (uri: vscode.Uri) => string = (
@@ -67,7 +109,7 @@ export const getLinkedNotesDocumentIdFromUri: (uri: vscode.Uri) => string = (
 ) => uri.fsPath;
 
 /**
- * Return the id of the document used in the documents slice.
+ * Return the document slice id for a linked notes document
  * @param document a linked notes document
  */
 export const getLinkedNotesDocumentId: (
@@ -98,18 +140,95 @@ export const {
   documentDeleted,
 } = documentsSlice.actions;
 
-// export selectors
-const { selectById } = documentsAdapter.getSelectors();
+export const selectDocumentSlice = (state: RootState) => state.documents;
 
-/**
- * Return the document from the store specified by the document URI
- * @param state the root state of the store
- * @param documentUri the uri of the document to get from the store
- */
+const {
+  selectById: selectDocumentById,
+  selectEntities: selectDocumentEntities,
+} = documentsAdapter.getSelectors<RootState>(selectDocumentSlice);
+
 export const selectDocumentByUri = (
   state: RootState,
   documentUri: vscode.Uri
-) => selectById(state.documents, getLinkedNotesDocumentIdFromUri(documentUri));
+) => selectDocumentById(state, getLinkedNotesDocumentIdFromUri(documentUri));
+
+export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
+  selectDocumentEntities,
+  (doc) => unistSelectAll("wikiLink", doc!.syntaxTree) as WikiLink[]
+);
+
+export const selectWikiLinkCompletions = createSelector(
+  selectDocumentWikiLinksByDocumentId,
+  (wikiLinksByDocumentId) => {
+    return [
+      ...new Set(
+        Object.values(wikiLinksByDocumentId)
+          .flat()
+          .map((v) => v.data.alias)
+      ),
+    ].sort();
+  }
+);
+
+const selectDocumentHeadingsByDocumentId = createObjectSelector(
+  selectDocumentEntities,
+  (doc) =>
+    (unistSelect(`heading[depth="1"]`, doc!.syntaxTree) as Heading) ?? undefined
+);
+
+const selectDocumentHeadingTextById = createObjectSelector(
+  selectDocumentHeadingsByDocumentId,
+  (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
+);
 
 // export reducer as the default
 export default documentsSlice.reducer;
+
+export function isPositionInsideNode(position: vscode.Position, node: Node) {
+  if (node.position === undefined) {
+    return false;
+  }
+  const positionLine = position.line;
+  const nodeStartLine = node.position.start.line - 1;
+  const nodeEndLine = node.position.end.line - 1;
+  const positionCharacter = position.character;
+  const nodeStartCharacter = node.position.start.column - 1;
+  const nodeEndCharacter = node.position.end.column - 1;
+
+  if (nodeStartCharacter === undefined || nodeEndCharacter === undefined) {
+    throw new Error("start or end character is undefined");
+  }
+
+  // if outside the lines then no overlap
+  if (positionLine < nodeStartLine || positionLine > nodeEndLine) {
+    return false;
+  }
+
+  // if inside the lines then definite overlap
+  if (positionLine > nodeStartLine && positionLine < nodeEndLine) {
+    return true;
+  }
+
+  // position line must be start or end line or both
+  const [onStart, onEnd] = [
+    positionLine === nodeStartLine,
+    positionLine === nodeEndLine,
+  ];
+  // if on start and end make sure between characters
+  if (onStart && onEnd) {
+    return (
+      positionCharacter >= nodeStartCharacter &&
+      positionCharacter <= nodeEndCharacter
+    );
+  }
+  // if on start make sure after start character
+  if (onStart) {
+    return positionCharacter >= nodeStartCharacter;
+  }
+  // if on end make sure after end character
+  if (onEnd) {
+    return positionCharacter <= nodeEndCharacter;
+  }
+  // otherwise not in the bounds
+  return false;
+}

@@ -1,5 +1,15 @@
-this is a test
+# this is a heading
 
-# hello world this is a
+this is a paragraph with [a link](http://example.com) a [[wiki link]] and some `inline code`
 
-this is a test to see if everythign is working as well as it should
+this is a test to see if everythign is working well ok wow this is working pretty well
+
+[[this is a wiki link]] and [[this is another wiki link]]
+
+[[wiki link]]
+
+[[@this is a link to a person]]
+
+[[@this is a link to a person]]
+
+[[+this is a link to a project]]

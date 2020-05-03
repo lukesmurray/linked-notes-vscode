@@ -20,7 +20,7 @@ export class MarkdownSnippetCompletionItemProvider
     // snippet for creating a new task with tags that reschedule can understand.
     const taskSnippet = new vscode.CompletionItem("task");
     taskSnippet.insertText = new vscode.SnippetString(
-      "- [ ] ${1:What do you want to do?} ${2:+project} est:${3:30m} took:- added:" +
+      "- [ ] ${1:What do you want to do?} [[${2:+project}]] est:${3:30m} took:- added:" +
         currentDateVariable +
         " id:" +
         randomIdVariable +

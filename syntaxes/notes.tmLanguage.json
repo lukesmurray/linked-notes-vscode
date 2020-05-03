@@ -19,30 +19,6 @@
       }
     },
     {
-      "match": "(\\#)([\\w\\-\\_]+)",
-      "name": "text.markdown.notes.tag",
-      "captures": {
-        "1": {
-          "name": "punctuation.definition.tag"
-        },
-        "2": {
-          "name": "support.function.text.markdown.notes.tag.title"
-        }
-      }
-    },
-    {
-      "match": "(\\+)([\\w\\-\\_]+)",
-      "name": "text.markdown.notes.project",
-      "captures": {
-        "1": {
-          "name": "punctuation.definition.tag"
-        },
-        "2": {
-          "name": "support.function.text.markdown.notes.project.title"
-        }
-      }
-    },
-    {
       "match": "(?:\\s|^)([\\w\\-\\_]+)(:)([\\w\\-\\_]+)",
       "name": "text.markdown.notes.key-value",
       "captures": {
@@ -54,18 +30,6 @@
         },
         "3": {
           "name": "string.other.text.markdown.notes.key-value.value"
-        }
-      }
-    },
-    {
-      "match": "(?:\\s|^)(@)([\\w\\-\\_]+)",
-      "name": "text.markdown.notes.person",
-      "captures": {
-        "1": {
-          "name": "punctuation.definition.tag"
-        },
-        "2": {
-          "name": "support.variable.markdown.notes.person.name"
         }
       }
     }
