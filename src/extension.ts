@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
-import MarkdownSnippetCompletionItemProvider from "./MarkdownSnippetCompletionItemProvider";
 import store from "./store";
 import { findAllMarkdownFilesInWorkspace } from "./util";
 import {
@@ -36,13 +35,6 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerDefinitionProvider(
       md,
       new MarkdownDefinitionProvider(store)
-    )
-  );
-  // provide convenience snippets
-  context.subscriptions.push(
-    vscode.languages.registerCompletionItemProvider(
-      md,
-      new MarkdownSnippetCompletionItemProvider(store)
     )
   );
   // provide document links
