@@ -1,21 +1,17 @@
 import * as vscode from "vscode";
-import { LinkedNotesStore } from "./store";
-import {
-  getWikiLinkForPosition,
-  getHeadingForPosition,
-  convertWikiLinkPermalinkToURI,
-  getDocumentIdFromWikiLink,
-  getHeadingByDocumentId,
-  createDocumentUriFromDocumentId,
-  convertUnistPositionToVscodeRange,
-} from "./util";
 import {
   getLinkedNotesDocumentIdFromUri,
-  getLinkedNotesDocumentIdFromTextDocument,
-  selectDocumentWikiLinksByDocumentId,
   selectWikiLinkBackReferencesToDocumentId,
-  selectDocumentHeadingByDocumentId,
 } from "./reducers/documents";
+import { LinkedNotesStore } from "./store";
+import {
+  convertUnistPositionToVscodeRange,
+  convertWikiLinkPermalinkToURI,
+  createDocumentUriFromDocumentId,
+  getHeadingByDocumentId,
+  getHeadingForPosition,
+  getWikiLinkForPosition,
+} from "./util";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;

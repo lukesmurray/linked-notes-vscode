@@ -4,10 +4,6 @@ import {
   selectDocumentLinksByDocumentId,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import {
-  convertUnistPositionToVscodeRange,
-  getAllWikiLinksByDocumentId,
-} from "./util";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {

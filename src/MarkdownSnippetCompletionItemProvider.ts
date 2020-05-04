@@ -1,5 +1,5 @@
-import { LinkedNotesStore } from "./store";
 import * as vscode from "vscode";
+import { LinkedNotesStore } from "./store";
 
 class MarkdownSnippetCompletionItemProvider
   implements vscode.CompletionItemProvider {

@@ -1,14 +1,14 @@
+import type { Heading, WikiLink } from "mdast";
+import { format } from "path";
+import type { Node as UnistNode, Position as UnistPosition } from "unist";
 import * as vscode from "vscode";
-import type { LinkedNotesStore } from "./store";
-import type { WikiLink, Heading } from "mdast";
 import {
   getLinkedNotesDocumentIdFromTextDocument,
-  selectDocumentWikiLinksByDocumentId,
-  selectDocumentHeadingByDocumentId,
   getLinkedNotesDocumentIdFromUri,
+  selectDocumentHeadingByDocumentId,
+  selectDocumentWikiLinksByDocumentId,
 } from "./reducers/documents";
-import type { Node as UnistNode, Position as UnistPosition } from "unist";
-import { format } from "path";
+import type { LinkedNotesStore } from "./store";
 
 /**
  * Return a thenable with all the markdown files in the workspace

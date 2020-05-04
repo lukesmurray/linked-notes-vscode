@@ -1,11 +1,11 @@
+import { parse } from "path";
+import * as vscode from "vscode";
 import { LinkedNotesStore } from "./store";
 import {
-  getWikiLinkForPosition,
-  findAllMarkdownFilesInWorkspace,
   convertWikiLinkPermalinkToURI,
+  findAllMarkdownFilesInWorkspace,
+  getWikiLinkForPosition,
 } from "./util";
-import { parse, format } from "path";
-import * as vscode from "vscode";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;

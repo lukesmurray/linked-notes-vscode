@@ -60,18 +60,30 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  // Add all of the event listeners
-  vscode.workspace.onDidCreateFiles((e) => {
-    for (let fileUri of e.files) {
+  // initialize the workspace
+  await findAllMarkdownFilesInWorkspace().then((fileUris) => {
+    fileUris.map((uri) =>
       vscode.workspace
-        .openTextDocument(fileUri)
+        .openTextDocument(uri)
         .then(convertTextDocumentToLinkedNotesDocument)
         .then((textDoc) => {
           store.dispatch(documentAdded(textDoc));
-        });
+        })
+    );
+  });
+
+  // listen for when documents are opened in the workspace
+  vscode.workspace.onDidOpenTextDocument(async (e) => {
+    // check the list of markdown files
+    const markdownFiles = await findAllMarkdownFilesInWorkspace();
+    // make sure the new file is in the list
+    if (new Set([...markdownFiles.map((v) => v.fsPath)]).has(e.uri.fsPath)) {
+      const linkedNoteDoc = await convertTextDocumentToLinkedNotesDocument(e);
+      store.dispatch(documentAdded(linkedNoteDoc));
     }
   });
 
+  // listen for when documents are changed in the workspace
   vscode.workspace.onDidChangeTextDocument(
     debounce(
       async (e) => {
@@ -106,17 +118,5 @@ export async function activate(context: vscode.ExtensionContext) {
     for (let fileUri of e.files) {
       store.dispatch(documentDeleted(getLinkedNotesDocumentIdFromUri(fileUri)));
     }
-  });
-
-  // initialize the workspace
-  findAllMarkdownFilesInWorkspace().then((fileUris) => {
-    fileUris.map((uri) =>
-      vscode.workspace
-        .openTextDocument(uri)
-        .then(convertTextDocumentToLinkedNotesDocument)
-        .then((textDoc) => {
-          store.dispatch(documentAdded(textDoc));
-        })
-    );
   });
 }

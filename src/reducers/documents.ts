@@ -1,26 +1,24 @@
 import {
   createEntityAdapter,
-  createSlice,
   createSelector,
+  createSlice,
 } from "@reduxjs/toolkit";
-import type { Root as mdastRoot, WikiLink, Heading } from "mdast";
-import markdown from "remark-parse";
-import unified from "unified";
-import * as vscode from "vscode";
-import { RootState } from ".";
-import wikiLinkPlugin from "remark-wiki-link";
-import {
-  selectAll as unistSelectAll,
-  select as unistSelect,
-} from "unist-util-select";
+import type { Heading, Root as mdastRoot, WikiLink } from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
-import { createObjectSelector, createArraySelector } from "reselect-map";
-import { Node } from "unist";
+import markdown from "remark-parse";
+import wikiLinkPlugin from "remark-wiki-link";
+import { createObjectSelector } from "reselect-map";
+import unified from "unified";
+import {
+  select as unistSelect,
+  selectAll as unistSelectAll,
+} from "unist-util-select";
+import * as vscode from "vscode";
+import type { RootState } from ".";
 import {
   convertUnistPositionToVscodeRange,
   getDocumentIdFromWikiLink,
 } from "../util";
-import { groupBy } from "lodash";
 
 export interface LinkedNotesDocument {
   /**
@@ -120,7 +118,7 @@ const documentsSlice = createSlice({
   name: "documents",
   initialState: documentsAdapter.getInitialState(),
   reducers: {
-    documentAdded: documentsAdapter.addOne,
+    documentAdded: documentsAdapter.upsertOne,
     documentUpdated: documentsAdapter.updateOne,
     documentDeleted: documentsAdapter.removeOne,
   },
