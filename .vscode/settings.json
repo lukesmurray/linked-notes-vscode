@@ -3,6 +3,7 @@
     "mdast",
     "permalinks",
     "reduxjs",
+    "transcluded",
     "unist",
     "upsert"
   ]
