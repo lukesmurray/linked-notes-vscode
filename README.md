@@ -43,10 +43,9 @@ I also use the following vim key bindings which provide the illusion of transclu
       "before": ["g", "R"],
       "commands": ["editor.action.referenceSearch.trigger"]
     },
-    // open definition in new editor group with gd
+    // open definition in new editor group with gs
     {
-      "before": ["g", "d"],
-      // replace with editor.action.revealDefinition to open the definition in the current editor group
+      "before": ["g", "s"],
       "commands": ["editor.action.revealDefinitionAside"]
     },
     {
