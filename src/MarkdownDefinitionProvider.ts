@@ -2,7 +2,7 @@ import { parse } from "path";
 import * as vscode from "vscode";
 import { LinkedNotesStore } from "./store";
 import {
-  convertWikiLinkPermalinkToURI,
+  getDocumentUriFromWikiLinkPermalink,
   findAllMarkdownFilesInWorkspace,
   getWikiLinkForPosition,
 } from "./util";
@@ -29,7 +29,7 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
       );
       // if the file does not exist then create it
       if (matchingFile === undefined) {
-        const newURI = convertWikiLinkPermalinkToURI(fileName);
+        const newURI = getDocumentUriFromWikiLinkPermalink(fileName);
         if (newURI !== undefined) {
           await vscode.workspace.fs.writeFile(
             newURI,

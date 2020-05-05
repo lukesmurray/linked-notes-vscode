@@ -3,7 +3,7 @@ import {
   createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
-import type { Heading, Root as mdastRoot, WikiLink } from "mdast";
+import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
 import markdown from "remark-parse";
 import wikiLinkPlugin from "remark-wiki-link";
@@ -16,8 +16,9 @@ import {
 import * as vscode from "vscode";
 import type { RootState } from ".";
 import {
-  convertUnistPositionToVscodeRange,
+  getVscodeRangeFromUnistPosition,
   getDocumentIdFromWikiLink,
+  sluggifyDocumentReference,
 } from "../util";
 
 export interface LinkedNotesDocument {
@@ -29,7 +30,7 @@ export interface LinkedNotesDocument {
   /**
    * the mdast syntax tree representing this document
    */
-  syntaxTree: mdastRoot;
+  syntaxTree: MDAST.Root;
 }
 
 /**
@@ -40,13 +41,7 @@ function createMarkdownProcessor() {
   return unified()
     .use(markdown)
     .use(wikiLinkPlugin, {
-      pageResolver: (pageName) => [
-        pageName
-          .replace(/[^\w\s-]/g, "") // Remove non-ASCII characters
-          .trim()
-          .replace(/\s+/g, "-") // Convert whitespace to hyphens
-          .toLocaleLowerCase(), // add the markdown extension
-      ],
+      pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],
     });
 }
 
@@ -56,7 +51,7 @@ function createMarkdownProcessor() {
  */
 export async function getSyntaxTreeFromTextDocument(
   doc: vscode.TextDocument
-): Promise<mdastRoot> {
+): Promise<MDAST.Root> {
   const processor = createMarkdownProcessor();
   const docText = doc.getText();
   // TODO(lukemurray): find a better way to get rid of circular references
@@ -64,7 +59,7 @@ export async function getSyntaxTreeFromTextDocument(
   // unique but the mdast shares references to things like internal arrays
   const syntaxTree = JSON.parse(
     JSON.stringify(await processor.run(processor.parse(docText)))
-  ) as mdastRoot;
+  ) as MDAST.Root;
   return syntaxTree;
 }
 
@@ -133,9 +128,10 @@ export const {
 
 export const selectDocumentSlice = (state: RootState) => state.documents;
 
-const {
+export const {
   selectById: selectDocumentById,
   selectEntities: selectDocumentEntities,
+  selectIds: selectDocumentIds,
 } = documentsAdapter.getSelectors<RootState>(selectDocumentSlice);
 
 export const selectDocumentByUri = (
@@ -145,13 +141,14 @@ export const selectDocumentByUri = (
 
 export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   selectDocumentEntities,
-  (doc) => unistSelectAll("wikiLink", doc!.syntaxTree) as WikiLink[]
+  (doc) => unistSelectAll("wikiLink", doc!.syntaxTree) as MDAST.WikiLink[]
 );
 
 export const selectDocumentHeadingByDocumentId = createObjectSelector(
   selectDocumentEntities,
   (doc) =>
-    (unistSelect(`heading[depth="1"]`, doc!.syntaxTree) as Heading) ?? undefined
+    (unistSelect(`heading[depth="1"]`, doc!.syntaxTree) as MDAST.Heading) ??
+    undefined
 );
 
 const selectDocumentHeadingTextByDocumentId = createObjectSelector(
@@ -166,9 +163,7 @@ export const selectDocumentLinksByDocumentId = createObjectSelector(
       ?.filter((v) => v.position !== undefined)
       .map(
         (v) =>
-          new vscode.DocumentLink(
-            convertUnistPositionToVscodeRange(v.position!)
-          )
+          new vscode.DocumentLink(getVscodeRangeFromUnistPosition(v.position!))
       )
 );
 
@@ -176,11 +171,14 @@ export const selectWikiLinkBackReferencesToDocumentId = createSelector(
   selectDocumentWikiLinksByDocumentId,
   (allLinks) => {
     const output: {
-      [key: string]: { containingDocumentId: string; wikiLink: WikiLink }[];
+      [key: string]: {
+        containingDocumentId: string;
+        wikiLink: MDAST.WikiLink;
+      }[];
     } = {};
 
     for (let containingDocumentId of Object.keys(allLinks)) {
-      for (let wikiLink of (allLinks as { [key: string]: WikiLink[] })[
+      for (let wikiLink of (allLinks as { [key: string]: MDAST.WikiLink[] })[
         containingDocumentId
       ]) {
         const wikiLinkReferenceDocumentId = getDocumentIdFromWikiLink(wikiLink);

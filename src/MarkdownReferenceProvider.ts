@@ -5,12 +5,10 @@ import {
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
-  convertUnistPositionToVscodeRange,
-  convertWikiLinkPermalinkToURI,
-  createDocumentUriFromDocumentId,
+  getDocumentUriFromDocumentId,
+  getDocumentURIForPosition,
   getHeadingByDocumentId,
-  getHeadingForPosition,
-  getWikiLinkForPosition,
+  getVscodeRangeFromUnistPosition,
 } from "./util";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
@@ -25,27 +23,11 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     context: vscode.ReferenceContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.Location[]> {
-    let documentUri: vscode.Uri | undefined = undefined;
-    const overlappingWikiLink = getWikiLinkForPosition(
-      this.store,
+    let { documentUri } = getDocumentURIForPosition(
       document,
-      position
+      position,
+      this.store
     );
-    const overlappingHeader = getHeadingForPosition(
-      this.store,
-      document,
-      position
-    );
-    // if overlapping a wiki link
-    if (overlappingWikiLink) {
-      documentUri = convertWikiLinkPermalinkToURI(
-        overlappingWikiLink.data.permalink
-      );
-      // if overlapping header
-    } else if (overlappingHeader) {
-      // create a document id from the current document
-      documentUri = document.uri;
-    }
 
     if (documentUri) {
       const documentId = getLinkedNotesDocumentIdFromUri(documentUri);
@@ -61,14 +43,14 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
           .filter((v) => v.wikiLink.position !== undefined)
           .map(({ containingDocumentId, wikiLink }) => {
             return new vscode.Location(
-              createDocumentUriFromDocumentId(containingDocumentId),
-              convertUnistPositionToVscodeRange(wikiLink.position!)
+              getDocumentUriFromDocumentId(containingDocumentId),
+              getVscodeRangeFromUnistPosition(wikiLink.position!)
             );
           }),
         headerBackReference?.position !== undefined
           ? new vscode.Location(
-              createDocumentUriFromDocumentId(documentId),
-              convertUnistPositionToVscodeRange(headerBackReference?.position!)
+              getDocumentUriFromDocumentId(documentId),
+              getVscodeRangeFromUnistPosition(headerBackReference?.position!)
             )
           : undefined,
       ].filter((v) => v !== undefined) as vscode.Location[];

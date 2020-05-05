@@ -1,6 +1,6 @@
-import type { Heading, WikiLink } from "mdast";
+import * as MDAST from "mdast";
 import { format } from "path";
-import type { Node as UnistNode, Position as UnistPosition } from "unist";
+import * as UNIST from "unist";
 import * as vscode from "vscode";
 import {
   getLinkedNotesDocumentIdFromTextDocument,
@@ -56,19 +56,19 @@ export function getWikiLinkForPosition(
 
 export function getAllWikiLinksByDocumentId(
   store: LinkedNotesStore
-): { [key: string]: WikiLink[] | undefined } {
+): { [key: string]: MDAST.WikiLink[] | undefined } {
   return selectDocumentWikiLinksByDocumentId(store.getState());
 }
 
 export function getHeadingByDocumentId(
   store: LinkedNotesStore
-): { [key: string]: Heading | undefined } {
+): { [key: string]: MDAST.Heading | undefined } {
   return selectDocumentHeadingByDocumentId(store.getState());
 }
 
 export function isPositionInsideNode(
   position: vscode.Position,
-  node: UnistNode
+  node: UNIST.Node
 ) {
   if (node.position === undefined) {
     return false;
@@ -118,8 +118,8 @@ export function isPositionInsideNode(
   return false;
 }
 
-export function convertUnistPositionToVscodeRange(
-  position: UnistPosition
+export function getVscodeRangeFromUnistPosition(
+  position: UNIST.Position
 ): vscode.Range {
   return new vscode.Range(
     new vscode.Position(position.start.line - 1, position.start.column - 1),
@@ -127,7 +127,7 @@ export function convertUnistPositionToVscodeRange(
   );
 }
 
-export function convertWikiLinkPermalinkToURI(
+export function getDocumentUriFromWikiLinkPermalink(
   permalink: string
 ): vscode.Uri | undefined {
   if (vscode.workspace.workspaceFolders === undefined) {
@@ -142,8 +142,12 @@ export function convertWikiLinkPermalinkToURI(
   return newURI;
 }
 
-export function getDocumentIdFromWikiLink(wikiLink: WikiLink) {
-  const uri = convertWikiLinkPermalinkToURI(wikiLink.data.permalink);
+export function getDocumentUriFromDocumentSlug(slug: string) {
+  return getDocumentUriFromWikiLinkPermalink(slug);
+}
+
+export function getDocumentIdFromWikiLink(wikiLink: MDAST.WikiLink) {
+  const uri = getDocumentUriFromWikiLinkPermalink(wikiLink.data.permalink);
   // create a document id from the uri
   if (uri) {
     return getLinkedNotesDocumentIdFromUri(uri);
@@ -151,6 +155,65 @@ export function getDocumentIdFromWikiLink(wikiLink: WikiLink) {
   return undefined;
 }
 
-export function createDocumentUriFromDocumentId(documentId: string) {
+export function getDocumentUriFromDocumentId(documentId: string) {
   return vscode.Uri.file(documentId);
+}
+
+export function getDocumentURIForPosition(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  store: LinkedNotesStore
+) {
+  let documentUri: vscode.Uri | undefined = undefined;
+  const overlappingWikiLink = getWikiLinkForPosition(store, document, position);
+  const overlappingHeader = getHeadingForPosition(store, document, position);
+  // if overlapping a wiki link
+  if (overlappingWikiLink) {
+    documentUri = getDocumentUriFromWikiLinkPermalink(
+      overlappingWikiLink.data.permalink
+    );
+    // if overlapping header
+  } else if (overlappingHeader) {
+    // create a document id from the current document
+    documentUri = document.uri;
+  }
+  return {
+    documentUri: documentUri,
+    wikiLink: overlappingWikiLink,
+    header: overlappingHeader,
+  };
+}
+
+export function getHeaderContentRange(headerPosition: UNIST.Position) {
+  // convert the position so that the # and space are not included
+  return getVscodeRangeFromUnistPosition({
+    ...headerPosition,
+    start: {
+      ...headerPosition.start,
+      column: headerPosition.start.column + 2,
+    },
+  });
+}
+
+export function getWikiLinkContentRange(wikiLinkPosition: UNIST.Position) {
+  // convert the position so that the double bracket at the beginning and end aren't included
+  return getVscodeRangeFromUnistPosition({
+    ...wikiLinkPosition,
+    start: {
+      ...wikiLinkPosition.start,
+      column: wikiLinkPosition.start.column + 2,
+    },
+    end: {
+      ...wikiLinkPosition.end,
+      column: wikiLinkPosition.end.column - 2,
+    },
+  });
+}
+
+export function sluggifyDocumentReference(documentReference: string): string {
+  return documentReference
+    .replace(/[^\w\s-]/g, "") // Remove non-ASCII characters
+    .trim()
+    .replace(/\s+/g, "-") // Convert whitespace to hyphens
+    .toLocaleLowerCase();
 }
