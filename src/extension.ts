@@ -15,6 +15,7 @@ import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 import { debounce } from "lodash";
 import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
+import MarkdownRenameProvider from "./MarkdownRenameProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -30,7 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
       "["
     )
   );
-  // provide go to definition
+  // provide go to definition for links
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(
       md,
@@ -44,11 +45,18 @@ export async function activate(context: vscode.ExtensionContext) {
       new MarkdownDocumentLinkProvider(store)
     )
   );
-  // provide document references
+  // provide link and header references
   context.subscriptions.push(
     vscode.languages.registerReferenceProvider(
       md,
       new MarkdownReferenceProvider(store)
+    )
+  );
+  // provide renaming
+  context.subscriptions.push(
+    vscode.languages.registerRenameProvider(
+      md,
+      new MarkdownRenameProvider(store)
     )
   );
 
