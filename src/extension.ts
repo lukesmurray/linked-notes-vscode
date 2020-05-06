@@ -1,24 +1,27 @@
+import { debounce } from "lodash";
+import MarkdownIt from "markdown-it";
+import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
 import * as vscode from "vscode";
+import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
+import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
+import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
+import MarkdownRenameProvider from "./MarkdownRenameProvider";
 import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
+import {
+  convertTextDocumentToLinkedNotesDocument,
+  documentAdded,
+  documentDeleted,
+  documentUpdated,
+  getLinkedNotesDocumentIdFromTextDocument,
+  getLinkedNotesDocumentIdFromUri,
+  getSyntaxTreeFromTextDocument,
+} from "./reducers/documents";
 import store from "./store";
 import {
   findAllMarkdownFilesInWorkspace,
-  MARKDOWN_FILE_GLOB_PATTERN,
+  getDocumentUriFromDocumentSlug,
+  sluggifyDocumentReference,
 } from "./util";
-import {
-  documentAdded,
-  getLinkedNotesDocumentIdFromUri,
-  documentUpdated,
-  documentDeleted,
-  convertTextDocumentToLinkedNotesDocument,
-  getLinkedNotesDocumentIdFromTextDocument,
-  getSyntaxTreeFromTextDocument,
-} from "./reducers/documents";
-import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
-import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
-import { debounce } from "lodash";
-import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
-import MarkdownRenameProvider from "./MarkdownRenameProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -142,4 +145,20 @@ export async function activate(context: vscode.ExtensionContext) {
       store.dispatch(documentDeleted(getLinkedNotesDocumentIdFromUri(fileUri)));
     }
   });
+
+  return {
+    extendMarkdownIt(md: MarkdownIt) {
+      return md.use(markdownItRegex, {
+        name: "wikiLink",
+        regex: /\[\[(.+?)\]\]/,
+        replace: (match) => {
+          const alias = match;
+          const uri = getDocumentUriFromDocumentSlug(
+            sluggifyDocumentReference(match)
+          )!;
+          return `<a href=${uri.fsPath}>${alias}</a>`;
+        },
+      } as MarkdownItRegexOptions);
+    },
+  };
 }

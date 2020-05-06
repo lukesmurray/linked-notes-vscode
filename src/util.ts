@@ -223,7 +223,6 @@ export function sluggifyDocumentReference(documentReference: string): string {
 export function getDefaultNoteText(noteTitle: string): string {
   return `---
 draft: true
-createdAt: ${Date.now()}
 ---
 
 # ${noteTitle}
