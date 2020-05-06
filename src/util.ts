@@ -10,12 +10,14 @@ import {
 } from "./reducers/documents";
 import type { LinkedNotesStore } from "./store";
 
+export const MARKDOWN_FILE_GLOB_PATTERN = "**/*.{md,MD}";
+
 /**
  * Return a thenable with all the markdown files in the workspace
  */
 export async function findAllMarkdownFilesInWorkspace() {
-  return (await vscode.workspace.findFiles("**/*")).filter(
-    (f) => f.scheme === "file" && f.path.match(/\.(md)$/i)
+  return (await vscode.workspace.findFiles(MARKDOWN_FILE_GLOB_PATTERN)).filter(
+    (f) => f.scheme === "file"
   );
 }
 

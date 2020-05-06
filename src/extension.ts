@@ -1,7 +1,10 @@
 import * as vscode from "vscode";
 import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
 import store from "./store";
-import { findAllMarkdownFilesInWorkspace } from "./util";
+import {
+  findAllMarkdownFilesInWorkspace,
+  MARKDOWN_FILE_GLOB_PATTERN,
+} from "./util";
 import {
   documentAdded,
   getLinkedNotesDocumentIdFromUri,
@@ -100,6 +103,26 @@ export async function activate(context: vscode.ExtensionContext) {
       { maxWait: 15000 }
     )
   );
+
+  // const markdownFileWatcher = vscode.workspace.createFileSystemWatcher(
+  //   MARKDOWN_FILE_GLOB_PATTERN
+  // );
+  // markdownFileWatcher.onDidChange((uri) => {
+  //   console.log("watcher change", uri.fsPath);
+  //   vscode.workspace
+  //     .openTextDocument(uri)
+  //     .then(convertTextDocumentToLinkedNotesDocument)
+  //     .then((document) => {
+  //       store.dispatch(
+  //         documentUpdated({
+  //           id: document.id,
+  //           changes: {
+  //             syntaxTree: document.syntaxTree,
+  //           },
+  //         })
+  //       );
+  //     });
+  // });
 
   vscode.workspace.onDidRenameFiles((e) => {
     for (let file of e.files) {

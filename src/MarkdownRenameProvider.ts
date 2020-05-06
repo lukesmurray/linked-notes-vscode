@@ -17,6 +17,7 @@ import {
   selectDocumentById,
   selectDocumentIds,
 } from "./reducers/documents";
+import * as fs from "fs";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
   private store: LinkedNotesStore;
@@ -105,19 +106,28 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
       if (newUri === undefined) {
         throw new Error(`Failed to create file name from ${newName}`);
       }
-      // check if the uri already exists (i.e. the user is merging two references)
-      const documentIds = new Set(selectDocumentIds(this.store.getState()));
-      const newDocumentId = getLinkedNotesDocumentIdFromUri(newUri);
-      // throw an error if the user is merging references (not sure how to support)
-      if (documentIds.has(newDocumentId)) {
-        throw new Error(
-          `The reference ${newName} already exist. Support for merging tags is not implemented yet`
-        );
+
+      // only rename if the file is going to a new place
+      // this can occur if we change the reference name in such a way that
+      // the slugged version normalizes to the same file
+      if (newUri.fsPath !== documentUri.fsPath) {
+        // check if the uri already exists
+        // can occur if the user is trying to rename all instances of one reference
+        // to another reference
+        const documentIds = new Set(selectDocumentIds(this.store.getState()));
+        const newDocumentId = getLinkedNotesDocumentIdFromUri(newUri);
+        // throw an error if the user is merging references (not sure how to support)
+        if (documentIds.has(newDocumentId)) {
+          throw new Error(
+            `The reference ${newName} already exist. Support for merging tags is not implemented yet`
+          );
+        }
+        // check that the old document exists
+        if (fs.existsSync(documentUri.fsPath)) {
+          // apply the rename
+          workspaceEdit.renameFile(documentUri, newUri);
+        }
       }
-      // apply the rename
-      workspaceEdit.renameFile(documentUri, newUri, {
-        overwrite: false, // don't overwrite existing files
-      });
       // return the edit
       return workspaceEdit;
     }
