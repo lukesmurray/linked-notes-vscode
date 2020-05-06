@@ -219,3 +219,14 @@ export function sluggifyDocumentReference(documentReference: string): string {
     .replace(/\s+/g, "-") // Convert whitespace to hyphens
     .toLocaleLowerCase();
 }
+
+export function getDefaultNoteText(noteTitle: string): string {
+  return `---
+draft: true
+createdAt: ${Date.now()}
+---
+
+# ${noteTitle}
+
+`;
+}

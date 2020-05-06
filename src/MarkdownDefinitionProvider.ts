@@ -5,6 +5,7 @@ import {
   getDocumentUriFromWikiLinkPermalink,
   findAllMarkdownFilesInWorkspace,
   getWikiLinkForPosition,
+  getDefaultNoteText,
 } from "./util";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
@@ -33,7 +34,7 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
         if (newURI !== undefined) {
           await vscode.workspace.fs.writeFile(
             newURI,
-            Buffer.from("# " + overlappingWikiLink.data.alias)
+            Buffer.from(getDefaultNoteText(overlappingWikiLink.data.alias))
           );
           matchingFile = newURI;
         }
