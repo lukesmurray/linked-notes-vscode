@@ -1,7 +1,6 @@
-import { debounce } from "lodash";
-import MarkdownIt from "markdown-it";
-import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
+import { debounce, memoize } from "lodash";
 import * as vscode from "vscode";
+import ExtendMarkdownIt from "./ExtendMarkdownIt";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
@@ -17,11 +16,7 @@ import {
   getSyntaxTreeFromTextDocument,
 } from "./reducers/documents";
 import store from "./store";
-import {
-  findAllMarkdownFilesInWorkspace,
-  getDocumentUriFromDocumentSlug,
-  sluggifyDocumentReference,
-} from "./util";
+import { findAllMarkdownFilesInWorkspace } from "./util";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -89,23 +84,31 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  // listen for when documents are changed in the workspace
-  vscode.workspace.onDidChangeTextDocument(
-    debounce(
-      async (e) => {
-        store.dispatch(
-          documentUpdated({
-            id: getLinkedNotesDocumentIdFromTextDocument(e.document),
-            changes: {
-              syntaxTree: await getSyntaxTreeFromTextDocument(e.document),
-            },
-          })
-        );
-      },
-      150,
-      { maxWait: 15000 }
-    )
+  // create a memoized handler for document changes by id
+  const textDocumentChangeHandler = memoize(
+    (textDocumentId: string, e: vscode.TextDocumentChangeEvent) => {
+      return debounce(
+        async () => {
+          store.dispatch(
+            documentUpdated({
+              id: textDocumentId,
+              changes: {
+                syntaxTree: await getSyntaxTreeFromTextDocument(e.document),
+              },
+            })
+          );
+        },
+        150,
+        { maxWait: 15000 }
+      );
+    }
   );
+
+  // listen for when documents are changed in the workspace
+  vscode.workspace.onDidChangeTextDocument((e) => {
+    const textDocumentId = getLinkedNotesDocumentIdFromTextDocument(e.document);
+    textDocumentChangeHandler(textDocumentId, e)();
+  });
 
   // const markdownFileWatcher = vscode.workspace.createFileSystemWatcher(
   //   MARKDOWN_FILE_GLOB_PATTERN
@@ -147,18 +150,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   return {
-    extendMarkdownIt(md: MarkdownIt) {
-      return md.use(markdownItRegex, {
-        name: "wikiLink",
-        regex: /\[\[(.+?)\]\]/,
-        replace: (match) => {
-          const alias = match;
-          const uri = getDocumentUriFromDocumentSlug(
-            sluggifyDocumentReference(match)
-          )!;
-          return `<a href=${uri.fsPath}>${alias}</a>`;
-        },
-      } as MarkdownItRegexOptions);
-    },
+    extendMarkdownIt: ExtendMarkdownIt,
   };
 }
