@@ -16,6 +16,7 @@ import {
   selectWikiLinkBackReferencesToDocumentId,
   selectDocumentById,
   selectDocumentIds,
+  waitForDocumentUpToDate,
 } from "./reducers/documents";
 import * as fs from "fs";
 
@@ -51,12 +52,20 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     throw new Error("You cannot rename this element.");
   }
 
-  provideRenameEdits(
+  async provideRenameEdits(
     document: vscode.TextDocument,
     position: vscode.Position,
     newName: string,
     token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.WorkspaceEdit> {
+  ) {
+    // wait for all documents to be up to date
+    const allDocumentIds = selectDocumentIds(this.store.getState());
+    await Promise.all([
+      allDocumentIds.map(async (documentId) => {
+        await waitForDocumentUpToDate(this.store, documentId as string);
+      }),
+    ]);
+
     // get the referenced document
     let { documentUri } = getDocumentURIForPosition(
       document,

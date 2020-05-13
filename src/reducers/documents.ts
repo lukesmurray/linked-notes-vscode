@@ -2,6 +2,8 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
+  createAsyncThunk,
+  createAction,
 } from "@reduxjs/toolkit";
 import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
@@ -19,7 +21,9 @@ import {
   getVscodeRangeFromUnistPosition,
   getDocumentIdFromWikiLink,
   sluggifyDocumentReference,
+  delay,
 } from "../util";
+import { AppDispatch, LinkedNotesStore } from "../store";
 
 export interface LinkedNotesDocument {
   /**
@@ -46,7 +50,7 @@ function createMarkdownProcessor() {
 }
 
 /**
- * Get a syntax tree from a text document assynchronously
+ * Get a syntax tree from a text document asynchronously
  * @param doc a vscode text document
  */
 export async function getSyntaxTreeFromTextDocument(
@@ -103,10 +107,34 @@ export const getLinkedNotesDocumentId: (
 ) => string = (document) => document.id;
 
 // create adapter for managing documents
-const documentsAdapter = createEntityAdapter<LinkedNotesDocument>({
-  selectId: getLinkedNotesDocumentId,
-  sortComparer: (a, b) => a.id.localeCompare(b.id),
+const documentsAdapter = createEntityAdapter<{
+  document: LinkedNotesDocument;
+  status: "pending changes" | "up to date";
+}>({
+  selectId: (entity) => getLinkedNotesDocumentId(entity.document),
+  sortComparer: (a, b) => a.document.id.localeCompare(b.document.id),
 });
+
+export const updateDocumentSyntaxTree = createAsyncThunk<
+  { id: string; syntaxTree: MDAST.Root },
+  vscode.TextDocument,
+  { dispatch: AppDispatch; state: RootState }
+>(
+  "document/updateSyntaxTree",
+  async (document: vscode.TextDocument, thunkApi) => {
+    const textDocumentId = getLinkedNotesDocumentIdFromTextDocument(document);
+    thunkApi.dispatch(documentChangePending({ id: textDocumentId }));
+    const syntaxTree = await getSyntaxTreeFromTextDocument(document);
+    return {
+      id: textDocumentId,
+      syntaxTree,
+    };
+  }
+);
+
+export const documentChangePending = createAction<{ id: string }>(
+  "document/changePending"
+);
 
 // create documents slice
 const documentsSlice = createSlice({
@@ -117,13 +145,35 @@ const documentsSlice = createSlice({
     documentUpdated: documentsAdapter.updateOne,
     documentDeleted: documentsAdapter.removeOne,
   },
+  extraReducers: (builder) => {
+    builder.addCase(updateDocumentSyntaxTree.fulfilled, (state, action) => {
+      return documentsAdapter.updateOne(state, {
+        id: action.payload.id,
+        changes: {
+          status: "up to date",
+          document: {
+            syntaxTree: action.payload.syntaxTree,
+            id: action.payload.id,
+          },
+        },
+      });
+    });
+    builder.addCase(documentChangePending, (state, action) => {
+      return documentsAdapter.updateOne(state, {
+        id: action.payload.id,
+        changes: {
+          status: "pending changes",
+        },
+      });
+    });
+  },
 });
 
 // export actions
 export const {
   documentAdded,
-  documentUpdated,
   documentDeleted,
+  documentUpdated,
 } = documentsSlice.actions;
 
 export const selectDocumentSlice = (state: RootState) => state.documents;
@@ -141,14 +191,20 @@ export const selectDocumentByUri = (
 
 export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   selectDocumentEntities,
-  (doc) => unistSelectAll("wikiLink", doc!.syntaxTree) as MDAST.WikiLink[]
+  (docEntity) =>
+    unistSelectAll(
+      "wikiLink",
+      docEntity!.document.syntaxTree
+    ) as MDAST.WikiLink[]
 );
 
 export const selectDocumentHeadingByDocumentId = createObjectSelector(
   selectDocumentEntities,
-  (doc) =>
-    (unistSelect(`heading[depth="1"]`, doc!.syntaxTree) as MDAST.Heading) ??
-    undefined
+  (docEntity) =>
+    (unistSelect(
+      `heading[depth="1"]`,
+      docEntity!.document.syntaxTree
+    ) as MDAST.Heading) ?? undefined
 );
 
 const selectDocumentHeadingTextByDocumentId = createObjectSelector(
@@ -213,6 +269,25 @@ export const selectWikiLinkCompletions = createSelector(
     ].sort();
   }
 );
+
+export const waitForDocumentUpToDate = (
+  store: LinkedNotesStore,
+  documentId: string
+) => {
+  return new Promise<void>(async (resolve, reject) => {
+    while (true) {
+      const documentEntity = selectDocumentById(store.getState(), documentId);
+      if (documentEntity?.status === "up to date") {
+        break;
+      }
+      // TODO(lukemurray): there's a memory leak here if the document is removed from the
+      // store. We probably want to retry or something a specific number of times then
+      // give up
+      await delay(50);
+    }
+    resolve();
+  });
+};
 
 // export reducer as the default
 export default documentsSlice.reducer;

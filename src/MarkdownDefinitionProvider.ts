@@ -7,6 +7,10 @@ import {
   getWikiLinkForPosition,
   getDefaultNoteText,
 } from "./util";
+import {
+  getLinkedNotesDocumentIdFromTextDocument,
+  waitForDocumentUpToDate,
+} from "./reducers/documents";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;
@@ -18,6 +22,8 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ) {
+    const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+    await waitForDocumentUpToDate(this.store, documentId);
     const overlappingWikiLink = getWikiLinkForPosition(
       this.store,
       document,

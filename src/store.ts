@@ -10,7 +10,7 @@ const store = configureStore({
   reducer: rootReducer,
   middleware: [
     // loggerMiddleware as Middleware<RootState>,
-    // ...getDefaultMiddleware<RootState>(),
+    ...getDefaultMiddleware<RootState>(),
   ],
 });
 

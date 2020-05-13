@@ -1,5 +1,9 @@
 import * as vscode from "vscode";
-import { selectWikiLinkCompletions } from "./reducers/documents";
+import {
+  selectWikiLinkCompletions,
+  getLinkedNotesDocumentIdFromTextDocument,
+  waitForDocumentUpToDate,
+} from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 
 class MarkdownWikiLinkCompletionProvider
@@ -14,6 +18,8 @@ class MarkdownWikiLinkCompletionProvider
     _token: vscode.CancellationToken,
     context: vscode.CompletionContext
   ) {
+    const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+    await waitForDocumentUpToDate(this.store, documentId);
     let range = document.getWordRangeAtPosition(
       position,
       // positive look behind whitespace or start of line followed by open wiki link

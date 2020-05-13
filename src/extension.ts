@@ -13,7 +13,8 @@ import {
   documentUpdated,
   getLinkedNotesDocumentIdFromTextDocument,
   getLinkedNotesDocumentIdFromUri,
-  getSyntaxTreeFromTextDocument,
+  updateDocumentSyntaxTree,
+  selectDocumentByUri,
 } from "./reducers/documents";
 import store from "./store";
 import { findAllMarkdownFilesInWorkspace } from "./util";
@@ -62,15 +63,22 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // initialize the workspace
-  await findAllMarkdownFilesInWorkspace().then((fileUris) => {
-    fileUris.map((uri) =>
-      vscode.workspace
-        .openTextDocument(uri)
-        .then(convertTextDocumentToLinkedNotesDocument)
-        .then((textDoc) => {
-          store.dispatch(documentAdded(textDoc));
-        })
-    );
+  await findAllMarkdownFilesInWorkspace().then(async (fileUris) => {
+    return await Promise.all([
+      fileUris.map((uri) =>
+        vscode.workspace
+          .openTextDocument(uri)
+          .then(convertTextDocumentToLinkedNotesDocument)
+          .then((textDoc) => {
+            store.dispatch(
+              documentAdded({
+                document: textDoc,
+                status: "up to date",
+              })
+            );
+          })
+      ),
+    ]);
   });
 
   // listen for when documents are opened in the workspace
@@ -80,23 +88,21 @@ export async function activate(context: vscode.ExtensionContext) {
     // make sure the new file is in the list
     if (new Set([...markdownFiles.map((v) => v.fsPath)]).has(e.uri.fsPath)) {
       const linkedNoteDoc = await convertTextDocumentToLinkedNotesDocument(e);
-      store.dispatch(documentAdded(linkedNoteDoc));
+      store.dispatch(
+        documentAdded({
+          document: linkedNoteDoc,
+          status: "up to date",
+        })
+      );
     }
   });
 
   // create a memoized handler for document changes by id
   const textDocumentChangeHandler = memoize(
-    (textDocumentId: string, e: vscode.TextDocumentChangeEvent) => {
+    (_textDocumentId: string, e: vscode.TextDocumentChangeEvent) => {
       return debounce(
-        async () => {
-          store.dispatch(
-            documentUpdated({
-              id: textDocumentId,
-              changes: {
-                syntaxTree: await getSyntaxTreeFromTextDocument(e.document),
-              },
-            })
-          );
+        () => {
+          store.dispatch(updateDocumentSyntaxTree(e.document));
         },
         150,
         { maxWait: 15000 }
@@ -132,11 +138,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidRenameFiles((e) => {
     for (let file of e.files) {
+      const oldDocument = selectDocumentByUri(store.getState(), file.oldUri);
       store.dispatch(
         documentUpdated({
           id: getLinkedNotesDocumentIdFromUri(file.oldUri),
           changes: {
-            id: getLinkedNotesDocumentIdFromUri(file.newUri),
+            document: {
+              ...oldDocument!.document,
+              id: getLinkedNotesDocumentIdFromUri(file.newUri),
+            },
           },
         })
       );

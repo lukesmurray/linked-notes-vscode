@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
   getLinkedNotesDocumentIdFromTextDocument,
   selectDocumentLinksByDocumentId,
+  waitForDocumentUpToDate,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
@@ -9,13 +10,15 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
-  provideDocumentLinks(
+  async provideDocumentLinks(
     document: vscode.TextDocument,
     token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.DocumentLink[]> {
+  ) {
+    const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+    await waitForDocumentUpToDate(this.store, documentId);
     return (selectDocumentLinksByDocumentId(this.store.getState()) as {
       [key: string]: vscode.DocumentLink[];
-    })[getLinkedNotesDocumentIdFromTextDocument(document)];
+    })[documentId];
   }
 }
 

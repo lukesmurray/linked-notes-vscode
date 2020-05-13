@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import {
   getLinkedNotesDocumentIdFromUri,
   selectWikiLinkBackReferencesToDocumentId,
+  getLinkedNotesDocumentIdFromTextDocument,
+  waitForDocumentUpToDate,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
@@ -17,12 +19,14 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
-  provideReferences(
+  async provideReferences(
     document: vscode.TextDocument,
     position: vscode.Position,
     context: vscode.ReferenceContext,
     token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.Location[]> {
+  ) {
+    const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+    await waitForDocumentUpToDate(this.store, documentId);
     let { documentUri } = getDocumentURIForPosition(
       document,
       position,
