@@ -10,7 +10,7 @@ These APIs are made more powerful through the use of some custom settings (inspi
 
 These are my workspace settings which provide a seamless save experience.
 
-```json
+```jsonc
 {
   // save files after a delay automatically
   "files.autoSave": "afterDelay",
@@ -30,8 +30,7 @@ These are my workspace settings which provide a seamless save experience.
 
 I also use the following vim key bindings which provide the illusion of transcluded documents, back links, and linked notes.
 
-```json
-   // open references panel with gD
+```jsonc
   "vim.normalModeKeyBindingsNonRecursive": [
     // open references panel with gr
     {
@@ -52,6 +51,11 @@ I also use the following vim key bindings which provide the illusion of transclu
       // peek definition inline with gD
       "before": ["g", "D"],
       "commands": ["editor.action.peekDefinition"]
+    },
+    // open link with gx
+    {
+      "before": ["g", "x"],
+      "commands": ["editor.action.openLink"]
     }
   ],
 ```
