@@ -3,20 +3,51 @@ import { format } from "path";
 import * as UNIST from "unist";
 import * as vscode from "vscode";
 import {
-  getLinkedNotesDocumentIdFromTextDocument,
-  getLinkedNotesDocumentIdFromUri,
+  convertTextDocToLinkedDocId,
+  convertUriToLinkedDocId,
   selectDocumentHeadingByDocumentId,
   selectDocumentWikiLinksByDocumentId,
 } from "./reducers/documents";
 import type { LinkedNotesStore } from "./store";
+import { bibtexParser } from "latex-utensils";
 
-export const MARKDOWN_FILE_GLOB_PATTERN = "**/*.{md,MD}";
+export const MARKDOWN_FILE_EXT = ["md", "MD"] as const;
+export const BIB_FILE_EXT = ["bib"] as const;
+
+export const MARKDOWN_FILE_GLOB_PATTERN = `**/*.{${MARKDOWN_FILE_EXT.join(
+  ","
+)}}`;
+
+export const BIB_FILE_GLOB_PATTERN = `**/*.{${BIB_FILE_EXT.join(",")}}`;
+
+export function isMarkdownFile(uri: vscode.Uri) {
+  return (
+    uri.scheme === "file" &&
+    MARKDOWN_FILE_EXT.some((ext) => uri.fsPath.endsWith(ext))
+  );
+}
+
+export function isBibTexFile(uri: vscode.Uri) {
+  return (
+    uri.scheme === "file" &&
+    BIB_FILE_EXT.some((ext) => uri.fsPath.endsWith(ext))
+  );
+}
 
 /**
  * Return a thenable with all the markdown files in the workspace
  */
 export async function findAllMarkdownFilesInWorkspace() {
   return (await vscode.workspace.findFiles(MARKDOWN_FILE_GLOB_PATTERN)).filter(
+    (f) => f.scheme === "file"
+  );
+}
+
+/**
+ * Return a thenable with all the markdown files in the workspace
+ */
+export async function findAllBibFilesInWorkspace() {
+  return (await vscode.workspace.findFiles(BIB_FILE_GLOB_PATTERN)).filter(
     (f) => f.scheme === "file"
   );
 }
@@ -28,7 +59,7 @@ export function getHeadingForPosition(
 ) {
   const documentHeadingById = getHeadingByDocumentId(store);
   // get the document id
-  const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+  const documentId = convertTextDocToLinkedDocId(document);
   // get the wiki links for the document
   const heading = documentHeadingById[documentId];
   // get the overlapping wiki link
@@ -46,7 +77,7 @@ export function getWikiLinkForPosition(
   // get all the wiki links by document id
   const documentWikiLinksById = getAllWikiLinksByDocumentId(store);
   // get the document id
-  const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
+  const documentId = convertTextDocToLinkedDocId(document);
   // get the wiki links for the document
   const wikiLinks = documentWikiLinksById[documentId];
   // get the overlapping wiki link
@@ -152,7 +183,7 @@ export function getDocumentIdFromWikiLink(wikiLink: MDAST.WikiLink) {
   const uri = getDocumentUriFromWikiLinkPermalink(wikiLink.data.permalink);
   // create a document id from the uri
   if (uri) {
-    return getLinkedNotesDocumentIdFromUri(uri);
+    return convertUriToLinkedDocId(uri);
   }
   return undefined;
 }

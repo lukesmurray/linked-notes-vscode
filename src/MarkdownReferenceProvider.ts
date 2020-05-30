@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import {
-  getLinkedNotesDocumentIdFromUri,
+  convertUriToLinkedDocId,
   selectWikiLinkBackReferencesToDocumentId,
-  getLinkedNotesDocumentIdFromTextDocument,
-  waitForDocumentUpToDate,
+  convertTextDocToLinkedDocId,
+  waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
@@ -25,8 +25,8 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     context: vscode.ReferenceContext,
     token: vscode.CancellationToken
   ) {
-    const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
-    await waitForDocumentUpToDate(this.store, documentId);
+    const documentId = convertTextDocToLinkedDocId(document);
+    await waitForLinkedDocToParse(this.store, documentId);
     let { documentUri } = getDocumentURIForPosition(
       document,
       position,
@@ -34,7 +34,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     );
 
     if (documentUri) {
-      const documentId = getLinkedNotesDocumentIdFromUri(documentUri);
+      const documentId = convertUriToLinkedDocId(documentUri);
       const wikiLinkBackReferences = selectWikiLinkBackReferencesToDocumentId(
         this.store.getState()
       )[documentId];

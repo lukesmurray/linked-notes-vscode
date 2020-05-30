@@ -24,7 +24,7 @@ class MarkdownWikiLinkCompletionProvider
       position,
       // positive look behind whitespace or start of line followed by open wiki link
       // followed by anything except close link or new line
-      /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g
+      /(?:(?:(?<=\s)|^)\[)([^\]\r\n]*)/g
     );
     if (range) {
       return selectWikiLinkCompletions(this.store.getState()).map(

@@ -1,11 +1,16 @@
 {
   "cSpell.words": [
+    "bibjson",
+    "bibtex",
+    "bibtxt",
     "mdast",
     "permalinks",
+    "quickscrape",
     "reduxjs",
     "sluggify",
     "transcluded",
     "unist",
-    "upsert"
+    "upsert",
+    "wikidata"
   ]
 }

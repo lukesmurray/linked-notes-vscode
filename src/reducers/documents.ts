@@ -53,7 +53,7 @@ function createMarkdownProcessor() {
  * Get a syntax tree from a text document asynchronously
  * @param doc a vscode text document
  */
-export async function getSyntaxTreeFromTextDocument(
+export async function getASTFromTextDoc(
   doc: vscode.TextDocument
 ): Promise<MDAST.Root> {
   const processor = createMarkdownProcessor();
@@ -71,12 +71,12 @@ export async function getSyntaxTreeFromTextDocument(
  * Convert a vscode document to a linked notes document
  * @param doc a vscode document
  */
-export function convertTextDocumentToLinkedNotesDocument(
+export function convertTextDocToLinkedDoc(
   doc: vscode.TextDocument
 ): Promise<LinkedNotesDocument> {
-  return getSyntaxTreeFromTextDocument(doc).then((root) => {
+  return getASTFromTextDoc(doc).then((root) => {
     return {
-      id: getLinkedNotesDocumentIdFromTextDocument(doc),
+      id: convertTextDocToLinkedDocId(doc),
       syntaxTree: root,
     };
   });
@@ -86,23 +86,22 @@ export function convertTextDocumentToLinkedNotesDocument(
  * Get the documents slice id from the text document.
  * @param doc the text document in the workspace
  */
-export const getLinkedNotesDocumentIdFromTextDocument: (
+export const convertTextDocToLinkedDocId: (
   uri: vscode.TextDocument
-) => string = (doc) => getLinkedNotesDocumentIdFromUri(doc.uri);
+) => string = (doc) => convertUriToLinkedDocId(doc.uri);
 
 /**
  * Get the documents slice id from the text document uri.
  * @param uri the uri from a vscode.TextDocument
  */
-export const getLinkedNotesDocumentIdFromUri: (uri: vscode.Uri) => string = (
-  uri
-) => uri.fsPath;
+export const convertUriToLinkedDocId: (uri: vscode.Uri) => string = (uri) =>
+  uri.fsPath;
 
 /**
  * Return the document slice id for a linked notes document
  * @param document a linked notes document
  */
-export const getLinkedNotesDocumentId: (
+export const convertLinkedDocToLinkedDocId: (
   document: LinkedNotesDocument
 ) => string = (document) => document.id;
 
@@ -111,7 +110,7 @@ const documentsAdapter = createEntityAdapter<{
   document: LinkedNotesDocument;
   status: "pending changes" | "up to date";
 }>({
-  selectId: (entity) => getLinkedNotesDocumentId(entity.document),
+  selectId: (entity) => convertLinkedDocToLinkedDocId(entity.document),
   sortComparer: (a, b) => a.document.id.localeCompare(b.document.id),
 });
 
@@ -120,11 +119,11 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
   vscode.TextDocument,
   { dispatch: AppDispatch; state: RootState }
 >(
-  "document/updateSyntaxTree",
+  "linkedDocuments/updateSyntaxTree",
   async (document: vscode.TextDocument, thunkApi) => {
-    const textDocumentId = getLinkedNotesDocumentIdFromTextDocument(document);
+    const textDocumentId = convertTextDocToLinkedDocId(document);
     thunkApi.dispatch(documentChangePending({ id: textDocumentId }));
-    const syntaxTree = await getSyntaxTreeFromTextDocument(document);
+    const syntaxTree = await getASTFromTextDoc(document);
     return {
       id: textDocumentId,
       syntaxTree,
@@ -133,12 +132,12 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
 );
 
 export const documentChangePending = createAction<{ id: string }>(
-  "document/changePending"
+  "linkedDocuments/changePending"
 );
 
 // create documents slice
 const documentsSlice = createSlice({
-  name: "documents",
+  name: "linkedDocuments",
   initialState: documentsAdapter.getInitialState(),
   reducers: {
     documentAdded: documentsAdapter.upsertOne,
@@ -187,7 +186,7 @@ export const {
 export const selectDocumentByUri = (
   state: RootState,
   documentUri: vscode.Uri
-) => selectDocumentById(state, getLinkedNotesDocumentIdFromUri(documentUri));
+) => selectDocumentById(state, convertUriToLinkedDocId(documentUri));
 
 export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   selectDocumentEntities,
@@ -270,7 +269,7 @@ export const selectWikiLinkCompletions = createSelector(
   }
 );
 
-export const waitForDocumentUpToDate = (
+export const waitForLinkedDocToParse = (
   store: LinkedNotesStore,
   documentId: string
 ) => {

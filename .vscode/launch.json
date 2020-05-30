@@ -13,6 +13,8 @@
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/test/"
+        // "/Users/lukemurray/Dropbox (MIT)/_notebook"
+        // "/Users/lukemurray/tmp/_notebook"
       ],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "preLaunchTask": "npm: webpack"

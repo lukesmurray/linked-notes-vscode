@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import {
-  getLinkedNotesDocumentIdFromTextDocument,
+  convertTextDocToLinkedDocId,
   selectDocumentLinksByDocumentId,
-  waitForDocumentUpToDate,
+  waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
@@ -14,8 +14,8 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     document: vscode.TextDocument,
     token: vscode.CancellationToken
   ) {
-    const documentId = getLinkedNotesDocumentIdFromTextDocument(document);
-    await waitForDocumentUpToDate(this.store, documentId);
+    const documentId = convertTextDocToLinkedDocId(document);
+    await waitForLinkedDocToParse(this.store, documentId);
     return (selectDocumentLinksByDocumentId(this.store.getState()) as {
       [key: string]: vscode.DocumentLink[];
     })[documentId];

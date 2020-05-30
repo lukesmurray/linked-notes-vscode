@@ -12,11 +12,11 @@ import {
   sluggifyDocumentReference,
 } from "./util";
 import {
-  getLinkedNotesDocumentIdFromUri,
+  convertUriToLinkedDocId,
   selectWikiLinkBackReferencesToDocumentId,
   selectDocumentById,
   selectDocumentIds,
-  waitForDocumentUpToDate,
+  waitForLinkedDocToParse,
 } from "./reducers/documents";
 import * as fs from "fs";
 
@@ -62,7 +62,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     const allDocumentIds = selectDocumentIds(this.store.getState());
     await Promise.all([
       allDocumentIds.map(async (documentId) => {
-        await waitForDocumentUpToDate(this.store, documentId as string);
+        await waitForLinkedDocToParse(this.store, documentId as string);
       }),
     ]);
 
@@ -75,7 +75,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
 
     if (documentUri) {
       // get the id of the referenced document
-      const documentId = getLinkedNotesDocumentIdFromUri(documentUri);
+      const documentId = convertUriToLinkedDocId(documentUri);
       // get all backlink MDAST nodes to the referenced document
       const backLinks = selectWikiLinkBackReferencesToDocumentId(
         this.store.getState()
@@ -124,7 +124,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
         // can occur if the user is trying to rename all instances of one reference
         // to another reference
         const documentIds = new Set(selectDocumentIds(this.store.getState()));
-        const newDocumentId = getLinkedNotesDocumentIdFromUri(newUri);
+        const newDocumentId = convertUriToLinkedDocId(newUri);
         // throw an error if the user is merging references (not sure how to support)
         if (documentIds.has(newDocumentId)) {
           throw new Error(
