@@ -5,8 +5,9 @@ import {
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
+import { selectBibTexCompletions } from "./reducers/bibTex";
 
-class MarkdownWikiLinkCompletionProvider
+class MarkdownCiteProcCompletionProvider
   implements vscode.CompletionItemProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -24,16 +25,20 @@ class MarkdownWikiLinkCompletionProvider
       position,
       // positive look behind whitespace or start of line followed by open wiki link
       // followed by anything except close link or new line
-      /(?:(?:(?<=\s)|^)\[)([^\]\r\n]*)/g
+      // /(?:(?:(?<=\s)|^)\[)([^\]\r\n]*)/g
+      // /(?:(?:(?<=\s)|^)\[(?:[^\]\r\n]*?)@)([^\]\r\n]*)/g
+      /(?:\[@).*([^\]\r\n]*)/g
     );
     if (range) {
-      return selectWikiLinkCompletions(this.store.getState()).map(
-        (match) =>
-          new vscode.CompletionItem(match, vscode.CompletionItemKind.File)
-      );
+      return selectBibTexCompletions(this.store.getState()).map((id) => {
+        return new vscode.CompletionItem(
+          id,
+          vscode.CompletionItemKind.Reference
+        );
+      });
     }
     return;
   }
 }
 
-export default MarkdownWikiLinkCompletionProvider;
+export default MarkdownCiteProcCompletionProvider;

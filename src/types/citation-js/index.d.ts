@@ -55,6 +55,10 @@ declare module "citation-js" {
 
   interface InputData {}
 
+  interface CitationItem {
+    id: string;
+  }
+
   class Cite {
     data: InputData;
     options: OutputOptions;
@@ -71,7 +75,7 @@ declare module "citation-js" {
 
     setAsync(data: InputData): Promise<void>;
 
-    get(): any;
+    get(): CitationItem[];
   }
   export default Cite;
 }

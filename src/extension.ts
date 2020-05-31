@@ -32,11 +32,12 @@ import {
   bibTexDocDeleted,
   convertUriToBibTexDocId,
 } from "./reducers/bibTex";
+import MarkdownCiteProcCompletionProvider from "./MarkdownCiteProcCompletionProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
   vscode.languages.setLanguageConfiguration("markdown", {
-    wordPattern: /([\+\@\#\.\/\\\-\w]+)/,
+    wordPattern: /([\+\#\.\/\\\-\w]+)/,
   });
 
   // wiki link autocomplete
@@ -47,6 +48,16 @@ export async function activate(context: vscode.ExtensionContext) {
       "["
     )
   );
+
+  // citeproc autocomplete
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      md,
+      new MarkdownCiteProcCompletionProvider(store),
+      "@"
+    )
+  );
+
   // provide go to definition for links
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(

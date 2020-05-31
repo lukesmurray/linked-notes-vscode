@@ -4,6 +4,7 @@ import {
   createSlice,
   createAsyncThunk,
   createAction,
+  createSelector,
 } from "@reduxjs/toolkit";
 import * as vscode from "vscode";
 import { bibtexParser } from "latex-utensils";
@@ -21,6 +22,10 @@ export interface BibTexDocument {
    * the bibtex ast representing this document
    */
   syntaxTree: BibtexAst;
+  /**
+   * RUDIMENTARY representation of a CSL
+   */
+  csl: { id: string }[];
 }
 
 function convertBibTexDocToBibTexDocId(document: BibTexDocument) {
@@ -34,11 +39,13 @@ export function convertUriToBibTexDocId(uri: vscode.Uri) {
 export async function convertUriToBibTexDoc(
   uri: vscode.Uri
 ): Promise<BibTexDocument> {
-  const bibTexAST = await vscode.workspace.fs
+  const { ast: bibTexAST, csl } = await vscode.workspace.fs
     .readFile(uri)
     .then((fileBytes) => new TextDecoder("utf-8").decode(fileBytes))
     .then((fileString) => {
       const ast = bibtexParser.parse(fileString);
+
+      // create the CSL JSON object for citeproc
       const cite = new Cite(fileString, {
         forceType: "@bibtex/text",
         generateGraph: false,
@@ -49,12 +56,12 @@ export async function convertUriToBibTexDoc(
         },
       });
       const csl = cite.get();
-      console.log(csl);
-      return ast;
+      return { ast, csl };
     });
   return {
     id: convertUriToBibTexDocId(uri),
     syntaxTree: bibTexAST,
+    csl: csl,
   };
 }
 
@@ -125,6 +132,17 @@ export const {
 
 // export reducer as the default
 export default bibTexSlice.reducer;
+
+export const selectBibTexCompletions = createSelector(
+  selectDocumentIds,
+  selectDocumentEntities,
+  (docIds, bibTexDocs) => {
+    const allIds = docIds
+      .map((v) => bibTexDocs[v]?.document.csl.map((v) => v.id))
+      .flat();
+    return allIds;
+  }
+);
 
 /**
  * // TODO(lukemurray):
