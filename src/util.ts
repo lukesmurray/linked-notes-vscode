@@ -9,7 +9,6 @@ import {
   selectDocumentWikiLinksByDocumentId,
 } from "./reducers/documents";
 import type { LinkedNotesStore } from "./store";
-import { bibtexParser } from "latex-utensils";
 
 export const MARKDOWN_FILE_EXT = ["md", "MD"] as const;
 export const BIB_FILE_EXT = ["bib"] as const;

@@ -1,7 +1,8 @@
 {
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#073612",
-        "titleBar.activeBackground": "#0A4B19",
-        "titleBar.activeForeground": "#F0FDF3"
-    }
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "explorer.sortOrder": "modified",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.revealIfOpen": true,
+  "workbench.editor.enablePreviewFromQuickOpen": false
 }

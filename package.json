@@ -37,6 +37,12 @@
           "text.html.markdown"
         ]
       }
+    ],
+    "commands": [
+      {
+        "command": "linked-notes-vscode.defaultWorkspaceConfig",
+        "title": "Linked Notes: Write Default Workspace Config"
+      }
     ]
   },
   "icon": "images/linked-notes.png",
