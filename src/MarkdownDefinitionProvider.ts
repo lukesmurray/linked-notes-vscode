@@ -1,16 +1,16 @@
 import { parse } from "path";
 import * as vscode from "vscode";
-import { LinkedNotesStore } from "./store";
-import {
-  getDocumentUriFromWikiLinkPermalink,
-  findAllMarkdownFilesInWorkspace,
-  getWikiLinkForPosition,
-  getDefaultNoteText,
-} from "./util";
 import {
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
+import { LinkedNotesStore } from "./store";
+import {
+  createNewMarkdownDoc,
+  findAllMarkdownFilesInWorkspace,
+  getDocumentUriFromWikiLinkPermalink,
+  getWikiLinkForPosition,
+} from "./util";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;
@@ -37,11 +37,9 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
       // if the file does not exist then create it
       if (matchingFile === undefined) {
         const newURI = getDocumentUriFromWikiLinkPermalink(fileName);
+        const title = overlappingWikiLink.data.alias;
         if (newURI !== undefined) {
-          await vscode.workspace.fs.writeFile(
-            newURI,
-            Buffer.from(getDefaultNoteText(overlappingWikiLink.data.alias))
-          );
+          await createNewMarkdownDoc(newURI, title);
           matchingFile = newURI;
         }
       }

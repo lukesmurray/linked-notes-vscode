@@ -42,6 +42,10 @@
       {
         "command": "linked-notes-vscode.defaultWorkspaceConfig",
         "title": "Linked Notes: Write Default Workspace Config"
+      },
+      {
+        "command": "linked-notes-vscode.newNote",
+        "title": "Linked Notes: Create New Note"
       }
     ]
   },

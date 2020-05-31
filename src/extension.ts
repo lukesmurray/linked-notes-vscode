@@ -28,6 +28,9 @@ import {
   findAllBibFilesInWorkspace,
   findAllMarkdownFilesInWorkspace,
   isMarkdownFile,
+  sluggifyDocumentReference,
+  getDocumentUriFromDocumentSlug,
+  createNewMarkdownDoc,
 } from "./util";
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -114,6 +117,32 @@ export async function activate(context: vscode.ExtensionContext) {
         });
       }
     )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("linked-notes-vscode.newNote", () => {
+      const titlePromise = vscode.window.showInputBox({
+        prompt: "Enter the Title:",
+        value: "",
+      });
+      titlePromise.then(async (title) => {
+        if (title !== undefined) {
+          const documentSlug = sluggifyDocumentReference(title);
+          const newUri = getDocumentUriFromDocumentSlug(documentSlug);
+          if (newUri !== undefined) {
+            let matchingFile = await findAllMarkdownFilesInWorkspace().then(
+              (f) => {
+                return f.find((f) => f.fsPath === newUri.fsPath);
+              }
+            );
+            if (matchingFile === undefined) {
+              await createNewMarkdownDoc(newUri, title);
+            }
+            await vscode.window.showTextDocument(newUri);
+          }
+        }
+      });
+    })
   );
 
   // initialize the workspace

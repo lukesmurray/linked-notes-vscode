@@ -262,3 +262,10 @@ draft: true
 
 export const delay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export async function createNewMarkdownDoc(newURI: vscode.Uri, title: string) {
+  await vscode.workspace.fs.writeFile(
+    newURI,
+    Buffer.from(getDefaultNoteText(title))
+  );
+}
