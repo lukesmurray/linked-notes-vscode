@@ -55,6 +55,7 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
+    "analyze": "source-map-explorer 'dist/*.js'",
     "vscode:prepublish": "webpack --mode production",
     "webpack": "webpack --mode development",
     "webpack-dev": "webpack --mode development --watch",
@@ -92,6 +93,7 @@
     "remark-parse": "^8.0.2",
     "remark-wiki-link": "0.0.4",
     "reselect-map": "^1.0.5",
+    "source-map-explorer": "^2.4.2",
     "unified": "^9.0.0",
     "unist-util-select": "^3.0.1",
     "unist-util-visit-parents": "^3.0.2"
