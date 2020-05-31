@@ -55,8 +55,11 @@ declare module "citation-js" {
 
   interface InputData {}
 
-  interface CitationItem {
+  export interface CitationItem {
     id: string;
+    type: string;
+    title: string;
+    author: { given: string; family: string }[];
   }
 
   class Cite {

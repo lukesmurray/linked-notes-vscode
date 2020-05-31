@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
+import { selectBibTexCompletions } from "./reducers/bibTex";
 import {
-  selectWikiLinkCompletions,
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { selectBibTexCompletions } from "./reducers/bibTex";
 
 class MarkdownCiteProcCompletionProvider
   implements vscode.CompletionItemProvider {
@@ -27,15 +26,10 @@ class MarkdownCiteProcCompletionProvider
       // followed by anything except close link or new line
       // /(?:(?:(?<=\s)|^)\[)([^\]\r\n]*)/g
       // /(?:(?:(?<=\s)|^)\[(?:[^\]\r\n]*?)@)([^\]\r\n]*)/g
-      /(?:\[@).*([^\]\r\n]*)/g
+      /(?:^|[ ;\[-])\@([^\]\s]*)/
     );
     if (range) {
-      return selectBibTexCompletions(this.store.getState()).map((id) => {
-        return new vscode.CompletionItem(
-          id,
-          vscode.CompletionItemKind.Reference
-        );
-      });
+      return selectBibTexCompletions(this.store.getState());
     }
     return;
   }

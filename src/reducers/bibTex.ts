@@ -1,4 +1,3 @@
-import { BibtexAst } from "latex-utensils/out/src/bibtex/bibtex_parser";
 import {
   createEntityAdapter,
   createSlice,
@@ -7,10 +6,9 @@ import {
   createSelector,
 } from "@reduxjs/toolkit";
 import * as vscode from "vscode";
-import { bibtexParser } from "latex-utensils";
 import { AppDispatch } from "../store";
 import { RootState } from ".";
-import Cite from "citation-js";
+import Cite, { CitationItem } from "citation-js";
 
 export interface BibTexDocument {
   /**
@@ -19,13 +17,9 @@ export interface BibTexDocument {
    */
   id: string;
   /**
-   * the bibtex ast representing this document
-   */
-  syntaxTree: BibtexAst;
-  /**
    * RUDIMENTARY representation of a CSL
    */
-  csl: { id: string }[];
+  csl: CitationItem[];
 }
 
 function convertBibTexDocToBibTexDocId(document: BibTexDocument) {
@@ -39,11 +33,11 @@ export function convertUriToBibTexDocId(uri: vscode.Uri) {
 export async function convertUriToBibTexDoc(
   uri: vscode.Uri
 ): Promise<BibTexDocument> {
-  const { ast: bibTexAST, csl } = await vscode.workspace.fs
+  const { csl } = await vscode.workspace.fs
     .readFile(uri)
     .then((fileBytes) => new TextDecoder("utf-8").decode(fileBytes))
     .then((fileString) => {
-      const ast = bibtexParser.parse(fileString);
+      // const ast = bibtexParser.parse(fileString);
 
       // create the CSL JSON object for citeproc
       const cite = new Cite(fileString, {
@@ -56,11 +50,12 @@ export async function convertUriToBibTexDoc(
         },
       });
       const csl = cite.get();
-      return { ast, csl };
+      console.log(csl);
+      return { csl };
     });
   return {
     id: convertUriToBibTexDocId(uri),
-    syntaxTree: bibTexAST,
+    // syntaxTree: bibTexAST,
     csl: csl,
   };
 }
@@ -138,12 +133,34 @@ export const selectBibTexCompletions = createSelector(
   selectDocumentEntities,
   (docIds, bibTexDocs) => {
     const allIds = docIds
-      .map((v) => bibTexDocs[v]?.document.csl.map((v) => v.id))
-      .flat();
+      .map((v) =>
+        // TODO(lukemurray): this conversion needs to be standardized based on CSL
+        // current conversion of things like author field are based on heuristics
+        // not necessarily always true
+        bibTexDocs[v]?.document.csl.map((v) => {
+          const completionItem = new vscode.CompletionItem(
+            v.id,
+            vscode.CompletionItemKind.Reference
+          );
+          completionItem.filterText = `${v.id} ${
+            v.title
+          } ${completionItemToAuthorString(v)}`;
+          completionItem.insertText = `${v.id}`;
+          completionItem.detail = `${v.title}\n${completionItemToAuthorString(
+            v
+          )}`;
+          return completionItem;
+        })
+      )
+      .flat() as vscode.CompletionItem[];
+
     return allIds;
   }
 );
 
+function completionItemToAuthorString(v: CitationItem) {
+  return v.author.map((a) => `${a.given} ${a.family}`).join(" ");
+}
 /**
  * // TODO(lukemurray):
  * 1. convert bibtex to csl using citation.js

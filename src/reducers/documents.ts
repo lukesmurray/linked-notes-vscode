@@ -34,7 +34,7 @@ export interface LinkedNotesDocument {
   /**
    * the mdast syntax tree representing this document
    */
-  syntaxTree: MDAST.Root;
+  syntaxTree: MDAST.Root | undefined;
 }
 
 /**
@@ -115,7 +115,7 @@ const documentsAdapter = createEntityAdapter<{
 });
 
 export const updateDocumentSyntaxTree = createAsyncThunk<
-  { id: string; syntaxTree: MDAST.Root },
+  LinkedNotesDocument,
   vscode.TextDocument,
   { dispatch: AppDispatch; state: RootState }
 >(
@@ -146,23 +146,15 @@ const documentsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(updateDocumentSyntaxTree.fulfilled, (state, action) => {
-      return documentsAdapter.updateOne(state, {
-        id: action.payload.id,
-        changes: {
-          status: "up to date",
-          document: {
-            syntaxTree: action.payload.syntaxTree,
-            id: action.payload.id,
-          },
-        },
+      return documentsAdapter.upsertOne(state, {
+        document: action.payload,
+        status: "up to date",
       });
     });
     builder.addCase(documentChangePending, (state, action) => {
-      return documentsAdapter.updateOne(state, {
-        id: action.payload.id,
-        changes: {
-          status: "pending changes",
-        },
+      return documentsAdapter.upsertOne(state, {
+        document: { id: action.payload.id, syntaxTree: undefined },
+        status: "pending changes",
       });
     });
   },
@@ -190,20 +182,30 @@ export const selectDocumentByUri = (
 
 export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   selectDocumentEntities,
-  (docEntity) =>
-    unistSelectAll(
+  (docEntity) => {
+    if (docEntity?.document?.syntaxTree === undefined) {
+      return [];
+    }
+    return unistSelectAll(
       "wikiLink",
-      docEntity!.document.syntaxTree
-    ) as MDAST.WikiLink[]
+      docEntity.document.syntaxTree
+    ) as MDAST.WikiLink[];
+  }
 );
 
 export const selectDocumentHeadingByDocumentId = createObjectSelector(
   selectDocumentEntities,
-  (docEntity) =>
-    (unistSelect(
-      `heading[depth="1"]`,
-      docEntity!.document.syntaxTree
-    ) as MDAST.Heading) ?? undefined
+  (docEntity) => {
+    if (docEntity?.document?.syntaxTree === undefined) {
+      return undefined;
+    }
+    return (
+      (unistSelect(
+        `heading[depth="1"]`,
+        docEntity!.document.syntaxTree
+      ) as MDAST.Heading) ?? undefined
+    );
+  }
 );
 
 const selectDocumentHeadingTextByDocumentId = createObjectSelector(

@@ -1,38 +1,34 @@
 import { debounce, memoize } from "lodash";
 import * as vscode from "vscode";
 import ExtendMarkdownIt from "./ExtendMarkdownIt";
+import MarkdownCiteProcCompletionProvider from "./MarkdownCiteProcCompletionProvider";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
 import MarkdownRenameProvider from "./MarkdownRenameProvider";
 import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
 import {
+  bibTexDocDeleted,
+  convertUriToBibTexDocId,
+  loadBibTexDoc,
+} from "./reducers/bibTex";
+import {
   convertTextDocToLinkedDoc,
+  convertTextDocToLinkedDocId,
+  convertUriToLinkedDocId,
   documentAdded,
   documentDeleted,
   documentUpdated,
-  convertTextDocToLinkedDocId,
-  convertUriToLinkedDocId,
-  updateDocumentSyntaxTree,
   selectDocumentByUri,
+  updateDocumentSyntaxTree,
 } from "./reducers/documents";
 import store from "./store";
 import {
-  findAllMarkdownFilesInWorkspace,
   BIB_FILE_GLOB_PATTERN,
   findAllBibFilesInWorkspace,
-  MARKDOWN_FILE_EXT,
+  findAllMarkdownFilesInWorkspace,
   isMarkdownFile,
 } from "./util";
-import { bibtexParser } from "latex-utensils";
-import {
-  convertUriToBibTexDoc,
-  bibTexDocAdded,
-  loadBibTexDoc,
-  bibTexDocDeleted,
-  convertUriToBibTexDocId,
-} from "./reducers/bibTex";
-import MarkdownCiteProcCompletionProvider from "./MarkdownCiteProcCompletionProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const md = { scheme: "file", language: "markdown" };
@@ -65,13 +61,15 @@ export async function activate(context: vscode.ExtensionContext) {
       new MarkdownDefinitionProvider(store)
     )
   );
-  // provide document links
+
+  // render wiki links as links in the editor (follow link support)
   context.subscriptions.push(
     vscode.languages.registerDocumentLinkProvider(
       md,
       new MarkdownDocumentLinkProvider(store)
     )
   );
+
   // provide link and header references
   context.subscriptions.push(
     vscode.languages.registerReferenceProvider(
@@ -79,7 +77,8 @@ export async function activate(context: vscode.ExtensionContext) {
       new MarkdownReferenceProvider(store)
     )
   );
-  // provide renaming
+
+  // provide renaming support
   context.subscriptions.push(
     vscode.languages.registerRenameProvider(
       md,
@@ -93,32 +92,15 @@ export async function activate(context: vscode.ExtensionContext) {
       fileUris.map((uri) =>
         vscode.workspace
           .openTextDocument(uri)
-          .then(convertTextDocToLinkedDoc)
-          .then((textDoc) => {
-            store.dispatch(
-              documentAdded({
-                document: textDoc,
-                status: "up to date",
-              })
-            );
-          })
+          .then((doc) => store.dispatch(updateDocumentSyntaxTree(doc)))
       ),
     ]);
   });
 
   // listen for when documents are opened in the workspace
   vscode.workspace.onDidOpenTextDocument(async (e) => {
-    // check the list of markdown files
-    const markdownFiles = await findAllMarkdownFilesInWorkspace();
-    // make sure the new file is in the list
-    if (new Set([...markdownFiles.map((v) => v.fsPath)]).has(e.uri.fsPath)) {
-      const linkedNoteDoc = await convertTextDocToLinkedDoc(e);
-      store.dispatch(
-        documentAdded({
-          document: linkedNoteDoc,
-          status: "up to date",
-        })
-      );
+    if (isMarkdownFile(e.uri)) {
+      store.dispatch(updateDocumentSyntaxTree(e));
     }
   });
 
@@ -140,26 +122,6 @@ export async function activate(context: vscode.ExtensionContext) {
       textDocumentChangeHandler(textDocumentId, e)();
     }
   });
-
-  // const markdownFileWatcher = vscode.workspace.createFileSystemWatcher(
-  //   MARKDOWN_FILE_GLOB_PATTERN
-  // );
-  // markdownFileWatcher.onDidChange((uri) => {
-  //   console.log("watcher change", uri.fsPath);
-  //   vscode.workspace
-  //     .openTextDocument(uri)
-  //     .then(convertTextDocumentToLinkedNotesDocument)
-  //     .then((document) => {
-  //       store.dispatch(
-  //         documentUpdated({
-  //           id: document.id,
-  //           changes: {
-  //             syntaxTree: document.syntaxTree,
-  //           },
-  //         })
-  //       );
-  //     });
-  // });
 
   vscode.workspace.onDidRenameFiles(async (e) => {
     for (let file of e.files) {

@@ -3,7 +3,13 @@
   "name": "markdown",
   "injectionSelector": "L:text.html.markdown",
   "patterns": [
-    {
+    { "include": "#wikiLink" },
+    { "include": "#keyValue" },
+    { "include": "#pandoc-citationA" },
+    { "include": "#pandoc-citationB" }
+  ],
+  "repository": {
+    "wikiLink": {
       "match": "(\\[\\[)([^\\]]+)(\\]\\])",
       "name": "text.markdown.notes.wiki-link",
       "captures": {
@@ -18,7 +24,7 @@
         }
       }
     },
-    {
+    "keyValue": {
       "match": "(?:\\s|^)([\\w\\-\\_]+)(:)([\\w\\-\\_]+)",
       "name": "text.markdown.notes.key-value",
       "captures": {
@@ -32,7 +38,20 @@
           "name": "string.other.text.markdown.notes.key-value.value"
         }
       }
+    },
+    "pandoc-citationA": {
+      "match": "(?<=^|\\s|\\[)(-?@(.*?))(?=$|[\\s\\r\\n\\]{},~#%\\\\'\"=\\(\\)])",
+      "name": "string.other.link.description.markdown.citation"
+    },
+    "pandoc-citationB": {
+      "captures": {
+        "2": {
+          "name": "string.other.link.description.markdown.citation"
+        }
+      },
+      "match": "(\\[)(-?@(.*?))(?=$|[\\s\\r\\n\\]{},~#%\\\\'\"=\\(\\)])",
+      "name": "meta.paragraph.markdown"
     }
-  ],
+  },
   "scopeName": "text.markdown.notes"
 }

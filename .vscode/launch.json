@@ -12,8 +12,9 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/test/"
+        // "${workspaceFolder}/test/",
         // "/Users/lukemurray/Dropbox (MIT)/_notebook"
+        "/Users/lukemurray/Dropbox (MIT)/_slipbox"
         // "/Users/lukemurray/tmp/_notebook"
       ],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
