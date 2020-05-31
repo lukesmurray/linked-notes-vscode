@@ -23,7 +23,7 @@ export default function ExtendMarkdownIt(md: MarkdownIt) {
       const uri = getDocumentUriFromDocumentSlug(
         sluggifyDocumentReference(match)
       )!;
-      return `<a href=${uri.fsPath}>${alias}</a>`;
+      return `<a href=${encodeURI(uri.fsPath)}>${alias}</a>`;
     },
   } as MarkdownItRegexOptions);
 }

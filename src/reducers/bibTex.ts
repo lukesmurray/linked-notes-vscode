@@ -50,7 +50,6 @@ export async function convertUriToBibTexDoc(
         },
       });
       const csl = cite.get();
-      console.log(csl);
       return { csl };
     });
   return {

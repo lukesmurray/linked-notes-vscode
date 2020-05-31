@@ -91,6 +91,12 @@ To install the `vsix` locally:
 3. Locate VSIX file and select.
 4. Reload VSCode.
 
+OR from the command line
+
+```sh
+code --install-extension linked-notes-vscode-{VERSION}.vsix
+```
+
 ## Credit
 
 This extension was largely inspired by Andrew Kortina's [blog post](https://kortina.nyc/essays/suping-up-vs-code-as-a-markdown-notebook/) about using vscode to take markdown notes and the related extension [vscode markdown notes](https://github.com/kortina/vscode-markdown-notes). The work flow I adopted was inspired by Jeff Huang's [productivity text file](https://jeffhuang.com/productivity_text_file/) and Andy Matuschak's [working notes](https://notes.andymatuschak.org/About_these_notes).
