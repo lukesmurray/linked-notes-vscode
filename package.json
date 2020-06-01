@@ -89,6 +89,7 @@
     "lodash": "^4.17.15",
     "markdown-it-regex": "^0.2.0",
     "mdast-util-to-string": "^1.1.0",
+    "memoize-one": "^5.1.1",
     "redux-logger": "^3.0.6",
     "remark-parse": "^8.0.2",
     "remark-wiki-link": "0.0.4",

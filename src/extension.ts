@@ -202,17 +202,9 @@ export async function activate(context: vscode.ExtensionContext) {
       } else if (oldIsMarkdown) {
         store.dispatch(documentDeleted(convertUriToLinkedDocId(file.oldUri)));
       } else if (newIsMarkdown) {
-        vscode.workspace
-          .openTextDocument(file.newUri)
-          .then(convertTextDocToLinkedDoc)
-          .then((textDoc) => {
-            store.dispatch(
-              documentAdded({
-                document: textDoc,
-                status: "up to date",
-              })
-            );
-          });
+        vscode.workspace.openTextDocument(file.newUri).then((doc) => {
+          store.dispatch(updateDocumentSyntaxTree(doc));
+        });
       }
     }
   });
@@ -239,6 +231,8 @@ export async function activate(context: vscode.ExtensionContext) {
   bibFileWatcher.onDidDelete((uri) => {
     store.dispatch(bibTexDocDeleted(convertUriToBibTexDocId(uri)));
   });
+
+  console.log(context.storagePath);
 
   return {
     extendMarkdownIt: ExtendMarkdownIt,

@@ -9,6 +9,7 @@ import * as vscode from "vscode";
 import { AppDispatch } from "../store";
 import { RootState } from ".";
 import Cite, { CitationItem } from "citation-js";
+import { getCitations } from "./citeProc";
 
 export interface BibTexDocument {
   /**
@@ -36,7 +37,7 @@ export async function convertUriToBibTexDoc(
   const { csl } = await vscode.workspace.fs
     .readFile(uri)
     .then((fileBytes) => new TextDecoder("utf-8").decode(fileBytes))
-    .then((fileString) => {
+    .then(async (fileString) => {
       // const ast = bibtexParser.parse(fileString);
 
       // create the CSL JSON object for citeproc
@@ -50,6 +51,7 @@ export async function convertUriToBibTexDoc(
         },
       });
       const csl = cite.get();
+      const citations = await getCitations(csl);
       return { csl };
     });
   return {
