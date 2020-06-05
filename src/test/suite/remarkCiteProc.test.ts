@@ -4,6 +4,9 @@ import markdown from "remark-parse";
 import remarkCiteproc from "../../reducers/remarkCiteproc";
 import reporter from "vfile-reporter";
 import vfile from "vfile";
+import { convertUriToBibTexDoc } from "../../reducers/bibTex";
+import vscode from "vscode";
+import path from "path";
 
 suite("Reducer Test Suite", () => {
   test("Attaches without throwing", () => {
@@ -40,19 +43,31 @@ suite("Reducer Test Suite", () => {
     });
   });
 
-  function createCiteProcProcessor() {
-    return createSimpleProcessor().use(remarkCiteproc);
-  }
+  // TODO(lukemurray): probably remove this test just getting the csl json from citation.js.
+  test("parse bib tex doc", (done) => {
+    convertUriToBibTexDoc(
+      vscode.Uri.file(path.resolve(__dirname, "../../../test-data/library.bib"))
+    )
+      .then((bibTexDoc) => {
+        console.log(JSON.stringify(bibTexDoc.csl));
+        done();
+      })
+      .catch((err) => done(err));
+  }).timeout(5000);
+});
 
-  function createSimpleProcessor() {
-    return unified().use(markdown);
-  }
+function createCiteProcProcessor() {
+  return createSimpleProcessor().use(remarkCiteproc);
+}
 
-  function createSimpleContents() {
-    return vfile(`
+function createSimpleProcessor() {
+  return unified().use(markdown);
+}
+
+function createSimpleContents() {
+  return vfile(`
 # Hello World
 
 This is some markdown
 `);
-  }
-});
+}
