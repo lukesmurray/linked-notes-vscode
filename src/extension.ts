@@ -232,8 +232,6 @@ export async function activate(context: vscode.ExtensionContext) {
     store.dispatch(bibTexDocDeleted(convertUriToBibTexDocId(uri)));
   });
 
-  console.log(context.storagePath);
-
   return {
     extendMarkdownIt: ExtendMarkdownIt,
   };
