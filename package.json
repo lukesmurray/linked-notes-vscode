@@ -59,7 +59,7 @@
     "vscode:prepublish": "webpack --mode production",
     "webpack": "webpack --mode development",
     "webpack-dev": "webpack --mode development --watch",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ --incremental",
     "lint": "eslint src --ext ts",
     "pretest": "npm run compile && npm run lint",
     "test": "node ./out/test/runTest.js"

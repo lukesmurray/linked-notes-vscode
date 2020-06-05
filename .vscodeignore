@@ -4,8 +4,10 @@ out/
 src/
 patches/
 test/
+test-data/
 .eslintrc.json
 .gitignore
 CHANGELOG.md
 tsconfig.json
 webpack.config.js
+tsconfig.tsbuildinfo

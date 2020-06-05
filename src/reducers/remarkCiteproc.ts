@@ -27,4 +27,4 @@ function remarkCiteProc(
   };
 }
 
-export default remarkCiteProc as Plugin<[RemarkCiteProcOptions]>;
+export default remarkCiteProc as Plugin<[RemarkCiteProcOptions?]>;
