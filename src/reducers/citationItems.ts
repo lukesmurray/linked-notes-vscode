@@ -1,14 +1,14 @@
 import {
   createAsyncThunk,
-  createSlice,
   createSelector,
+  createSlice,
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
+import AhoCorasick from "../ahoCorasick";
 import { AppDispatch } from "../store";
-import { selectDefaultBib, selectDefaultBibUri } from "./configuration";
-import { createUriForFileRelativeToWorkspaceRoot } from "../util";
 import { CslData, NameVariable } from "../types/csl-data";
+import { selectDefaultBibUri } from "./configuration";
 
 /*******************************************************************************
  * Thunks
@@ -111,4 +111,17 @@ function nameVariableToString(v: NameVariable) {
   return `${v["non-dropping-particle"] ?? ""} ${
     v["dropping-particle"] ?? ""
   }  ${v.given ?? ""} ${v.family ?? ""} ${v.suffix ?? ""} ${v.literal ?? ""}`;
+}
+
+/*******************************************************************************
+ * Citation Item Aho Corasick
+ ******************************************************************************/
+
+export const selectCitationItemAho = createSelector(
+  selectCitationItems,
+  (items) => createAhoCorasickFromCSLData(items)
+);
+
+export function createAhoCorasickFromCSLData(items: CslData) {
+  return new AhoCorasick(items.map((v) => ["@" + v.id, v]));
 }

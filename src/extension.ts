@@ -1,4 +1,5 @@
-import { debounce, memoize } from "lodash";
+import debounce from "lodash/debounce";
+import memoize from "lodash/memoize";
 import * as vscode from "vscode";
 import ExtendMarkdownIt from "./ExtendMarkdownIt";
 import MarkdownCiteProcCitationItemCompletionProvider from "./MarkdownCiteProcCitationItemCompletionProvider";

@@ -1,5 +1,5 @@
 import CSL from "citeproc";
-import { keyBy } from "lodash";
+import keyBy from "lodash/keyBy";
 import memoizeOne from "memoize-one";
 import { CslData } from "../types/csl-data";
 

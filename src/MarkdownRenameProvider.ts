@@ -41,7 +41,6 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     );
 
     if (documentUri) {
-      // TODO(lukemurray): make the position make sense
       if (header && header.position) {
         return getHeaderContentRange(header.position);
       }

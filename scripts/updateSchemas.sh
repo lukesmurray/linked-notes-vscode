@@ -2,7 +2,6 @@
 
 set -ex;
 
-# TODO(lukemurray): When citation-style-language/schema#225 is merged remove -c from below. find way to update on change.
 # download latest csl schemas from github
 pushd "schemas";
 wget -q -c -N https://raw.githubusercontent.com/citation-style-language/schema/master/schemas/input/csl-data.json;

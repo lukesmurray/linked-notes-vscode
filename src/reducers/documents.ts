@@ -1,9 +1,9 @@
 import {
+  createAction,
+  createAsyncThunk,
   createEntityAdapter,
   createSelector,
   createSlice,
-  createAsyncThunk,
-  createAction,
 } from "@reduxjs/toolkit";
 import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
@@ -17,13 +17,17 @@ import {
 } from "unist-util-select";
 import * as vscode from "vscode";
 import type { RootState } from ".";
-import {
-  getVscodeRangeFromUnistPosition,
-  getDocumentIdFromWikiLink,
-  sluggifyDocumentReference,
-  delay,
-} from "../util";
+import AhoCorasick from "../ahoCorasick";
 import { AppDispatch, LinkedNotesStore } from "../store";
+import { CslData } from "../types/csl-data";
+import {
+  delay,
+  getDocumentIdFromWikiLink,
+  getVscodeRangeFromUnistPosition,
+  sluggifyDocumentReference,
+} from "../util";
+import { selectCitationItemAho } from "./citationItems";
+import remarkCiteproc from "./remarkCiteproc";
 
 // TODO(lukemurray): organize this file similar to other slice files (see citationItems.ts)
 
@@ -43,9 +47,14 @@ export interface LinkedNotesDocument {
  * Create the unified markdown processor for parsing text documents and
  * creating syntax trees
  */
-function createMarkdownProcessor() {
+function createMarkdownProcessor(
+  citationItemAho: AhoCorasick<CslData[number]>
+) {
   return unified()
     .use(markdown)
+    .use(remarkCiteproc, {
+      citationItemAho,
+    })
     .use(wikiLinkPlugin, {
       pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],
     });
@@ -56,9 +65,10 @@ function createMarkdownProcessor() {
  * @param doc a vscode text document
  */
 export async function getASTFromTextDoc(
-  doc: vscode.TextDocument
+  doc: vscode.TextDocument,
+  citationItemAho: AhoCorasick<CslData[number]>
 ): Promise<MDAST.Root> {
-  const processor = createMarkdownProcessor();
+  const processor = createMarkdownProcessor(citationItemAho);
   const docText = doc.getText();
   // TODO(lukemurray): find a better way to get rid of circular references
   // since we store the syntax tree in redux we want all references to be
@@ -67,21 +77,6 @@ export async function getASTFromTextDoc(
     JSON.stringify(await processor.run(processor.parse(docText)))
   ) as MDAST.Root;
   return syntaxTree;
-}
-
-/**
- * Convert a vscode document to a linked notes document
- * @param doc a vscode document
- */
-export function convertTextDocToLinkedDoc(
-  doc: vscode.TextDocument
-): Promise<LinkedNotesDocument> {
-  return getASTFromTextDoc(doc).then((root) => {
-    return {
-      id: convertTextDocToLinkedDocId(doc),
-      syntaxTree: root,
-    };
-  });
 }
 
 /**
@@ -125,7 +120,10 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
   async (document: vscode.TextDocument, thunkApi) => {
     const textDocumentId = convertTextDocToLinkedDocId(document);
     thunkApi.dispatch(documentChangePending({ id: textDocumentId }));
-    const syntaxTree = await getASTFromTextDoc(document);
+    const syntaxTree = await getASTFromTextDoc(
+      document,
+      selectCitationItemAho(thunkApi.getState())
+    );
     return {
       id: textDocumentId,
       syntaxTree,

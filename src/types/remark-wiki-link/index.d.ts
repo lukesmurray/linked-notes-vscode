@@ -48,7 +48,6 @@ declare module "remark-wiki-link" {
     RemarkWikiLinkPluginSettings
   >;
 
-  // TODO(lukemurray): fill in more detailed types
   const remarkWikiLink: Plugin<[PartialRemarkWikiLinkPluginSettings?]>;
 
   export default remarkWikiLink;
