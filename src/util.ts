@@ -28,6 +28,9 @@ export const BIB_FILE_EXT = ["json"] as const;
 
 export const BIB_FILE_GLOB_PATTERN = `**/*.{${BIB_FILE_EXT.join(",")}}`;
 
+const CITEPROC_COMPLETION_RANGE_REGEX = /(?:^|[ ;\[-])\@([^\]\s]*)/g;
+const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;
+
 export function isMarkdownFile(uri: vscode.Uri) {
   return (
     uri.scheme === "file" &&
@@ -283,4 +286,24 @@ export function readConfiguration(): IExtensionConfiguration {
 
 export function getConfigurationScope(): string {
   return "linked-notes-vscode";
+}
+
+export function getWikiLinkRange(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  return document.getWordRangeAtPosition(
+    position,
+    WIKILINK_COMPLETION_RANGE_REGEX
+  );
+}
+
+export function getCiteProcRange(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  return document.getWordRangeAtPosition(
+    position,
+    CITEPROC_COMPLETION_RANGE_REGEX
+  );
 }

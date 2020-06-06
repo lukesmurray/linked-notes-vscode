@@ -1,10 +1,14 @@
 import * as vscode from "vscode";
+import { selectCitationItemCompletions } from "./reducers/citationItems";
 import {
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { selectCitationItemCompletions } from "./reducers/citationItems";
+import {
+  getCiteProcRange as getCiteProcCompletionRange,
+  getWikiLinkRange as getWikiLinkCompletionRangeRange,
+} from "./util";
 
 class MarkdownCiteProcCitationItemCompletionProvider
   implements vscode.CompletionItemProvider {
@@ -20,15 +24,9 @@ class MarkdownCiteProcCitationItemCompletionProvider
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
-    let range = document.getWordRangeAtPosition(
-      position,
-      // positive look behind whitespace or start of line followed by open wiki link
-      // followed by anything except close link or new line
-      // /(?:(?:(?<=\s)|^)\[)([^\]\r\n]*)/g
-      // /(?:(?:(?<=\s)|^)\[(?:[^\]\r\n]*?)@)([^\]\r\n]*)/g
-      /(?:^|[ ;\[-])\@([^\]\s]*)/
-    );
-    if (range) {
+    let citeProcRange = getCiteProcCompletionRange(document, position);
+    let wikiLinkRange = getWikiLinkCompletionRangeRange(document, position);
+    if (citeProcRange && !wikiLinkRange) {
       return selectCitationItemCompletions(this.store.getState());
     }
     return;
