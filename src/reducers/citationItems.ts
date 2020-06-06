@@ -8,7 +8,7 @@ import { RootState } from ".";
 import { AppDispatch } from "../store";
 import { selectDefaultBib, selectDefaultBibUri } from "./configuration";
 import { createUriForFileRelativeToWorkspaceRoot } from "../util";
-import { CslData } from "../types/csl-data";
+import { CslData, NameVariable } from "../types/csl-data";
 
 /*******************************************************************************
  * Thunks
@@ -48,7 +48,7 @@ const citationItemsSlice = createSlice({
 export default citationItemsSlice.reducer;
 
 /*******************************************************************************
- * Selectors
+ * selectors
  ******************************************************************************/
 export const selectCitationItemsSlice = (state: RootState) =>
   state.citationItems;
@@ -60,24 +60,55 @@ export const selectCitationItemCompletions = createSelector(
   selectCitationItems,
   (citationItems) => {
     return citationItems
-      .map((v) => {
-        const completionItem = new vscode.CompletionItem(
-          v.id + "",
-          vscode.CompletionItemKind.Reference
-        );
-        completionItem.filterText = `${v.id} ${
-          v.title
-        } ${completionItemToAuthorString(v)}`;
-        completionItem.insertText = `${v.id}`;
-        completionItem.detail = `${v.title}\n${completionItemToAuthorString(
-          v
-        )}`;
-        return completionItem;
-      })
+      .map(createCitationItemCompletion)
       .flat() as vscode.CompletionItem[];
   }
 );
 
-function completionItemToAuthorString(v: CslData[number]) {
-  return v.author?.map((a) => `${a.given} ${a.family}`).join(" ");
+/*******************************************************************************
+ * Citation Item Completion Helpers
+ ******************************************************************************/
+
+function createCitationItemCompletion(citationItem: CslData[number]) {
+  const completionItem = new vscode.CompletionItem(
+    citationItem.id + "",
+    vscode.CompletionItemKind.Reference
+  );
+  completionItem.filterText = createCitationItemFilterText(citationItem);
+  completionItem.insertText = `${citationItem.id}`;
+  completionItem.detail = `${citationItem.title}`;
+  completionItem.documentation = createCitationItemDocumentation(citationItem);
+  return completionItem;
+}
+
+function createCitationItemDocumentation(citationItem: CslData[number]) {
+  return new vscode.MarkdownString(
+    `Authors: ${citationItemToAuthorString(citationItem, ", ")}`
+  );
+}
+
+function createCitationItemFilterText(citationItem: CslData[number]) {
+  return `${citationItem.id} ${citationItem.title} ${citationItemToAuthorString(
+    citationItem
+  )}`;
+}
+
+function citationItemToAuthorString(
+  citationItem: CslData[number],
+  separator: string = " "
+) {
+  return [
+    ...(citationItem.author ?? []),
+    ...(citationItem["container-author"] ?? []),
+    ...(citationItem["original-author"] ?? []),
+    ...(citationItem["reviewed-author"] ?? []),
+  ]
+    .map((v) => nameVariableToString(v))
+    .join(separator);
+}
+
+function nameVariableToString(v: NameVariable) {
+  return `${v["non-dropping-particle"] ?? ""} ${
+    v["dropping-particle"] ?? ""
+  }  ${v.given ?? ""} ${v.family ?? ""} ${v.suffix ?? ""} ${v.literal ?? ""}`;
 }
