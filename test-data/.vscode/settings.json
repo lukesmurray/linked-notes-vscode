@@ -5,5 +5,5 @@
   "workbench.editor.enablePreview": false,
   "workbench.editor.revealIfOpen": true,
   "workbench.editor.enablePreviewFromQuickOpen": false,
-  "linked-notes-vscode.defaultBib": "csl.json"
+  "linked-notes-vscode.defaultBib": "library.json"
 }

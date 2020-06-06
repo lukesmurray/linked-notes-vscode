@@ -1,10 +1,7 @@
 import CSL from "citeproc";
 import { keyBy } from "lodash";
 import memoizeOne from "memoize-one";
-import { createSelector } from "@reduxjs/toolkit";
-import { selectConfigurationSlice } from "./configuration";
-import vscode from "vscode";
-import { ICitationItem } from "./citationItems";
+import { CslData } from "../types/csl-data";
 
 /**
  * from https://github.com/citation-style-language/styles
@@ -19,7 +16,7 @@ const defaultStyle = "chicago-fullnote-bibliography-16th-edition";
 const defaultLocale = "en-US";
 
 export const getCitations = async (
-  items: ICitationItem[],
+  items: CslData,
   style: string = defaultStyle,
   preferredLocale: string = defaultLocale
 ) => {

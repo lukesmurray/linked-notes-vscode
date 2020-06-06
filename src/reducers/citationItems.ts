@@ -8,20 +8,13 @@ import { RootState } from ".";
 import { AppDispatch } from "../store";
 import { selectDefaultBib, selectDefaultBibUri } from "./configuration";
 import { createUriForFileRelativeToWorkspaceRoot } from "../util";
-
-// TODO(lukemurray): Make this reflect the CSL definition
-export interface ICitationItem {
-  id: string;
-  type: string;
-  title: string;
-  author: { given: string; family: string }[];
-}
+import { CslData } from "../types/csl-data";
 
 /*******************************************************************************
  * Thunks
  ******************************************************************************/
 export const updateCitationItems = createAsyncThunk<
-  ICitationItem[],
+  CslData,
   undefined,
   { dispatch: AppDispatch; state: RootState }
 >("citationItems/updateCitationItems", async (_, thunkApi) => {
@@ -29,7 +22,7 @@ export const updateCitationItems = createAsyncThunk<
   if (defaultBibUri === undefined) {
     return [];
   }
-  const csl: ICitationItem[] = await vscode.workspace.fs
+  const csl: CslData = await vscode.workspace.fs
     .readFile(defaultBibUri)
     .then((fileBytes) => new TextDecoder("utf-8").decode(fileBytes))
     .then((text) => {
@@ -43,7 +36,7 @@ export const updateCitationItems = createAsyncThunk<
  ******************************************************************************/
 const citationItemsSlice = createSlice({
   name: "citationItems",
-  initialState: [] as ICitationItem[],
+  initialState: [] as CslData,
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(updateCitationItems.fulfilled, (state, action) => {
@@ -69,7 +62,7 @@ export const selectCitationItemCompletions = createSelector(
     return citationItems
       .map((v) => {
         const completionItem = new vscode.CompletionItem(
-          v.id,
+          v.id + "",
           vscode.CompletionItemKind.Reference
         );
         completionItem.filterText = `${v.id} ${
@@ -85,6 +78,6 @@ export const selectCitationItemCompletions = createSelector(
   }
 );
 
-function completionItemToAuthorString(v: ICitationItem) {
-  return v.author.map((a) => `${a.given} ${a.family}`).join(" ");
+function completionItemToAuthorString(v: CslData[number]) {
+  return v.author?.map((a) => `${a.given} ${a.family}`).join(" ");
 }
