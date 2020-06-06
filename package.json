@@ -58,7 +58,7 @@
               "null"
             ],
             "default": null,
-            "description": "Specifies the folder path containing the CSL JSON export of the bibliography."
+            "description": "Specifies the file path to the default CSL JSON used for citations. Relative to the workspace root."
           }
         }
       }
