@@ -1,5 +1,5 @@
 import * as MDAST from "mdast";
-import { format } from "path";
+import path from "path";
 import * as UNIST from "unist";
 import * as vscode from "vscode";
 import {
@@ -9,13 +9,22 @@ import {
   selectDocumentWikiLinksByDocumentId,
 } from "./reducers/documents";
 import type { LinkedNotesStore } from "./store";
+import {
+  IExtensionConfiguration,
+  selectDefaultBibUri,
+} from "./reducers/configuration";
+import { RootState } from "./reducers";
 
+export const MarkDownDocumentSelector = {
+  scheme: "file",
+  language: "markdown",
+};
 export const MARKDOWN_FILE_EXT = ["md", "MD"] as const;
-export const BIB_FILE_EXT = ["bib"] as const;
-
 export const MARKDOWN_FILE_GLOB_PATTERN = `**/*.{${MARKDOWN_FILE_EXT.join(
   ","
 )}}`;
+
+export const BIB_FILE_EXT = ["json"] as const;
 
 export const BIB_FILE_GLOB_PATTERN = `**/*.{${BIB_FILE_EXT.join(",")}}`;
 
@@ -26,10 +35,9 @@ export function isMarkdownFile(uri: vscode.Uri) {
   );
 }
 
-export function isBibTexFile(uri: vscode.Uri) {
+export function isDefaultBibFile(uri: vscode.Uri, state: RootState) {
   return (
-    uri.scheme === "file" &&
-    BIB_FILE_EXT.some((ext) => uri.fsPath.endsWith(ext))
+    uri.scheme === "file" && uri.fsPath === selectDefaultBibUri(state)?.fsPath
   );
 }
 
@@ -38,15 +46,6 @@ export function isBibTexFile(uri: vscode.Uri) {
  */
 export async function findAllMarkdownFilesInWorkspace() {
   return (await vscode.workspace.findFiles(MARKDOWN_FILE_GLOB_PATTERN)).filter(
-    (f) => f.scheme === "file"
-  );
-}
-
-/**
- * Return a thenable with all the markdown files in the workspace
- */
-export async function findAllBibFilesInWorkspace() {
-  return (await vscode.workspace.findFiles(BIB_FILE_GLOB_PATTERN)).filter(
     (f) => f.scheme === "file"
   );
 }
@@ -162,13 +161,16 @@ export function getVscodeRangeFromUnistPosition(
 export function getDocumentUriFromWikiLinkPermalink(
   permalink: string
 ): vscode.Uri | undefined {
+  return createUriForFileRelativeToWorkspaceRoot(permalink + ".md");
+}
+export function createUriForFileRelativeToWorkspaceRoot(fileName: string) {
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
   }
   const rootURI = vscode.workspace.workspaceFolders[0].uri;
-  const newPath = format({
+  const newPath = path.format({
     dir: rootURI?.fsPath,
-    base: permalink + ".md",
+    base: fileName,
   });
   const newURI = vscode.Uri.file(newPath);
   return newURI;
@@ -268,4 +270,17 @@ export async function createNewMarkdownDoc(newURI: vscode.Uri, title: string) {
     newURI,
     Buffer.from(getDefaultNoteText(title))
   );
+}
+
+export function readConfiguration(): IExtensionConfiguration {
+  const config = vscode.workspace.getConfiguration(getConfigurationScope());
+  return {
+    defaultBib: config.get(
+      "defaultBib"
+    ) as IExtensionConfiguration["defaultBib"],
+  };
+}
+
+export function getConfigurationScope(): string {
+  return "linked-notes-vscode";
 }

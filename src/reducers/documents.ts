@@ -25,6 +25,8 @@ import {
 } from "../util";
 import { AppDispatch, LinkedNotesStore } from "../store";
 
+// TODO(lukemurray): organize this file similar to other slice files (see citationItems.ts)
+
 export interface LinkedNotesDocument {
   /**
    * see https://code.visualstudio.com/api/references/vscode-api#Uri fsPath

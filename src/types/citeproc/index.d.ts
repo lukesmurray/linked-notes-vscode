@@ -47,7 +47,27 @@ declare module "citeproc" {
         citationsPre: [CitationId, NoteIndex][],
         citationsPost: [CitationId, NoteIndex][]
       ): void;
+
+      makeBibliography(): [
+        {
+          maxoffset: number;
+          entryspacing: number;
+          linespacing: number;
+          hangingindent: boolean;
+          ["second-field-align"]: boolean;
+          bibstart: string;
+          bibend: string;
+          bibliography_errors: any[];
+          entry_ids: CitationItemId[];
+        },
+        string[]
+      ];
     }
+
+    function getLocaleNames(
+      styleXML: string,
+      preferredLocale: string
+    ): string[];
   }
   export default CSL;
 }

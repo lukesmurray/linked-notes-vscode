@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
-import { selectBibTexCompletions } from "./reducers/bibTex";
 import {
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
+import { selectCitationItemCompletions } from "./reducers/citationItems";
 
-class MarkdownCiteProcCompletionProvider
+class MarkdownCiteProcCitationItemCompletionProvider
   implements vscode.CompletionItemProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -29,10 +29,10 @@ class MarkdownCiteProcCompletionProvider
       /(?:^|[ ;\[-])\@([^\]\s]*)/
     );
     if (range) {
-      return selectBibTexCompletions(this.store.getState());
+      return selectCitationItemCompletions(this.store.getState());
     }
     return;
   }
 }
 
-export default MarkdownCiteProcCompletionProvider;
+export default MarkdownCiteProcCitationItemCompletionProvider;

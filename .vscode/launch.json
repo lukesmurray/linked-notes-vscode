@@ -12,10 +12,7 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/test/"
-        // "/Users/lukemurray/Dropbox (MIT)/_notebook"
-        // "/Users/lukemurray/Dropbox (MIT)/_slipbox"
-        // "/Users/lukemurray/tmp/_notebook"
+        "${workspaceFolder}/test-data/"
       ],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "preLaunchTask": "npm: webpack"
@@ -26,11 +23,13 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
+        "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test"
+        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+        "${workspaceFolder}/test-data/"
       ],
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
-      "preLaunchTask": "npm: test-compile"
+      "preLaunchTask": "npm: compile"
     }
   ]
 }
