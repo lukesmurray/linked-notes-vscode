@@ -108,4 +108,3 @@
     "required": ["schema", "citationID"],
     "additionalProperties" : false 
 }
-
