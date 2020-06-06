@@ -47,6 +47,21 @@
         "command": "linked-notes-vscode.newNote",
         "title": "Linked Notes: Create New Note"
       }
+    ],
+    "configuration": [
+      {
+        "title": "Linked Notes",
+        "properties": {
+          "linked-notes-vscode.defaultBib": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null,
+            "description": "Specifies the folder path containing the CSL JSON export of the bibliography."
+          }
+        }
+      }
     ]
   },
   "icon": "images/linked-notes.png",
@@ -88,7 +103,6 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.3.5",
-    "citation-js": "^0.5.0-alpha.5",
     "citeproc": "^2.3.22",
     "lodash": "^4.17.15",
     "markdown-it-regex": "^0.2.0",

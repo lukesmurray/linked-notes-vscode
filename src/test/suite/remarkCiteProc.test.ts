@@ -1,12 +1,9 @@
 import * as assert from "assert";
-import unified from "unified";
 import markdown from "remark-parse";
-import remarkCiteproc from "../../reducers/remarkCiteproc";
-import reporter from "vfile-reporter";
+import unified from "unified";
 import vfile from "vfile";
-import { convertUriToBibTexDoc } from "../../reducers/bibTex";
-import vscode from "vscode";
-import path from "path";
+import reporter from "vfile-reporter";
+import remarkCiteproc from "../../reducers/remarkCiteproc";
 
 suite("Reducer Test Suite", () => {
   test("Attaches without throwing", () => {
@@ -42,18 +39,6 @@ suite("Reducer Test Suite", () => {
       done();
     });
   });
-
-  // TODO(lukemurray): probably remove this test just getting the csl json from citation.js.
-  test("parse bib tex doc", (done) => {
-    convertUriToBibTexDoc(
-      vscode.Uri.file(path.resolve(__dirname, "../../../test-data/library.bib"))
-    )
-      .then((bibTexDoc) => {
-        console.log(JSON.stringify(bibTexDoc.csl));
-        done();
-      })
-      .catch((err) => done(err));
-  }).timeout(5000);
 });
 
 function createCiteProcProcessor() {
