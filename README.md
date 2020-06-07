@@ -60,6 +60,39 @@ I also use the following vim key bindings which provide the illusion of transclu
   ],
 ```
 
+## Features
+
+### Create a New Note
+
+Use the Command `Linked Notes: Create New Note`
+
+### Write Default Workspace Settings
+
+Use the Command `Linked Notes: Write Default Workspace Config`
+
+### Add Bib Support
+
+Use the setting `linked-notes-vscode.defaultBib`. The value is a path to a CSL JSON file and is relative to the workspace root. `library.json` would resolve to `${workspaceRoot}/library.json`. To get a CSL JSON use the better bib text extension for zotero, export library as Better CSL JSON and select keep updated.
+
+The extension supports [markdown pandoc citeproc citation format](https://pandoc.org/MANUAL.html#citations).
+
+> Citations go inside square brackets and are separated by semicolons. Each citation must have a key, composed of ‘@’ + the citation identifier from the database, and may optionally have a prefix, a locator, and a suffix. The citation key must begin with a letter, digit, or _, and may contain alphanumerics, _, and internal punctuation characters (:.#\$%&-+?<>~/). Here are some examples:
+>
+> ```
+> Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
+> Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
+> Blah blah [@smith04; @doe99].
+> ```
+
+### Features in the Editor
+
+- Go to Definition for Wiki Links
+- Reference Provider for Wiki Links
+- Rename Provider for Wiki Links
+- Hover Provider for Citation Keys
+- Completions for Citation Keys
+- Completions for Wiki Links
+
 ## Screenshots
 
 The references panel.
