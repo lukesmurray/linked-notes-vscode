@@ -27,7 +27,10 @@ import {
   sluggifyDocumentReference,
 } from "../util";
 import { selectCitationItemAho } from "./citationItems";
-import remarkCiteproc, { ICiteProcCitationKey } from "./remarkCiteproc";
+import remarkCiteproc, {
+  ICiteProcCitationKey,
+  ICiteProcCitation,
+} from "./remarkCiteproc";
 
 // TODO(lukemurray): organize this file similar to other slice files (see citationItems.ts)
 
@@ -190,6 +193,19 @@ export const selectCitationKeysByDocumentId = createObjectSelector(
       "citeProcKey",
       docEntity.document.syntaxTree
     ) as ICiteProcCitationKey[];
+  }
+);
+
+export const selectCitationsByDocumentId = createObjectSelector(
+  selectDocumentEntities,
+  (docEntity) => {
+    if (docEntity?.document?.syntaxTree === undefined) {
+      return [];
+    }
+    return unistSelectAll(
+      "citeProcCitation",
+      docEntity.document.syntaxTree
+    ) as ICiteProcCitation[];
   }
 );
 

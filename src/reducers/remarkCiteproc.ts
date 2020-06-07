@@ -14,7 +14,7 @@ interface IRemarkCiteProcOptions {
 }
 
 export interface ICiteProcCitation extends UNIST.Node {
-  type: "citeProc";
+  type: "citeProcCitation";
   data: {
     citation: CslCitation;
   };
@@ -64,7 +64,7 @@ function remarkCiteProc(
       let now = eat.now();
       const add = eat(citationBracketMatch![0]);
       const node = add(<ICiteProcCitation>{
-        type: "citeProc",
+        type: "citeProcCitation",
         data: {
           citation: {
             citationID: "",

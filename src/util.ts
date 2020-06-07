@@ -15,7 +15,11 @@ import {
   selectDefaultBibUri,
 } from "./reducers/configuration";
 import { RootState } from "./reducers";
-import { ICiteProcCitationKey } from "./reducers/remarkCiteproc";
+import {
+  ICiteProcCitationKey,
+  ICiteProcCitation,
+} from "./reducers/remarkCiteproc";
+import { selectAll as unistSelectAll } from "unist-util-select";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -339,4 +343,8 @@ export const incrementUnistPoint = (point: UNIST.Point, by: number) => {
   point.column += by;
   point.offset = point.offset === undefined ? undefined : point.offset + by;
   return point;
+};
+
+export const getCitationKeysFromCitation = (citation: ICiteProcCitation) => {
+  return unistSelectAll("citeProcKey", citation) as ICiteProcCitationKey[];
 };

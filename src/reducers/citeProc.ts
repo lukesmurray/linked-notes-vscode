@@ -2,6 +2,8 @@ import CSL from "citeproc";
 import keyBy from "lodash/keyBy";
 import memoizeOne from "memoize-one";
 import { CslData } from "../types/csl-data";
+import { ICiteProcCitationKey, ICiteProcCitation } from "./remarkCiteproc";
+import { getCitationKeysFromCitation } from "../util";
 
 /**
  * from https://github.com/citation-style-language/styles
@@ -16,6 +18,7 @@ const defaultStyle = "chicago-fullnote-bibliography-16th-edition";
 const defaultLocale = "en-US";
 
 export const getCitations = async (
+  citations: ICiteProcCitation[],
   items: CslData,
   style: string = defaultStyle,
   preferredLocale: string = defaultLocale
@@ -42,6 +45,22 @@ export const getCitations = async (
     },
     styleString
   );
+  let citationsPre: any[] = [];
+  let citationsPost: any[] = [];
+  for (let i = 0; i < citations.length; i++) {
+    citeproc.processCitationCluster(
+      {
+        citationItems: getCitationKeysFromCitation(citations[i]).map(
+          (v) => v.data.citation
+        ),
+        properties: {
+          nodeIndex: citations[i].data.citation.properties?.noteIndex,
+        },
+      },
+      citationsPre,
+      citationsPost
+    );
+  }
 
   // add the items to the engine
   citeproc.updateItems(items.map((i) => i.id));

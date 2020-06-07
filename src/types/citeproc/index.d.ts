@@ -29,10 +29,9 @@ declare module "citeproc" {
     interface CitationCluster {
       citationItems: CitationItem[];
       properties: {
-        nodeIndex: number;
+        nodeIndex?: number;
       };
-      citationId: CitationId;
-      sortedItems: any[];
+      citationID?: CitationId;
     }
 
     class Engine {
