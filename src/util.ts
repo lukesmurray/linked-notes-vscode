@@ -7,6 +7,7 @@ import {
   convertUriToLinkedDocId,
   selectDocumentHeadingByDocumentId,
   selectDocumentWikiLinksByDocumentId,
+  selectCitationKeysByDocumentId,
 } from "./reducers/documents";
 import type { LinkedNotesStore } from "./store";
 import {
@@ -14,6 +15,7 @@ import {
   selectDefaultBibUri,
 } from "./reducers/configuration";
 import { RootState } from "./reducers";
+import { ICiteProcCitationKey } from "./reducers/remarkCiteproc";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -86,6 +88,30 @@ export function getWikiLinkForPosition(
     isPositionInsideNode(position, v)
   );
   return overlappingWikiLink;
+}
+
+export function getCitationKeysForPosition(
+  store: LinkedNotesStore,
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  // get all the citaiton keys by document id
+  const citationKeysById = getAllCitationKeysByDocumentId(store);
+  // get the document id
+  const documentId = convertTextDocToLinkedDocId(document);
+  // get the citation keys for the document
+  const citationKeys = citationKeysById[documentId];
+  // get the overlapping wiki link
+  const overlappingCitationKey = citationKeys?.find((v) =>
+    isPositionInsideNode(position, v)
+  );
+  return overlappingCitationKey;
+}
+
+export function getAllCitationKeysByDocumentId(
+  store: LinkedNotesStore
+): { [key: string]: ICiteProcCitationKey[] | undefined } {
+  return selectCitationKeysByDocumentId(store.getState());
 }
 
 export function getAllWikiLinksByDocumentId(
@@ -288,7 +314,7 @@ export function getConfigurationScope(): string {
   return "linked-notes-vscode";
 }
 
-export function getWikiLinkRange(
+export function getWikiLinkCompletionRange(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
@@ -298,7 +324,7 @@ export function getWikiLinkRange(
   );
 }
 
-export function getCiteProcRange(
+export function getCiteProcCompletionRange(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {

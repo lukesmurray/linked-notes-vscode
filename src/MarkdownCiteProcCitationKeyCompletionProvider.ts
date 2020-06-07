@@ -1,16 +1,13 @@
 import * as vscode from "vscode";
-import { selectCitationItemCompletions } from "./reducers/citationItems";
+import { selectCitationKeyCompletions } from "./reducers/citationItems";
 import {
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import {
-  getCiteProcRange as getCiteProcCompletionRange,
-  getWikiLinkRange as getWikiLinkCompletionRangeRange,
-} from "./util";
+import { getCiteProcCompletionRange, getWikiLinkCompletionRange } from "./util";
 
-class MarkdownCiteProcCitationItemCompletionProvider
+class MarkdownCiteProcCitationKeyCompletionProvider
   implements vscode.CompletionItemProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -25,12 +22,12 @@ class MarkdownCiteProcCitationItemCompletionProvider
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
     let citeProcRange = getCiteProcCompletionRange(document, position);
-    let wikiLinkRange = getWikiLinkCompletionRangeRange(document, position);
+    let wikiLinkRange = getWikiLinkCompletionRange(document, position);
     if (citeProcRange && !wikiLinkRange) {
-      return selectCitationItemCompletions(this.store.getState());
+      return selectCitationKeyCompletions(this.store.getState());
     }
     return;
   }
 }
 
-export default MarkdownCiteProcCitationItemCompletionProvider;
+export default MarkdownCiteProcCitationKeyCompletionProvider;

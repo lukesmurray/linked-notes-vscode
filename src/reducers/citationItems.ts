@@ -56,11 +56,11 @@ export const selectCitationItemsSlice = (state: RootState) =>
 export const selectCitationItems = (state: RootState) =>
   selectCitationItemsSlice(state);
 
-export const selectCitationItemCompletions = createSelector(
+export const selectCitationKeyCompletions = createSelector(
   selectCitationItems,
   (citationItems) => {
     return citationItems
-      .map(createCitationItemCompletion)
+      .map(createCitationKeyCompletion)
       .flat() as vscode.CompletionItem[];
   }
 );
@@ -69,31 +69,38 @@ export const selectCitationItemCompletions = createSelector(
  * Citation Item Completion Helpers
  ******************************************************************************/
 
-function createCitationItemCompletion(citationItem: CslData[number]) {
+function createCitationKeyCompletion(citationItem: CslData[number]) {
   const completionItem = new vscode.CompletionItem(
     citationItem.id + "",
     vscode.CompletionItemKind.Reference
   );
-  completionItem.filterText = createCitationItemFilterText(citationItem);
+  completionItem.filterText = citationKeyCompletionFilterText(citationItem);
   completionItem.insertText = `${citationItem.id}`;
-  completionItem.detail = `${citationItem.title}`;
-  completionItem.documentation = createCitationItemDocumentation(citationItem);
+  completionItem.detail = citationItemTitleString(citationItem);
+  completionItem.documentation = citationKeyCompletionDocumentation(
+    citationItem
+  );
   return completionItem;
 }
 
-function createCitationItemDocumentation(citationItem: CslData[number]) {
+function citationKeyCompletionDocumentation(citationItem: CslData[number]) {
   return new vscode.MarkdownString(
-    `Authors: ${citationItemToAuthorString(citationItem, ", ")}`
+    `Authors: ${citationItemAuthorString(citationItem, ", ")}`
   );
 }
 
-function createCitationItemFilterText(citationItem: CslData[number]) {
-  return `${citationItem.id} ${citationItem.title} ${citationItemToAuthorString(
+function citationKeyCompletionFilterText(citationItem: CslData[number]) {
+  return `${citationItem.id} ${citationItem.title} ${citationItemAuthorString(
     citationItem
   )}`;
 }
 
-function citationItemToAuthorString(
+export function citationItemTitleString(citationItem: CslData[number]) {
+  // TODO(lukemurray): review other titles and determine which to use if this is undefined
+  return citationItem.title;
+}
+
+export function citationItemAuthorString(
   citationItem: CslData[number],
   separator: string = " "
 ) {
@@ -103,11 +110,11 @@ function citationItemToAuthorString(
     ...(citationItem["original-author"] ?? []),
     ...(citationItem["reviewed-author"] ?? []),
   ]
-    .map((v) => nameVariableToString(v))
+    .map((v) => cslNameVariableToString(v))
     .join(separator);
 }
 
-function nameVariableToString(v: NameVariable) {
+function cslNameVariableToString(v: NameVariable) {
   return `${v["non-dropping-particle"] ?? ""} ${
     v["dropping-particle"] ?? ""
   }  ${v.given ?? ""} ${v.family ?? ""} ${v.suffix ?? ""} ${v.literal ?? ""}`;

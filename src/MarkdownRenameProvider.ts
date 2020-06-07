@@ -1,24 +1,21 @@
+import * as fs from "fs";
 import * as vscode from "vscode";
+import {
+  convertUriToLinkedDocId,
+  selectDocumentIds,
+  selectWikiLinkBackReferencesToDocumentId,
+  waitForLinkedDocToParse,
+} from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
   getDocumentURIForPosition,
-  getHeadingByDocumentId,
-  getVscodeRangeFromUnistPosition,
   getDocumentUriFromDocumentId,
-  getWikiLinkContentRange,
-  getHeaderContentRange,
-  getDocumentUriFromWikiLinkPermalink,
   getDocumentUriFromDocumentSlug,
+  getHeaderContentRange,
+  getHeadingByDocumentId,
+  getWikiLinkContentRange,
   sluggifyDocumentReference,
 } from "./util";
-import {
-  convertUriToLinkedDocId,
-  selectWikiLinkBackReferencesToDocumentId,
-  selectDocumentById,
-  selectDocumentIds,
-  waitForLinkedDocToParse,
-} from "./reducers/documents";
-import * as fs from "fs";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
   private store: LinkedNotesStore;

@@ -2,7 +2,8 @@ import debounce from "lodash/debounce";
 import memoize from "lodash/memoize";
 import * as vscode from "vscode";
 import ExtendMarkdownIt from "./ExtendMarkdownIt";
-import MarkdownCiteProcCitationItemCompletionProvider from "./MarkdownCiteProcCitationItemCompletionProvider";
+import MarkdownCiteProcCitationKeyCompletionProvider from "./MarkdownCiteProcCitationKeyCompletionProvider";
+import MarkdownCiteProcCitationKeyHoverProvider from "./MarkdownCiteProcCitationKeyHoverProvider";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
@@ -73,8 +74,16 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       MarkDownDocumentSelector,
-      new MarkdownCiteProcCitationItemCompletionProvider(store),
+      new MarkdownCiteProcCitationKeyCompletionProvider(store),
       "@"
+    )
+  );
+
+  // citeproc hover provider
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider(
+      MarkDownDocumentSelector,
+      new MarkdownCiteProcCitationKeyHoverProvider(store)
     )
   );
 

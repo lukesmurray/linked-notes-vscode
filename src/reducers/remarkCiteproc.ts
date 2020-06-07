@@ -4,18 +4,16 @@ import AhoCorasick from "../ahoCorasick";
 import { CslCitation } from "../types/csl-citation";
 import { CslData } from "../types/csl-data";
 import {
-  IInlineTokenizer,
   IInlineTokenizerEat,
   IInlineTokenizerReturn,
 } from "../types/remarkParse";
-import { Tokenizer } from "remark-parse";
 import { incrementUnistPoint } from "../util";
 
 interface IRemarkCiteProcOptions {
   citationItemAho: AhoCorasick<CslData[number]>;
 }
 
-interface ICiteProcCitation extends UNIST.Node {
+export interface ICiteProcCitation extends UNIST.Node {
   type: "citeProc";
   data: {
     citation: CslCitation;
@@ -23,7 +21,7 @@ interface ICiteProcCitation extends UNIST.Node {
   children: UNIST.Node[];
 }
 
-interface ICiteProcCitationKey extends UNIST.Node {
+export interface ICiteProcCitationKey extends UNIST.Node {
   type: "citeProcKey";
   data: {
     citation: CslData[number];

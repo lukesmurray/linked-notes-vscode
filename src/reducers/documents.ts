@@ -27,7 +27,7 @@ import {
   sluggifyDocumentReference,
 } from "../util";
 import { selectCitationItemAho } from "./citationItems";
-import remarkCiteproc from "./remarkCiteproc";
+import remarkCiteproc, { ICiteProcCitationKey } from "./remarkCiteproc";
 
 // TODO(lukemurray): organize this file similar to other slice files (see citationItems.ts)
 
@@ -179,6 +179,19 @@ export const selectDocumentByUri = (
   state: RootState,
   documentUri: vscode.Uri
 ) => selectDocumentById(state, convertUriToLinkedDocId(documentUri));
+
+export const selectCitationKeysByDocumentId = createObjectSelector(
+  selectDocumentEntities,
+  (docEntity) => {
+    if (docEntity?.document?.syntaxTree === undefined) {
+      return [];
+    }
+    return unistSelectAll(
+      "citeProcKey",
+      docEntity.document.syntaxTree
+    ) as ICiteProcCitationKey[];
+  }
+);
 
 export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
   selectDocumentEntities,

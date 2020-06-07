@@ -5,7 +5,7 @@ import {
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getWikiLinkRange } from "./util";
+import { getWikiLinkCompletionRange } from "./util";
 
 class MarkdownWikiLinkCompletionProvider
   implements vscode.CompletionItemProvider {
@@ -21,7 +21,7 @@ class MarkdownWikiLinkCompletionProvider
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
-    let range = getWikiLinkRange(document, position);
+    let range = getWikiLinkCompletionRange(document, position);
     if (range) {
       return selectWikiLinkCompletions(this.store.getState()).map(
         (match) =>
