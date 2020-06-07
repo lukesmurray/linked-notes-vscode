@@ -267,6 +267,34 @@ export const selectWikiLinkBackReferencesToDocumentId = createSelector(
   }
 );
 
+export const selectCitationKeyBackReferencesToCitationKeyId = createSelector(
+  selectCitationKeysByDocumentId,
+  (allLinks) => {
+    const output: {
+      [key: string]: {
+        containingDocumentId: string;
+        citationKey: ICiteProcCitationKey;
+      }[];
+    } = {};
+
+    for (let containingDocumentId of Object.keys(allLinks)) {
+      for (let citationKey of (allLinks as {
+        [key: string]: ICiteProcCitationKey[];
+      })[containingDocumentId]) {
+        const citationKeyReferenceCitationKeyId = citationKey.data.citation.id;
+        if (output[citationKeyReferenceCitationKeyId] === undefined) {
+          output[citationKeyReferenceCitationKeyId] = [];
+        }
+        output[citationKeyReferenceCitationKeyId].push({
+          containingDocumentId: containingDocumentId,
+          citationKey,
+        });
+      }
+    }
+    return output;
+  }
+);
+
 export const selectWikiLinkCompletions = createSelector(
   selectDocumentWikiLinksByDocumentId,
   selectDocumentHeadingTextByDocumentId,

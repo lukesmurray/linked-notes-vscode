@@ -14,7 +14,7 @@ import {
   getVscodeRangeFromUnistPosition,
 } from "./util";
 
-class MarkdownCiteProcCitationKeyHoverProvider implements vscode.HoverProvider {
+class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
 
   constructor(store: LinkedNotesStore) {
@@ -55,4 +55,4 @@ function citationItemHoverText(citationItem: CslData[number]) {
   );
 }
 
-export default MarkdownCiteProcCitationKeyHoverProvider;
+export default MarkdownHoverProvider;

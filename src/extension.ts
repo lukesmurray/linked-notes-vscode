@@ -3,9 +3,9 @@ import memoize from "lodash/memoize";
 import * as vscode from "vscode";
 import ExtendMarkdownIt from "./ExtendMarkdownIt";
 import MarkdownCiteProcCitationKeyCompletionProvider from "./MarkdownCiteProcCitationKeyCompletionProvider";
-import MarkdownCiteProcCitationKeyHoverProvider from "./MarkdownCiteProcCitationKeyHoverProvider";
 import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
 import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
+import MarkdownHoverProvider from "./MarkdownHoverProvider";
 import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
 import MarkdownRenameProvider from "./MarkdownRenameProvider";
 import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
@@ -83,7 +83,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
       MarkDownDocumentSelector,
-      new MarkdownCiteProcCitationKeyHoverProvider(store)
+      new MarkdownHoverProvider(store)
     )
   );
 

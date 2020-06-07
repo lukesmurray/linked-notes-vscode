@@ -4,6 +4,7 @@ import {
   selectWikiLinkBackReferencesToDocumentId,
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
+  selectCitationKeyBackReferencesToCitationKeyId,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
@@ -11,6 +12,7 @@ import {
   getDocumentURIForPosition,
   getHeadingByDocumentId,
   getVscodeRangeFromUnistPosition,
+  getCitationKeysForPosition,
 } from "./util";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
@@ -22,9 +24,13 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   async provideReferences(
     document: vscode.TextDocument,
     position: vscode.Position,
+    // TODO(lukemurray): handle the reference context
     context: vscode.ReferenceContext,
     token: vscode.CancellationToken
   ) {
+    /***************************************************************************
+     * Document References
+     **************************************************************************/
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
     let { documentUri } = getDocumentURIForPosition(
@@ -59,6 +65,35 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
           : undefined,
       ].filter((v) => v !== undefined) as vscode.Location[];
     }
+
+    /***************************************************************************
+     * Citation References
+     **************************************************************************/
+    const overlappingCitationKey = getCitationKeysForPosition(
+      this.store,
+      document,
+      position
+    );
+
+    if (
+      overlappingCitationKey &&
+      overlappingCitationKey.position !== undefined
+    ) {
+      const citationKeyBackReferences = selectCitationKeyBackReferencesToCitationKeyId(
+        this.store.getState()
+      )[overlappingCitationKey.data.citation.id];
+      return [
+        ...citationKeyBackReferences
+          .filter((v) => v.citationKey.position !== undefined)
+          .map(({ containingDocumentId, citationKey }) => {
+            return new vscode.Location(
+              getDocumentUriFromDocumentId(containingDocumentId),
+              getVscodeRangeFromUnistPosition(citationKey.position!)
+            );
+          }),
+      ];
+    }
+
     return undefined;
   }
 }
