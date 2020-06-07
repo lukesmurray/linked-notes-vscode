@@ -50,8 +50,8 @@ export const getCitations = async (
   for (let i = 0; i < citations.length; i++) {
     citeproc.processCitationCluster(
       {
-        citationItems: getCitationKeysFromCitation(citations[i]).map(
-          (v) => v.data.citation
+        citationItems: citations[i].data.citation.citationItems!.map(
+          (v) => v.itemData!
         ),
         properties: {
           nodeIndex: citations[i].data.citation.properties?.noteIndex,

@@ -68,7 +68,21 @@ function remarkCiteProc(
         data: {
           citation: {
             citationID: "",
-            citationItems: citationKeyMatches.map((v) => ({ ...v.value })),
+            citationItems: citationKeyMatches
+              .map((v) => v.value)
+              .map((v) => ({
+                id: v.id,
+                itemData: { ...v },
+                // // TODO(lukemurray): The following properties need to be parsed and set!
+                // // see https://pandoc.org/demo/example19/Extension-citations.html
+                // "author-only": false,
+                // "suppress-author": false,
+                // label: "page",
+                // locator: "33",
+                // prefix: undefined,
+                // suffix: undefined,
+                // uris: []
+              })),
             schema:
               "https://resource.citationstyles.org/schema/latest/input/json/csl-citation.json",
             properties: {
