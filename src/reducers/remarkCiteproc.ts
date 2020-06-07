@@ -1,14 +1,21 @@
 import { Plugin, Processor, Settings, Transformer } from "unified";
 import * as UNIST from "unist";
-import { CslData } from "../types/csl-data";
 import AhoCorasick from "../ahoCorasick";
 import { CslCitation } from "../types/csl-citation";
+import { CslData } from "../types/csl-data";
+import {
+  IInlineTokenizer,
+  IInlineTokenizerEat,
+  IInlineTokenizerReturn,
+} from "../types/remarkParse";
+import { Tokenizer } from "remark-parse";
+import { incrementUnistPoint } from "../util";
 
-interface RemarkCiteProcOptions {
+interface IRemarkCiteProcOptions {
   citationItemAho: AhoCorasick<CslData[number]>;
 }
 
-interface CiteProcCitation extends UNIST.Node {
+interface ICiteProcCitation extends UNIST.Node {
   type: "citeProc";
   data: {
     citation: CslCitation;
@@ -16,31 +23,35 @@ interface CiteProcCitation extends UNIST.Node {
   children: UNIST.Node[];
 }
 
+interface ICiteProcCitationKey extends UNIST.Node {
+  type: "citeProcKey";
+  data: {
+    citation: CslData[number];
+  };
+  children: UNIST.Node[];
+}
+
 // receive options and configure the processor
 function remarkCiteProc(
   this: Processor<Settings>,
-  settings: RemarkCiteProcOptions
+  settings: IRemarkCiteProcOptions
 ): Transformer | void {
-  // TODO(lukemurray): aho could be passed in settings to avoid building every time
-  // get a reference to the parser
   const Parser = this.Parser;
   const tokenizers = Parser.prototype.inlineTokenizers;
-  // see for methods https://github.com/remarkjs/remark/tree/master/packages/remark-parse#parserinlinemethods
   const methods = Parser.prototype.inlineMethods;
 
+  /*****************************************************************************
+   * Citation Tokenizer
+   ****************************************************************************/
   // TODO(lukemurray): this note index is only valid if the processor is used once
   let noteIndex = 1;
 
-  // see tokenizer https://github.com/remarkjs/remark/tree/master/packages/remark-parse#function-tokenizereat-value-silent
-  // see for eat https://github.com/remarkjs/remark/tree/master/packages/remark-parse#eatsubvalue
-  // see for add https://github.com/remarkjs/remark/tree/master/packages/remark-parse#addnode-parent
   function tokenizeCiteProc(
-    eat: (
-      subValue: string
-    ) => (node: UNIST.Node, parent?: UNIST.Node) => UNIST.Node,
+    this: any,
+    eat: IInlineTokenizerEat,
     value: string,
     silent: boolean
-  ): UNIST.Node | boolean | undefined {
+  ): IInlineTokenizerReturn {
     const citationBracketMatch = /^\[[^\[\]]+\]/g.exec(value);
     const citationKeyMatches =
       citationBracketMatch !== null
@@ -52,13 +63,14 @@ function remarkCiteProc(
       if (silent) {
         return true;
       }
+      let now = eat.now();
       const add = eat(citationBracketMatch![0]);
-      const node = add(<CiteProcCitation>{
+      const node = add(<ICiteProcCitation>{
         type: "citeProc",
         data: {
           citation: {
             citationID: "",
-            citationItems: citationKeyMatches.map((v) => v.value),
+            citationItems: citationKeyMatches.map((v) => ({ ...v.value })),
             schema:
               "https://resource.citationstyles.org/schema/latest/input/json/csl-citation.json",
             properties: {
@@ -66,12 +78,16 @@ function remarkCiteProc(
             },
           },
         },
-        // TODO(lukemurray): map citation keys to nodes so that we have citation key positions
         children: [
-          {
-            type: "text",
-            value: citationBracketMatch![0],
-          },
+          ...this.tokenizeInline(citationBracketMatch![0].slice(0, 1), now),
+          ...this.tokenizeInline(
+            citationBracketMatch![0].slice(1, -1),
+            incrementUnistPoint(now, 1)
+          ),
+          ...this.tokenizeInline(
+            citationBracketMatch![0].slice(-1),
+            incrementUnistPoint(now, citationBracketMatch![0].length - 1)
+          ),
         ],
       });
       noteIndex += 1;
@@ -79,17 +95,56 @@ function remarkCiteProc(
     }
     return;
   }
-  // see locator https://github.com/remarkjs/remark/tree/master/packages/remark-parse#tokenizerlocatorvalue-fromindex
   tokenizeCiteProc.locator = (value: string, fromIndex: number) => {
     return value.indexOf("[", fromIndex);
   };
 
   // add a tokenizer for citeproc
   tokenizers.citeProc = tokenizeCiteProc;
-  // run it just before links
+  // run the citeproc tokenizer before links
   methods.splice(methods.indexOf("link"), 0, "citeProc");
 
-  // see https://github.com/unifiedjs/unified#function-transformernode-file-next
+  /*****************************************************************************
+   * Citation Key Tokenizer
+   ****************************************************************************/
+  function tokenizeCiteProcKey(
+    this: any,
+    eat: IInlineTokenizerEat,
+    value: string,
+    silent: boolean
+  ): IInlineTokenizerReturn {
+    const citationKeyMatch = /^@[^\]\s;]*/g.exec(value);
+    const citationKeyMatches =
+      citationKeyMatch !== null
+        ? settings.citationItemAho.leftMostLongestMatches(citationKeyMatch[0])
+        : [];
+
+    if (citationKeyMatches?.length > 1) {
+      console.error("duplicate citation key");
+    }
+
+    if (citationKeyMatches?.length !== 0) {
+      if (silent) {
+        return true;
+      }
+      const add = eat(citationKeyMatch![0]);
+      const node = add(<ICiteProcCitationKey>{
+        type: "citeProcKey",
+        data: {
+          citation: { ...citationKeyMatches[0].value },
+        },
+      });
+      return node;
+    }
+    return;
+  }
+  tokenizeCiteProcKey.locator = (value: string, fromIndex: number) =>
+    value.indexOf("@", fromIndex);
+
+  // add a tokenizer for citation keys
+  tokenizers.citeProcKey = tokenizeCiteProcKey;
+  // run the citeproc tokenizer before links
+  methods.splice(methods.indexOf("citeProc"), 0, "citeProcKey");
 }
 
-export default remarkCiteProc as Plugin<[RemarkCiteProcOptions]>;
+export default remarkCiteProc as Plugin<[IRemarkCiteProcOptions]>;

@@ -6,6 +6,7 @@ import reporter from "vfile-reporter";
 import remarkCiteproc from "../../reducers/remarkCiteproc";
 import { CslData } from "../../types/csl-data";
 import { createAhoCorasickFromCSLData } from "../../reducers/citationItems";
+import wikiLinkPlugin from "remark-wiki-link";
 
 suite("Reducer Test Suite", () => {
   test("Attaches without throwing", () => {
@@ -51,16 +52,19 @@ suite("Reducer Test Suite", () => {
       }
       // make sure there are no issues
       assert.equal(reporter(file), "no issues found");
-      console.log(AST);
       done();
     });
   });
 });
 
 function createCiteProcProcessor() {
-  return createSimpleProcessor().use(remarkCiteproc, {
-    citationItemAho: createAhoCorasickFromCSLData(exampleCSL),
-  });
+  return createSimpleProcessor()
+    .use(remarkCiteproc, {
+      citationItemAho: createAhoCorasickFromCSLData(exampleCSL),
+    })
+    .use(wikiLinkPlugin, {
+      // pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],
+    });
 }
 
 function createSimpleProcessor() {
@@ -76,6 +80,11 @@ This is some markdown
 }
 
 function createContentsWithCitation() {
+  return vfile(`
+# Hello World
+
+[this is the start @andyWhyBooksDon2019 hello; @banovicWakenReverseEngineering2012] and [this is a citation @banovicWakenReverseEngineering2012]
+`);
   return vfile(`
 # Hello World
 

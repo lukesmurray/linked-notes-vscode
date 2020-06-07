@@ -3,6 +3,7 @@
 // Definitions by: Luke Murray lukesmurray.com
 
 declare module "ahocorasick" {
+  // eslint-disable-next-line @typescript-eslint/class-name-casing
   class ahocorasick {
     /**
      * @param keywords the patterns which will be matched by ahocorasick
