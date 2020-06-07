@@ -73,12 +73,13 @@
     "analyze": "source-map-explorer 'dist/*.js'",
     "vscode:prepublish": "webpack --mode production",
     "webpack": "webpack --mode development",
-    "webpack-dev": "webpack --mode development --watch",
     "update-schemas": "./scripts/updateSchemas.sh",
     "compile": "tsc -p ./ --incremental",
     "lint": "eslint src --ext ts",
     "pretest": "npm run compile && npm run lint",
-    "test": "node ./out/test/runTest.js"
+    "test-unit": "npm run compile && npm run lint && mocha --ui='tdd' ./out/**.test.js",
+    "test-integration": "npm run compile && npm run lint && node ./out/test/runTest.js",
+    "test": "mocha --ui='tdd' ./out/**.test.js && node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/glob": "^7.1.2",
