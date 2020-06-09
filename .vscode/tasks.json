@@ -5,14 +5,12 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "watch",
-      "problemMatcher": "$tsc-watch",
-      "isBackground": true,
-      "presentation": {
-        "reveal": "never"
-      },
+      "script": "test-unit",
+      "problemMatcher": [],
+      "label": "npm: test-unit",
+      "detail": "npm run compile && npm run lint && mocha --ui='tdd' ./out/**/*.test.js",
       "group": {
-        "kind": "build",
+        "kind": "test",
         "isDefault": true
       }
     }

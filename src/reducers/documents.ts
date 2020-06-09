@@ -26,6 +26,7 @@ import {
   getVscodeRangeFromUnistPosition,
 } from "../utils/util";
 import { selectCitationItemAho } from "./citationItems";
+import { MDASTWikiLinkSelectAll } from "../remarkUtils/MDASTWikiLinkSelectAll";
 
 export interface LinkedNotesDocument {
   /**
@@ -168,10 +169,7 @@ export const selectDocumentWikiLinksByDocumentId = createObjectSelector(
     if (docEntity?.document?.syntaxTree === undefined) {
       return [];
     }
-    return unistSelectAll(
-      "wikiLink",
-      docEntity.document.syntaxTree
-    ) as MDAST.WikiLink[];
+    return MDASTWikiLinkSelectAll(docEntity.document.syntaxTree);
   }
 );
 

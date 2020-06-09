@@ -1,10 +1,10 @@
 import vscode from "vscode";
 import {
-  sluggifyDocumentReference,
   getDocumentUriFromDocumentSlug,
   findAllMarkdownFilesInWorkspace,
   createNewMarkdownDoc,
 } from "./utils/util";
+import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 
 function NewNoteCommand() {
   const titlePromise = vscode.window.showInputBox({

@@ -77,7 +77,7 @@
     "compile": "tsc -p ./ --incremental",
     "lint": "eslint src --ext ts",
     "pretest": "npm run compile && npm run lint",
-    "test-unit": "npm run compile && npm run lint && mocha --ui='tdd' ./out/**.test.js",
+    "test-unit": "npm run compile && npm run lint && mocha --ui='tdd' ./out/**/*.test.js",
     "test-integration": "npm run compile && npm run lint && node ./out/test/runTest.js",
     "test": "mocha --ui='tdd' ./out/**.test.js && node ./out/test/runTest.js"
   },

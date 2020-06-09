@@ -277,14 +277,6 @@ export function getWikiLinkContentRange(wikiLinkPosition: UNIST.Position) {
   });
 }
 
-export function sluggifyDocumentReference(documentReference: string): string {
-  return documentReference
-    .replace(/[^\w\s-]/g, "") // Remove non-ASCII characters
-    .trim()
-    .replace(/[-\s]+/g, "-") // Convert whitespace to hyphens
-    .toLocaleLowerCase();
-}
-
 export function getDefaultNoteText(noteTitle: string): string {
   return `---
 draft: true
@@ -337,13 +329,6 @@ export function getCiteProcCompletionRange(
     CITEPROC_COMPLETION_RANGE_REGEX
   );
 }
-
-export const incrementUnistPoint = (point: UNIST.Point, by: number) => {
-  point = { ...point };
-  point.column += by;
-  point.offset = point.offset === undefined ? undefined : point.offset + by;
-  return point;
-};
 
 export const getCitationKeysFromCitation = (citation: ICiteProcCitation) => {
   return unistSelectAll("citeProcKey", citation) as ICiteProcCitationKey[];

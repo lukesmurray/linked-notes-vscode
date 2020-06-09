@@ -7,7 +7,7 @@ import {
   IInlineTokenizerEat,
   IInlineTokenizerReturn,
 } from "../types/remarkParse";
-import { incrementUnistPoint } from "../utils/util";
+import { incrementUnistPoint } from "./incrementUnistPoint";
 
 interface IRemarkCiteProcOptions {
   citationItemAho: AhoCorasick<CslData[number]>;

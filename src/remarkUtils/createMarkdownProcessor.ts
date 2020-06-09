@@ -3,7 +3,7 @@ import wikiLinkPlugin from "remark-wiki-link";
 import unified from "unified";
 import AhoCorasick from "../utils/ahoCorasick";
 import { CslData } from "../types/csl-data";
-import { sluggifyDocumentReference } from "../utils/util";
+import { sluggifyDocumentReference } from "../utils/sluggifyDocumentReference";
 import remarkCiteproc from "./remarkCiteproc";
 /**
  * Create the unified markdown processor for parsing text documents and

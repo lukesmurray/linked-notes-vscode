@@ -1,9 +1,7 @@
 import MarkdownIt from "markdown-it";
 import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
-import {
-  getDocumentUriFromDocumentSlug,
-  sluggifyDocumentReference,
-} from "./utils/util";
+import { getDocumentUriFromDocumentSlug } from "./utils/util";
+import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 
 /**
  * Add additional functionality to the Markdown Preview in vscode.
