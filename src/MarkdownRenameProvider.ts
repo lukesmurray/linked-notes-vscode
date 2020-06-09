@@ -15,7 +15,7 @@ import {
   getHeadingByDocumentId,
   getWikiLinkContentRange,
   sluggifyDocumentReference,
-} from "./util";
+} from "./utils/util";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
   private store: LinkedNotesStore;

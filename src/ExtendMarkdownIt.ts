@@ -3,7 +3,7 @@ import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
 import {
   getDocumentUriFromDocumentSlug,
   sluggifyDocumentReference,
-} from "./util";
+} from "./utils/util";
 
 /**
  * Add additional functionality to the Markdown Preview in vscode.

@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from ".";
 import { AppDispatch } from "../store";
 import { updateCitationItems } from "./citationItems";
-import { createUriForFileRelativeToWorkspaceRoot } from "../util";
+import { createUriForFileRelativeToWorkspaceRoot } from "../utils/util";
 
 export interface IExtensionConfiguration {
   defaultBib: null | string;

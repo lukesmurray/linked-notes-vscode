@@ -5,7 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
-import AhoCorasick from "../ahoCorasick";
+import AhoCorasick from "../utils/ahoCorasick";
 import { AppDispatch } from "../store";
 import { CslData, NameVariable } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";

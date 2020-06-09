@@ -5,7 +5,10 @@ import {
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getCiteProcCompletionRange, getWikiLinkCompletionRange } from "./util";
+import {
+  getCiteProcCompletionRange,
+  getWikiLinkCompletionRange,
+} from "./utils/util";
 
 class MarkdownCiteProcCitationKeyCompletionProvider
   implements vscode.CompletionItemProvider {

@@ -12,7 +12,7 @@ import { CslData } from "./types/csl-data";
 import {
   getCitationKeysForPosition,
   getVscodeRangeFromUnistPosition,
-} from "./util";
+} from "./utils/util";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;

@@ -8,17 +8,17 @@ import {
   selectDocumentHeadingByDocumentId,
   selectDocumentWikiLinksByDocumentId,
   selectCitationKeysByDocumentId,
-} from "./reducers/documents";
-import type { LinkedNotesStore } from "./store";
+} from "../reducers/documents";
+import type { LinkedNotesStore } from "../store";
 import {
   IExtensionConfiguration,
   selectDefaultBibUri,
-} from "./reducers/configuration";
-import { RootState } from "./reducers";
+} from "../reducers/configuration";
+import { RootState } from "../reducers";
 import {
   ICiteProcCitationKey,
   ICiteProcCitation,
-} from "./reducers/remarkCiteproc";
+} from "../remarkUtils/remarkCiteproc";
 import { selectAll as unistSelectAll } from "unist-util-select";
 
 export const MarkDownDocumentSelector = {

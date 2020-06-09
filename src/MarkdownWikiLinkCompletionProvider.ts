@@ -5,7 +5,7 @@ import {
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getWikiLinkCompletionRange } from "./util";
+import { getWikiLinkCompletionRange } from "./utils/util";
 
 class MarkdownWikiLinkCompletionProvider
   implements vscode.CompletionItemProvider {

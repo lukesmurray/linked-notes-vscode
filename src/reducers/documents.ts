@@ -17,7 +17,7 @@ import {
 } from "unist-util-select";
 import * as vscode from "vscode";
 import type { RootState } from ".";
-import AhoCorasick from "../ahoCorasick";
+import AhoCorasick from "../utils/ahoCorasick";
 import { AppDispatch, LinkedNotesStore } from "../store";
 import { CslData } from "../types/csl-data";
 import {
@@ -25,12 +25,12 @@ import {
   getDocumentIdFromWikiLink,
   getVscodeRangeFromUnistPosition,
   sluggifyDocumentReference,
-} from "../util";
+} from "../utils/util";
 import { selectCitationItemAho } from "./citationItems";
 import remarkCiteproc, {
   ICiteProcCitationKey,
   ICiteProcCitation,
-} from "./remarkCiteproc";
+} from "../remarkUtils/remarkCiteproc";
 
 // TODO(lukemurray): organize this file similar to other slice files (see citationItems.ts)
 

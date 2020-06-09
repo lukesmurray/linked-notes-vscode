@@ -4,7 +4,7 @@ import {
   getDocumentUriFromDocumentSlug,
   findAllMarkdownFilesInWorkspace,
   createNewMarkdownDoc,
-} from "./util";
+} from "./utils/util";
 
 function NewNoteCommand() {
   const titlePromise = vscode.window.showInputBox({

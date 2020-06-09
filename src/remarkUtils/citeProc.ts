@@ -3,7 +3,7 @@ import keyBy from "lodash/keyBy";
 import memoizeOne from "memoize-one";
 import { CslData } from "../types/csl-data";
 import { ICiteProcCitationKey, ICiteProcCitation } from "./remarkCiteproc";
-import { getCitationKeysFromCitation } from "../util";
+import { getCitationKeysFromCitation } from "../utils/util";
 
 /**
  * from https://github.com/citation-style-language/styles

@@ -3,7 +3,7 @@ import markdown from "remark-parse";
 import unified from "unified";
 import vfile from "vfile";
 import reporter from "vfile-reporter";
-import remarkCiteproc from "../../reducers/remarkCiteproc";
+import remarkCiteproc from "../../remarkUtils/remarkCiteproc";
 import { CslData } from "../../types/csl-data";
 import { createAhoCorasickFromCSLData } from "../../reducers/citationItems";
 import wikiLinkPlugin from "remark-wiki-link";

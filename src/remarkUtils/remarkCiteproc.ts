@@ -1,13 +1,13 @@
 import { Plugin, Processor, Settings, Transformer } from "unified";
 import * as UNIST from "unist";
-import AhoCorasick from "../ahoCorasick";
+import AhoCorasick from "../utils/ahoCorasick";
 import { CslCitation } from "../types/csl-citation";
 import { CslData } from "../types/csl-data";
 import {
   IInlineTokenizerEat,
   IInlineTokenizerReturn,
 } from "../types/remarkParse";
-import { incrementUnistPoint } from "../util";
+import { incrementUnistPoint } from "../utils/util";
 
 interface IRemarkCiteProcOptions {
   citationItemAho: AhoCorasick<CslData[number]>;

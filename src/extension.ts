@@ -30,7 +30,7 @@ import {
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
   readConfiguration,
-} from "./util";
+} from "./utils/util";
 import WriteDefaultSettingsCommand from "./WriteDefaultSettingsCommand";
 
 export async function activate(context: vscode.ExtensionContext) {

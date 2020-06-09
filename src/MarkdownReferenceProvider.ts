@@ -13,7 +13,7 @@ import {
   getHeadingByDocumentId,
   getVscodeRangeFromUnistPosition,
   getCitationKeysForPosition,
-} from "./util";
+} from "./utils/util";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;
