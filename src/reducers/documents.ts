@@ -7,32 +7,25 @@ import {
 } from "@reduxjs/toolkit";
 import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
-import markdown from "remark-parse";
-import wikiLinkPlugin from "remark-wiki-link";
 import { createObjectSelector } from "reselect-map";
-import unified from "unified";
 import {
   select as unistSelect,
   selectAll as unistSelectAll,
 } from "unist-util-select";
 import * as vscode from "vscode";
 import type { RootState } from ".";
-import AhoCorasick from "../utils/ahoCorasick";
+import { getMDASTFromText } from "../remarkUtils/getMDASTFromText";
+import {
+  ICiteProcCitation,
+  ICiteProcCitationKey,
+} from "../remarkUtils/remarkCiteproc";
 import { AppDispatch, LinkedNotesStore } from "../store";
-import { CslData } from "../types/csl-data";
 import {
   delay,
   getDocumentIdFromWikiLink,
   getVscodeRangeFromUnistPosition,
-  sluggifyDocumentReference,
 } from "../utils/util";
 import { selectCitationItemAho } from "./citationItems";
-import remarkCiteproc, {
-  ICiteProcCitationKey,
-  ICiteProcCitation,
-} from "../remarkUtils/remarkCiteproc";
-
-// TODO(lukemurray): organize this file similar to other slice files (see citationItems.ts)
 
 export interface LinkedNotesDocument {
   /**
@@ -46,73 +39,9 @@ export interface LinkedNotesDocument {
   syntaxTree: MDAST.Root | undefined;
 }
 
-/**
- * Create the unified markdown processor for parsing text documents and
- * creating syntax trees
- */
-function createMarkdownProcessor(
-  citationItemAho: AhoCorasick<CslData[number]>
-) {
-  return unified()
-    .use(markdown)
-    .use(remarkCiteproc, {
-      citationItemAho,
-    })
-    .use(wikiLinkPlugin, {
-      pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],
-    });
-}
-
-/**
- * Get a syntax tree from a text document asynchronously
- * @param doc a vscode text document
- */
-export async function getASTFromTextDoc(
-  doc: vscode.TextDocument,
-  citationItemAho: AhoCorasick<CslData[number]>
-): Promise<MDAST.Root> {
-  const processor = createMarkdownProcessor(citationItemAho);
-  const docText = doc.getText();
-  // TODO(lukemurray): find a better way to get rid of circular references
-  // since we store the syntax tree in redux we want all references to be
-  // unique but the mdast shares references to things like internal arrays
-  const syntaxTree = JSON.parse(
-    JSON.stringify(await processor.run(processor.parse(docText)))
-  ) as MDAST.Root;
-  return syntaxTree;
-}
-
-/**
- * Get the documents slice id from the text document.
- * @param doc the text document in the workspace
- */
-export const convertTextDocToLinkedDocId: (
-  uri: vscode.TextDocument
-) => string = (doc) => convertUriToLinkedDocId(doc.uri);
-
-/**
- * Get the documents slice id from the text document uri.
- * @param uri the uri from a vscode.TextDocument
- */
-export const convertUriToLinkedDocId: (uri: vscode.Uri) => string = (uri) =>
-  uri.fsPath;
-
-/**
- * Return the document slice id for a linked notes document
- * @param document a linked notes document
- */
-export const convertLinkedDocToLinkedDocId: (
-  document: LinkedNotesDocument
-) => string = (document) => document.id;
-
-// create adapter for managing documents
-const documentsAdapter = createEntityAdapter<{
-  document: LinkedNotesDocument;
-  status: "pending changes" | "up to date";
-}>({
-  selectId: (entity) => convertLinkedDocToLinkedDocId(entity.document),
-  sortComparer: (a, b) => a.document.id.localeCompare(b.document.id),
-});
+/*******************************************************************************
+ * Thunks
+ ******************************************************************************/
 
 export const updateDocumentSyntaxTree = createAsyncThunk<
   LinkedNotesDocument,
@@ -123,8 +52,8 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
   async (document: vscode.TextDocument, thunkApi) => {
     const textDocumentId = convertTextDocToLinkedDocId(document);
     thunkApi.dispatch(documentChangePending({ id: textDocumentId }));
-    const syntaxTree = await getASTFromTextDoc(
-      document,
+    const syntaxTree = await getMDASTFromText(
+      document.getText(),
       selectCitationItemAho(thunkApi.getState())
     );
     return {
@@ -134,9 +63,18 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
   }
 );
 
-export const documentChangePending = createAction<{ id: string }>(
-  "linkedDocuments/changePending"
-);
+/*******************************************************************************
+ * Reducers
+ ******************************************************************************/
+
+// create adapter for managing documents
+const documentsAdapter = createEntityAdapter<{
+  document: LinkedNotesDocument;
+  status: "pending changes" | "up to date";
+}>({
+  selectId: (entity) => convertLinkedDocToLinkedDocId(entity.document),
+  sortComparer: (a, b) => a.document.id.localeCompare(b.document.id),
+});
 
 // create documents slice
 const documentsSlice = createSlice({
@@ -163,12 +101,27 @@ const documentsSlice = createSlice({
   },
 });
 
+// export reducer as the default
+export default documentsSlice.reducer;
+
+/*******************************************************************************
+ * Actions
+ ******************************************************************************/
+
+export const documentChangePending = createAction<{ id: string }>(
+  "linkedDocuments/changePending"
+);
+
 // export actions
 export const {
   documentAdded,
   documentDeleted,
   documentUpdated,
 } = documentsSlice.actions;
+
+/*******************************************************************************
+ * Selectors
+ ******************************************************************************/
 
 export const selectDocumentSlice = (state: RootState) => state.documents;
 
@@ -328,6 +281,10 @@ export const selectWikiLinkCompletions = createSelector(
   }
 );
 
+/*******************************************************************************
+ * Utils
+ ******************************************************************************/
+
 export const waitForLinkedDocToParse = (
   store: LinkedNotesStore,
   documentId: string
@@ -347,5 +304,25 @@ export const waitForLinkedDocToParse = (
   });
 };
 
-// export reducer as the default
-export default documentsSlice.reducer;
+/**
+ * Get the documents slice id from the text document.
+ * @param doc the text document in the workspace
+ */
+export const convertTextDocToLinkedDocId: (
+  uri: vscode.TextDocument
+) => string = (doc) => convertUriToLinkedDocId(doc.uri);
+
+/**
+ * Get the documents slice id from the text document uri.
+ * @param uri the uri from a vscode.TextDocument
+ */
+export const convertUriToLinkedDocId: (uri: vscode.Uri) => string = (uri) =>
+  uri.fsPath;
+
+/**
+ * Return the document slice id for a linked notes document
+ * @param document a linked notes document
+ */
+export const convertLinkedDocToLinkedDocId: (
+  document: LinkedNotesDocument
+) => string = (document) => document.id;
