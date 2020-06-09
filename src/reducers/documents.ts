@@ -16,9 +16,10 @@ import * as vscode from "vscode";
 import type { RootState } from ".";
 import { getMDASTFromText } from "../remarkUtils/getMDASTFromText";
 import {
-  ICiteProcCitation,
-  ICiteProcCitationKey,
-} from "../remarkUtils/remarkCiteproc";
+  MDASTCiteProcCitationSelectAll,
+  MDASTWikiLinkSelectAll,
+} from "../remarkUtils/MDASTSelectors";
+import { ICiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
 import { AppDispatch, LinkedNotesStore } from "../store";
 import {
   delay,
@@ -26,7 +27,6 @@ import {
   getVscodeRangeFromUnistPosition,
 } from "../utils/util";
 import { selectCitationItemAho } from "./citationItems";
-import { MDASTWikiLinkSelectAll } from "../remarkUtils/MDASTWikiLinkSelectAll";
 
 export interface LinkedNotesDocument {
   /**
@@ -156,10 +156,7 @@ export const selectCitationsByDocumentId = createObjectSelector(
     if (docEntity?.document?.syntaxTree === undefined) {
       return [];
     }
-    return unistSelectAll(
-      "citeProcCitation",
-      docEntity.document.syntaxTree
-    ) as ICiteProcCitation[];
+    return MDASTCiteProcCitationSelectAll(docEntity.document.syntaxTree);
   }
 );
 

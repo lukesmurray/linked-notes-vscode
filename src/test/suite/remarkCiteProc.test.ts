@@ -5,7 +5,7 @@ import vfile from "vfile";
 import reporter from "vfile-reporter";
 import remarkCiteproc from "../../remarkUtils/remarkCiteproc";
 import { CslData } from "../../types/csl-data";
-import { createAhoCorasickFromCSLData } from "../../reducers/citationItems";
+import { createAhoCorasickFromCSLJSON } from "../../remarkUtils/createAhoCorasickFromCSLData";
 import wikiLinkPlugin from "remark-wiki-link";
 
 suite("Reducer Test Suite", () => {
@@ -60,7 +60,7 @@ suite("Reducer Test Suite", () => {
 function createCiteProcProcessor() {
   return createSimpleProcessor()
     .use(remarkCiteproc, {
-      citationItemAho: createAhoCorasickFromCSLData(exampleCSL),
+      citationItemAho: createAhoCorasickFromCSLJSON(exampleCSL),
     })
     .use(wikiLinkPlugin, {
       // pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],

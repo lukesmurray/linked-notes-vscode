@@ -5,10 +5,12 @@ import {
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
-import AhoCorasick from "../utils/ahoCorasick";
 import { AppDispatch } from "../store";
 import { CslData, NameVariable } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";
+import { createAhoCorasickFromCSLJSON } from "../remarkUtils/createAhoCorasickFromCSLData";
+
+// TODO(lukemurray): make sure we're using terminology from the terminology markdown file
 
 /*******************************************************************************
  * Thunks
@@ -126,9 +128,5 @@ function cslNameVariableToString(v: NameVariable) {
 
 export const selectCitationItemAho = createSelector(
   selectCitationItems,
-  (items) => createAhoCorasickFromCSLData(items)
+  (items) => createAhoCorasickFromCSLJSON(items)
 );
-
-export function createAhoCorasickFromCSLData(items: CslData) {
-  return new AhoCorasick(items.map((v) => ["@" + v.id, v]));
-}
