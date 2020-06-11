@@ -19,5 +19,7 @@ export function createMarkdownProcessor(
     })
     .use(wikiLinkPlugin, {
       pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],
+      // no alias divider, guid for maximal randomness
+      aliasDivider: "7d4c61af-4eeb-4252-8da1-85760c9df3b5",
     });
 }

@@ -51,6 +51,9 @@ function remarkCiteProc(
     silent: boolean
   ): IInlineTokenizerReturn {
     const citationBracketMatch = /^\[[^\[\]]+\]/g.exec(value);
+
+    // TODO(lukemurray): aho will fail on overlap matches `@aho` matches `@ahocorasick`
+    // fix is to make sure there is an invalid key character at the end of the match
     const citationKeyMatches =
       citationBracketMatch !== null
         ? settings.citationItemAho.leftMostLongestMatches(
