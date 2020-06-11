@@ -19,8 +19,8 @@ import {
   MDASTCiteProcCitationSelectAll,
   MDASTWikiLinkSelectAll,
 } from "../remarkUtils/MDASTSelectors";
-import { ICiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
-import { AppDispatch, LinkedNotesStore } from "../store";
+import type { ICiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
+import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
   delay,
   getDocumentIdFromWikiLink,
@@ -43,6 +43,10 @@ export interface LinkedNotesDocument {
 /*******************************************************************************
  * Thunks
  ******************************************************************************/
+
+export const documentChangePending = createAction<{ id: string }>(
+  "linkedDocuments/changePending"
+);
 
 export const updateDocumentSyntaxTree = createAsyncThunk<
   LinkedNotesDocument,
@@ -108,10 +112,6 @@ export default documentsSlice.reducer;
 /*******************************************************************************
  * Actions
  ******************************************************************************/
-
-export const documentChangePending = createAction<{ id: string }>(
-  "linkedDocuments/changePending"
-);
 
 // export actions
 export const {
