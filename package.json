@@ -73,6 +73,7 @@
     "analyze": "source-map-explorer 'dist/*.js'",
     "vscode:prepublish": "webpack --mode production",
     "webpack": "webpack --mode development",
+    "postinstall": "patch-package",
     "update-schemas": "./scripts/updateSchemas.sh",
     "compile": "tsc -p ./ --incremental",
     "lint": "eslint src --ext ts",
