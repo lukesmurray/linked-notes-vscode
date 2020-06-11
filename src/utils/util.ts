@@ -34,7 +34,7 @@ export const BIB_FILE_EXT = ["json"] as const;
 
 export const BIB_FILE_GLOB_PATTERN = `**/*.{${BIB_FILE_EXT.join(",")}}`;
 
-const CITEPROC_COMPLETION_RANGE_REGEX = /(?:^|[ ;\[-])\@([^\]\s]*)/g;
+const CITEPROC_COMPLETION_RANGE_REGEX = /(?<=(?:^|[ ;\[-]))\@([^\]\s]*)/g;
 const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;
 
 export function isMarkdownFile(uri: vscode.Uri) {
