@@ -1,9 +1,10 @@
 import * as MDAST from "mdast";
 import { selectAll } from "unist-util-select";
 import { CiteProcCitation } from "./remarkCiteproc";
+import { Wikilink } from "./remarkWikilink";
 
 export function MDASTWikiLinkSelectAll(root: MDAST.Root) {
-  return selectAll("wikiLink", root) as MDAST.WikiLink[];
+  return selectAll("wikiLink", root) as Wikilink[];
 }
 
 export function MDASTCiteProcCitationSelectAll(

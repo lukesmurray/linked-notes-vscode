@@ -1,25 +1,26 @@
 import * as MDAST from "mdast";
 import path from "path";
 import * as UNIST from "unist";
+import { selectAll as unistSelectAll } from "unist-util-select";
 import * as vscode from "vscode";
-import {
-  convertTextDocToLinkedDocId,
-  convertUriToLinkedDocId,
-  selectDocumentHeadingByDocumentId,
-  selectDocumentWikiLinksByDocumentId,
-  selectCitationKeysByDocumentId,
-} from "../reducers/documents";
-import type { LinkedNotesStore } from "../store";
+import { RootState } from "../reducers";
 import {
   ExtensionConfiguration,
   selectDefaultBibUri,
 } from "../reducers/configuration";
-import { RootState } from "../reducers";
 import {
-  CiteProcCitationKey,
+  convertTextDocToLinkedDocId,
+  convertUriToLinkedDocId,
+  selectCitationKeysByDocumentId,
+  selectDocumentHeadingByDocumentId,
+  selectDocumentWikiLinksByDocumentId,
+} from "../reducers/documents";
+import {
   CiteProcCitation,
+  CiteProcCitationKey,
 } from "../remarkUtils/remarkCiteproc";
-import { selectAll as unistSelectAll } from "unist-util-select";
+import { Wikilink } from "../remarkUtils/remarkWikilink";
+import type { LinkedNotesStore } from "../store";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -120,7 +121,7 @@ export function getAllCitationKeysByDocumentId(
 
 export function getAllWikiLinksByDocumentId(
   store: LinkedNotesStore
-): { [key: string]: MDAST.WikiLink[] | undefined } {
+): { [key: string]: Wikilink[] | undefined } {
   return selectDocumentWikiLinksByDocumentId(store.getState());
 }
 
@@ -213,7 +214,7 @@ export function getDocumentUriFromDocumentSlug(slug: string) {
   return getDocumentUriFromWikiLinkPermalink(slug);
 }
 
-export function getDocumentIdFromWikiLink(wikiLink: MDAST.WikiLink) {
+export function getDocumentIdFromWikiLink(wikiLink: Wikilink) {
   const uri = getDocumentUriFromWikiLinkPermalink(wikiLink.data.permalink);
   // create a document id from the uri
   if (uri) {

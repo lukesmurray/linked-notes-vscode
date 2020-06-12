@@ -20,6 +20,7 @@ import {
   MDASTWikiLinkSelectAll,
 } from "../remarkUtils/MDASTSelectors";
 import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
+import { Wikilink } from "../remarkUtils/remarkWikilink";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
   delay,
@@ -207,12 +208,12 @@ export const selectWikiLinkBackReferencesToDocumentId = createSelector(
     const output: {
       [key: string]: {
         containingDocumentId: string;
-        wikiLink: MDAST.WikiLink;
+        wikiLink: Wikilink;
       }[];
     } = {};
 
     for (let containingDocumentId of Object.keys(allLinks)) {
-      for (let wikiLink of (allLinks as { [key: string]: MDAST.WikiLink[] })[
+      for (let wikiLink of (allLinks as { [key: string]: Wikilink[] })[
         containingDocumentId
       ]) {
         const wikiLinkReferenceDocumentId = getDocumentIdFromWikiLink(wikiLink);
@@ -268,7 +269,7 @@ export const selectWikiLinkCompletions = createSelector(
         // the wiki link aliases
         ...Object.values(wikiLinksByDocumentId)
           .flat()
-          .map((v) => v.data.alias),
+          .map((v) => v.data.documentReference),
         // the heading text
         ...Object.values(headingTextByDocumentId).flat(),
       ]),

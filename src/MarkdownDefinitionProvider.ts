@@ -37,7 +37,7 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
       // if the file does not exist then create it
       if (matchingFile === undefined) {
         const newURI = getDocumentUriFromWikiLinkPermalink(fileName);
-        const title = overlappingWikiLink.data.alias;
+        const title = overlappingWikiLink.data.documentReference;
         if (newURI !== undefined) {
           await createNewMarkdownDoc(newURI, title);
           matchingFile = newURI;

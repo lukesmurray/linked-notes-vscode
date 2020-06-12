@@ -3,10 +3,9 @@ import markdown from "remark-parse";
 import unified from "unified";
 import vfile from "vfile";
 import reporter from "vfile-reporter";
+import { createAhoCorasickFromCSLJSON } from "../../remarkUtils/createAhoCorasickFromCSLData";
 import remarkCiteproc from "../../remarkUtils/remarkCiteproc";
 import { CslData } from "../../types/csl-data";
-import { createAhoCorasickFromCSLJSON } from "../../remarkUtils/createAhoCorasickFromCSLData";
-import wikiLinkPlugin from "remark-wiki-link";
 
 suite("Reducer Test Suite", () => {
   test("Attaches without throwing", () => {
@@ -58,13 +57,9 @@ suite("Reducer Test Suite", () => {
 });
 
 function createCiteProcProcessor() {
-  return createSimpleProcessor()
-    .use(remarkCiteproc, {
-      citationItemAho: createAhoCorasickFromCSLJSON(exampleCSL),
-    })
-    .use(wikiLinkPlugin, {
-      // pageResolver: (pageName) => [sluggifyDocumentReference(pageName)],
-    });
+  return createSimpleProcessor().use(remarkCiteproc, {
+    citationItemAho: createAhoCorasickFromCSLJSON(exampleCSL),
+  });
 }
 
 function createSimpleProcessor() {
@@ -84,11 +79,6 @@ function createContentsWithCitation() {
 # Hello World
 
 [this is the start @andyWhyBooksDon2019 hello; @banovicWakenReverseEngineering2012] and [this is a citation @banovicWakenReverseEngineering2012]
-`);
-  return vfile(`
-# Hello World
-
-This is some markdown, [@andyWhyBooksDon2019], this is [[a wiki link]] and [this is a citation @banovicWakenReverseEngineering2012]
 `);
 }
 

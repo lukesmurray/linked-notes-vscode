@@ -360,8 +360,7 @@ const enUSLocaleXML = `<?xml version="1.0" encoding="utf-8"?>
 
 suite("test locator extraction", () => {
   test("extracts the expected locales", () => {
-    // TODO(lukemurray): fix this failing test
-    assert.deepStrictEqual(getLocatorsFromCSLLocale(enUSLocaleXML), [
+    const expectedLocales = [
       { locatorName: "book", single: "book", multiple: "books" },
       { locatorName: "chapter", single: "chapter", multiple: "chapters" },
       { locatorName: "column", single: "column", multiple: "columns" },
@@ -372,12 +371,42 @@ suite("test locator extraction", () => {
       { locatorName: "note", single: "note", multiple: "notes" },
       { locatorName: "opus", single: "opus", multiple: "opera" },
       { locatorName: "page", single: "page", multiple: "pages" },
-      { locatorName: "paragraph", single: "paragraph", multiple: "paragraphs" },
+      {
+        locatorName: "paragraph",
+        single: "paragraph",
+        multiple: "paragraphs",
+      },
       { locatorName: "part", single: "part", multiple: "parts" },
       { locatorName: "section", single: "section", multiple: "sections" },
-      { locatorName: "sub verbo", single: "sub verbo", multiple: "sub verbis" },
+      {
+        locatorName: "sub verbo",
+        single: "sub verbo",
+        multiple: "sub verbis",
+      },
       { locatorName: "verse", single: "verse", multiple: "verses" },
       { locatorName: "volume", single: "volume", multiple: "volumes" },
-    ]);
+      { locatorName: "book", single: "bk.", multiple: "bks." },
+      { locatorName: "chapter", single: "chap.", multiple: "chaps." },
+      { locatorName: "column", single: "col.", multiple: "cols." },
+      { locatorName: "figure", single: "fig.", multiple: "figs." },
+      { locatorName: "folio", single: "fol.", multiple: "fols." },
+      { locatorName: "issue", single: "no.", multiple: "nos." },
+      { locatorName: "line", single: "l.", multiple: "ll." },
+      { locatorName: "note", single: "n.", multiple: "nn." },
+      { locatorName: "opus", single: "op.", multiple: "opp." },
+      { locatorName: "page", single: "p.", multiple: "pp." },
+      { locatorName: "paragraph", single: "para.", multiple: "paras." },
+      { locatorName: "part", single: "pt.", multiple: "pts." },
+      { locatorName: "section", single: "sec.", multiple: "secs." },
+      { locatorName: "sub verbo", single: "s.v.", multiple: "s.vv." },
+      { locatorName: "verse", single: "v.", multiple: "vv." },
+      { locatorName: "volume", single: "vol.", multiple: "vols." },
+      { locatorName: "paragraph", single: "¶", multiple: "¶¶" },
+      { locatorName: "section", single: "§", multiple: "§§" },
+    ];
+
+    const extractedLocales = getLocatorsFromCSLLocale(enUSLocaleXML);
+    assert.strictEqual(extractedLocales.length, expectedLocales.length);
+    assert.deepStrictEqual(extractedLocales, expectedLocales);
   });
 });
