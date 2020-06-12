@@ -11,13 +11,13 @@ import {
 } from "../reducers/documents";
 import type { LinkedNotesStore } from "../store";
 import {
-  IExtensionConfiguration,
+  ExtensionConfiguration,
   selectDefaultBibUri,
 } from "../reducers/configuration";
 import { RootState } from "../reducers";
 import {
-  ICiteProcCitationKey,
-  ICiteProcCitation,
+  CiteProcCitationKey,
+  CiteProcCitation,
 } from "../remarkUtils/remarkCiteproc";
 import { selectAll as unistSelectAll } from "unist-util-select";
 
@@ -114,7 +114,7 @@ export function getCitationKeysForPosition(
 
 export function getAllCitationKeysByDocumentId(
   store: LinkedNotesStore
-): { [key: string]: ICiteProcCitationKey[] | undefined } {
+): { [key: string]: CiteProcCitationKey[] | undefined } {
   return selectCitationKeysByDocumentId(store.getState());
 }
 
@@ -297,12 +297,12 @@ export async function createNewMarkdownDoc(newURI: vscode.Uri, title: string) {
   );
 }
 
-export function readConfiguration(): IExtensionConfiguration {
+export function readConfiguration(): ExtensionConfiguration {
   const config = vscode.workspace.getConfiguration(getConfigurationScope());
   return {
     defaultBib: config.get(
       "defaultBib"
-    ) as IExtensionConfiguration["defaultBib"],
+    ) as ExtensionConfiguration["defaultBib"],
   };
 }
 
@@ -330,6 +330,6 @@ export function getCiteProcCompletionRange(
   );
 }
 
-export const getCitationKeysFromCitation = (citation: ICiteProcCitation) => {
-  return unistSelectAll("citeProcKey", citation) as ICiteProcCitationKey[];
+export const getCitationKeysFromCitation = (citation: CiteProcCitation) => {
+  return unistSelectAll("citeProcKey", citation) as CiteProcCitationKey[];
 };

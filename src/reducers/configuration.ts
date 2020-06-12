@@ -4,7 +4,7 @@ import { AppDispatch } from "../store";
 import { updateCitationItems } from "./citationItems";
 import { createUriForFileRelativeToWorkspaceRoot } from "../utils/util";
 
-export interface IExtensionConfiguration {
+export interface ExtensionConfiguration {
   defaultBib: null | string;
 }
 
@@ -14,11 +14,11 @@ export interface IExtensionConfiguration {
 
 export const updateConfiguration = createAsyncThunk<
   void,
-  IExtensionConfiguration,
+  ExtensionConfiguration,
   { dispatch: AppDispatch; state: RootState }
 >(
   "configuration/updateConfiguration",
-  async (next: IExtensionConfiguration, thunkApi) => {
+  async (next: ExtensionConfiguration, thunkApi) => {
     const current = selectConfigurationSlice(thunkApi.getState());
     if (current.defaultBib !== next.defaultBib) {
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
@@ -30,14 +30,14 @@ export const updateConfiguration = createAsyncThunk<
 /*******************************************************************************
  * Reducers
  ******************************************************************************/
-const initialConfigurationState: IExtensionConfiguration = { defaultBib: null };
+const initialConfigurationState: ExtensionConfiguration = { defaultBib: null };
 const configurationSlice = createSlice({
   name: "configuration",
   initialState: initialConfigurationState,
   reducers: {
     updateDefaultBib: (
       state,
-      action: PayloadAction<IExtensionConfiguration["defaultBib"]>
+      action: PayloadAction<ExtensionConfiguration["defaultBib"]>
     ) => ({ ...state, defaultBib: action.payload }),
   },
 });

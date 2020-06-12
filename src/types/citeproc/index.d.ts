@@ -4,7 +4,7 @@
 
 declare module "citeproc" {
   namespace CSL {
-    interface ISysInterface {
+    interface SysInterface {
       /**
        * takes a language tag and returns a serialized locale
        */
@@ -35,7 +35,7 @@ declare module "citeproc" {
     }
 
     class Engine {
-      constructor(sys: ISysInterface, style: string);
+      constructor(sys: SysInterface, style: string);
 
       updateItems(idList: (string | number)[]): void;
 

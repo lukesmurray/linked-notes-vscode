@@ -19,7 +19,7 @@ import {
   MDASTCiteProcCitationSelectAll,
   MDASTWikiLinkSelectAll,
 } from "../remarkUtils/MDASTSelectors";
-import type { ICiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
+import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
   delay,
@@ -146,7 +146,7 @@ export const selectCitationKeysByDocumentId = createObjectSelector(
     return unistSelectAll(
       "citeProcKey",
       docEntity.document.syntaxTree
-    ) as ICiteProcCitationKey[];
+    ) as CiteProcCitationKey[];
   }
 );
 
@@ -237,13 +237,13 @@ export const selectCitationKeyBackReferencesToCitationKeyId = createSelector(
     const output: {
       [key: string]: {
         containingDocumentId: string;
-        citationKey: ICiteProcCitationKey;
+        citationKey: CiteProcCitationKey;
       }[];
     } = {};
 
     for (let containingDocumentId of Object.keys(allLinks)) {
       for (let citationKey of (allLinks as {
-        [key: string]: ICiteProcCitationKey[];
+        [key: string]: CiteProcCitationKey[];
       })[containingDocumentId]) {
         const citationKeyReferenceCitationKeyId = citationKey.data.citation.id;
         if (output[citationKeyReferenceCitationKeyId] === undefined) {

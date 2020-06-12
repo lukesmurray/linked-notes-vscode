@@ -4,16 +4,16 @@ import AhoCorasick from "../utils/ahoCorasick";
 import { CslCitation } from "../types/csl-citation";
 import { CslData } from "../types/csl-data";
 import {
-  IInlineTokenizerEat,
+  InlineTokenizerEat,
   IInlineTokenizerReturn,
 } from "../types/remarkParse";
 import { incrementUnistPoint } from "./incrementUnistPoint";
 
-interface IRemarkCiteProcOptions {
+interface RemarkCiteProcOptions {
   citationItemAho: AhoCorasick<CslData[number]>;
 }
 
-export interface ICiteProcCitation extends UNIST.Node {
+export interface CiteProcCitation extends UNIST.Node {
   type: "citeProcCitation";
   data: {
     citation: CslCitation;
@@ -21,7 +21,7 @@ export interface ICiteProcCitation extends UNIST.Node {
   children: UNIST.Node[];
 }
 
-export interface ICiteProcCitationKey extends UNIST.Node {
+export interface CiteProcCitationKey extends UNIST.Node {
   type: "citeProcKey";
   data: {
     citation: CslData[number];
@@ -32,7 +32,7 @@ export interface ICiteProcCitationKey extends UNIST.Node {
 // receive options and configure the processor
 function remarkCiteProc(
   this: Processor<Settings>,
-  settings: IRemarkCiteProcOptions
+  settings: RemarkCiteProcOptions
 ): Transformer | void {
   const Parser = this.Parser;
   const tokenizers = Parser.prototype.inlineTokenizers;
@@ -46,7 +46,7 @@ function remarkCiteProc(
 
   function tokenizeCiteProc(
     this: any,
-    eat: IInlineTokenizerEat,
+    eat: InlineTokenizerEat,
     value: string,
     silent: boolean
   ): IInlineTokenizerReturn {
@@ -66,7 +66,7 @@ function remarkCiteProc(
       }
       let now = eat.now();
       const add = eat(citationBracketMatch![0]);
-      const node = add(<ICiteProcCitation>{
+      const node = add(<CiteProcCitation>{
         type: "citeProcCitation",
         data: {
           citation: {
@@ -124,7 +124,7 @@ function remarkCiteProc(
    ****************************************************************************/
   function tokenizeCiteProcKey(
     this: any,
-    eat: IInlineTokenizerEat,
+    eat: InlineTokenizerEat,
     value: string,
     silent: boolean
   ): IInlineTokenizerReturn {
@@ -143,7 +143,7 @@ function remarkCiteProc(
         return true;
       }
       const add = eat(citationKeyMatch![0]);
-      const node = add(<ICiteProcCitationKey>{
+      const node = add(<CiteProcCitationKey>{
         type: "citeProcKey",
         data: {
           citation: { ...citationKeyMatches[0].value },
@@ -162,4 +162,4 @@ function remarkCiteProc(
   methods.splice(methods.indexOf("citeProc"), 0, "citeProcKey");
 }
 
-export default remarkCiteProc as Plugin<[IRemarkCiteProcOptions]>;
+export default remarkCiteProc as Plugin<[RemarkCiteProcOptions]>;

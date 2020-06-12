@@ -1,15 +1,15 @@
 import * as UNIST from "unist";
 
 // see for add https://github.com/remarkjs/remark/tree/master/packages/remark-parse#addnode-parent
-export interface IInlineTokenizerAdd {
+export interface InlineTokenizerAdd {
   (node: UNIST.Node, parent?: UNIST.Node): UNIST.Node;
   test: () => UNIST.Position;
 }
 
 // see for eat https://github.com/remarkjs/remark/tree/master/packages/remark-parse#eatsubvalue
-export interface IInlineTokenizerEat {
+export interface InlineTokenizerEat {
   now: () => UNIST.Point;
-  (subValue: string): IInlineTokenizerAdd;
+  (subValue: string): InlineTokenizerAdd;
 }
 
 export type IInlineTokenizerReturn = UNIST.Node | boolean | undefined;
@@ -17,7 +17,7 @@ export type IInlineTokenizerReturn = UNIST.Node | boolean | undefined;
 export interface IInlineTokenizer {
   // see https://github.com/remarkjs/remark/tree/master/packages/remark-parse#function-tokenizereat-value-silent
   (
-    eat: IInlineTokenizerEat,
+    eat: InlineTokenizerEat,
     value: string,
     silent: boolean
   ): IInlineTokenizerReturn;

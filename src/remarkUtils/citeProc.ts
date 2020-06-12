@@ -2,8 +2,7 @@ import CSL from "citeproc";
 import keyBy from "lodash/keyBy";
 import memoizeOne from "memoize-one";
 import { CslData } from "../types/csl-data";
-import { ICiteProcCitationKey, ICiteProcCitation } from "./remarkCiteproc";
-import { getCitationKeysFromCitation } from "../utils/util";
+import { CiteProcCitation } from "./remarkCiteproc";
 
 /**
  * from https://github.com/citation-style-language/styles
@@ -18,7 +17,7 @@ const defaultStyle = "chicago-fullnote-bibliography-16th-edition";
 const defaultLocale = "en-US";
 
 export const getCitations = async (
-  citations: ICiteProcCitation[],
+  citations: CiteProcCitation[],
   items: CslData,
   style: string = defaultStyle,
   preferredLocale: string = defaultLocale
