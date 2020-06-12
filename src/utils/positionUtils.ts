@@ -9,6 +9,13 @@ import {
 import { LinkedNotesStore } from "../store";
 import { getDocumentUriFromWikilinkPermalink } from "./util";
 
+const CITEPROC_COMPLETION_RANGE_REGEX = /(?<=(?:^|[ ;\[-]))\@([^\]\s]*)/g;
+const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;
+
+/*******************************************************************************
+ * Get Info for Position
+ ******************************************************************************/
+
 export function getHeadingForPosition(
   store: LinkedNotesStore,
   document: vscode.TextDocument,
@@ -103,15 +110,6 @@ export function isPositionInsideNode(
   return false;
 }
 
-export function getVscodeRangeFromUnistPosition(
-  position: UNIST.Position
-): vscode.Range {
-  return new vscode.Range(
-    new vscode.Position(position.start.line - 1, position.start.column - 1),
-    new vscode.Position(position.end.line - 1, position.end.column - 1)
-  );
-}
-
 export function getDocumentURIForPosition(
   document: vscode.TextDocument,
   position: vscode.Position,
@@ -137,9 +135,18 @@ export function getDocumentURIForPosition(
   };
 }
 
+/*******************************************************************************
+ * Remark Node to Editable Content
+ ******************************************************************************/
+
+// if you were editing an image alt tag in markdown you would edit
+// the text ![in the brackets](). Similarly for wikilinks we edit the text
+// [[in the wikilink]]. These functions convert a UNIST node into a vscode
+// range which only highlights the editable content
+
 export function getHeaderContentRange(headerPosition: UNIST.Position) {
   // convert the position so that the # and space are not included
-  return getVscodeRangeFromUnistPosition({
+  return unistPositionToVscodeRange({
     ...headerPosition,
     start: {
       ...headerPosition.start,
@@ -150,7 +157,7 @@ export function getHeaderContentRange(headerPosition: UNIST.Position) {
 
 export function getWikilinkContentRange(wikilinkPosition: UNIST.Position) {
   // convert the position so that the double bracket at the beginning and end aren't included
-  return getVscodeRangeFromUnistPosition({
+  return unistPositionToVscodeRange({
     ...wikilinkPosition,
     start: {
       ...wikilinkPosition.start,
@@ -161,4 +168,41 @@ export function getWikilinkContentRange(wikilinkPosition: UNIST.Position) {
       column: wikilinkPosition.end.column - 2,
     },
   });
+}
+
+/*******************************************************************************
+ * Completion Range
+ ******************************************************************************/
+
+export function getWikilinkCompletionRange(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  return document.getWordRangeAtPosition(
+    position,
+    WIKILINK_COMPLETION_RANGE_REGEX
+  );
+}
+
+export function getCiteProcCompletionRange(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  return document.getWordRangeAtPosition(
+    position,
+    CITEPROC_COMPLETION_RANGE_REGEX
+  );
+}
+
+/*******************************************************************************
+ * Converters
+ ******************************************************************************/
+
+export function unistPositionToVscodeRange(
+  position: UNIST.Position
+): vscode.Range {
+  return new vscode.Range(
+    new vscode.Position(position.start.line - 1, position.start.column - 1),
+    new vscode.Position(position.end.line - 1, position.end.column - 1)
+  );
 }

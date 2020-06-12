@@ -10,10 +10,10 @@ import {
 import { LinkedNotesStore } from "./store";
 import { getDocumentUriFromDocumentId } from "./utils/util";
 import {
-  getVscodeRangeFromUnistPosition,
+  unistPositionToVscodeRange,
   getCitationKeysForPosition,
   getDocumentURIForPosition,
-} from "./utils/positionToRemarkUtils";
+} from "./utils/positionUtils";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;
@@ -54,13 +54,13 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
           .map(({ containingDocumentId, wikilink }) => {
             return new vscode.Location(
               getDocumentUriFromDocumentId(containingDocumentId),
-              getVscodeRangeFromUnistPosition(wikilink.position!)
+              unistPositionToVscodeRange(wikilink.position!)
             );
           }),
         headerBackReference?.position !== undefined
           ? new vscode.Location(
               getDocumentUriFromDocumentId(documentId),
-              getVscodeRangeFromUnistPosition(headerBackReference?.position!)
+              unistPositionToVscodeRange(headerBackReference?.position!)
             )
           : undefined,
       ].filter((v) => v !== undefined) as vscode.Location[];
@@ -88,7 +88,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
           .map(({ containingDocumentId, citationKey }) => {
             return new vscode.Location(
               getDocumentUriFromDocumentId(containingDocumentId),
-              getVscodeRangeFromUnistPosition(citationKey.position!)
+              unistPositionToVscodeRange(citationKey.position!)
             );
           }),
       ];

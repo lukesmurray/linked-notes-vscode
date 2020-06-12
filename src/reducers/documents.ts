@@ -25,7 +25,7 @@ import {
   getDocumentIdFromWikilink,
   isNotNullOrUndefined,
 } from "../utils/util";
-import { getVscodeRangeFromUnistPosition } from "../utils/positionToRemarkUtils";
+import { unistPositionToVscodeRange } from "../utils/positionUtils";
 import { selectCitationItemAho } from "./citationItems";
 
 export interface LinkedNotesDocument {
@@ -188,8 +188,7 @@ export const selectDocumentLinksByDocumentId = createObjectSelector(
     allWikilinks
       ?.filter((v) => v.position !== undefined)
       .map(
-        (v) =>
-          new vscode.DocumentLink(getVscodeRangeFromUnistPosition(v.position!))
+        (v) => new vscode.DocumentLink(unistPositionToVscodeRange(v.position!))
       )
 );
 

@@ -1,6 +1,4 @@
-import * as MDAST from "mdast";
 import path from "path";
-import * as UNIST from "unist";
 import { selectAll as unistSelectAll } from "unist-util-select";
 import * as vscode from "vscode";
 import { RootState } from "../reducers";
@@ -14,12 +12,6 @@ import {
   CiteProcCitationKey,
 } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
-import type { LinkedNotesStore } from "../store";
-import {
-  getWikilinkForPosition,
-  getHeadingForPosition,
-  getVscodeRangeFromUnistPosition,
-} from "./positionToRemarkUtils";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -33,9 +25,6 @@ export const MARKDOWN_FILE_GLOB_PATTERN = `**/*.{${MARKDOWN_FILE_EXT.join(
 export const BIB_FILE_EXT = ["json"] as const;
 
 export const BIB_FILE_GLOB_PATTERN = `**/*.{${BIB_FILE_EXT.join(",")}}`;
-
-const CITEPROC_COMPLETION_RANGE_REGEX = /(?<=(?:^|[ ;\[-]))\@([^\]\s]*)/g;
-const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;
 
 export function isMarkdownFile(uri: vscode.Uri) {
   return (
@@ -126,33 +115,6 @@ export function readConfiguration(): ExtensionConfiguration {
 export function getConfigurationScope(): string {
   return "linked-notes-vscode";
 }
-
-export function getWikilinkCompletionRange(
-  document: vscode.TextDocument,
-  position: vscode.Position
-) {
-  return document.getWordRangeAtPosition(
-    position,
-    WIKILINK_COMPLETION_RANGE_REGEX
-  );
-}
-
-export function getCiteProcCompletionRange(
-  document: vscode.TextDocument,
-  position: vscode.Position
-) {
-  return document.getWordRangeAtPosition(
-    position,
-    CITEPROC_COMPLETION_RANGE_REGEX
-  );
-}
-
-export const getCitationKeysFromCitation = (citation: CiteProcCitation) => {
-  return unistSelectAll(
-    "citeProcCitationKey",
-    citation
-  ) as CiteProcCitationKey[];
-};
 
 // return true if t is not null or undefined
 // very useful in filter functions

@@ -11,8 +11,8 @@ import { LinkedNotesStore } from "./store";
 import { CslData } from "./types/csl-data";
 import {
   getCitationKeysForPosition,
-  getVscodeRangeFromUnistPosition,
-} from "./utils/positionToRemarkUtils";
+  unistPositionToVscodeRange,
+} from "./utils/positionUtils";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
@@ -38,7 +38,7 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
     ) {
       return new vscode.Hover(
         citationItemHoverText(overlappingCitationKey.data.citation),
-        getVscodeRangeFromUnistPosition(overlappingCitationKey.position)
+        unistPositionToVscodeRange(overlappingCitationKey.position)
       );
     }
     return undefined;

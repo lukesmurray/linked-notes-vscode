@@ -8,7 +8,7 @@ import { LinkedNotesStore } from "./store";
 import {
   getCiteProcCompletionRange,
   getWikilinkCompletionRange,
-} from "./utils/util";
+} from "./utils/positionUtils";
 
 class MarkdownCiteProcCitationKeyCompletionProvider
   implements vscode.CompletionItemProvider {

@@ -24,3 +24,7 @@ export function MDASTTopLevelHeaderSelect(
 ): MDAST.Heading | undefined {
   return (select(`heading[depth="1"]`, root) as MDAST.Heading) ?? undefined;
 }
+
+export const CitationCitationKeySelect = (citation: CiteProcCitation) => {
+  return selectAll("citeProcCitationKey", citation) as CiteProcCitationKey[];
+};

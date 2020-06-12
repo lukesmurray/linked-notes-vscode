@@ -17,7 +17,7 @@ import {
   getDocumentURIForPosition,
   getHeaderContentRange,
   getWikilinkContentRange,
-} from "./utils/positionToRemarkUtils";
+} from "./utils/positionUtils";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
   private store: LinkedNotesStore;

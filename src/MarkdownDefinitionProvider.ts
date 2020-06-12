@@ -10,7 +10,7 @@ import {
   findAllMarkdownFilesInWorkspace,
   getDocumentUriFromWikilinkPermalink,
 } from "./utils/util";
-import { getWikilinkForPosition } from "./utils/positionToRemarkUtils";
+import { getWikilinkForPosition } from "./utils/positionUtils";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;

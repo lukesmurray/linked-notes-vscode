@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import {
-  selectWikilinkCompletions,
   convertTextDocToLinkedDocId,
+  selectWikilinkCompletions,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getWikilinkCompletionRange } from "./utils/util";
+import { getWikilinkCompletionRange } from "./utils/positionUtils";
 
 class MarkdownWikilinkCompletionProvider
   implements vscode.CompletionItemProvider {
