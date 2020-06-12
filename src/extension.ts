@@ -8,7 +8,7 @@ import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
 import MarkdownHoverProvider from "./MarkdownHoverProvider";
 import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
 import MarkdownRenameProvider from "./MarkdownRenameProvider";
-import MarkdownWikiLinkCompletionProvider from "./MarkdownWikiLinkCompletionProvider";
+import MarkdownWikilinkCompletionProvider from "./MarkdownWikilinkCompletionProvider";
 import NewNoteCommand from "./NewNoteCommand";
 import { updateCitationItems } from "./reducers/citationItems";
 import { updateConfiguration } from "./reducers/configuration";
@@ -65,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       MarkDownDocumentSelector,
-      new MarkdownWikiLinkCompletionProvider(store),
+      new MarkdownWikilinkCompletionProvider(store),
       "["
     )
   );

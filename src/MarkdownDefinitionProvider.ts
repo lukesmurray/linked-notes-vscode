@@ -8,8 +8,8 @@ import { LinkedNotesStore } from "./store";
 import {
   createNewMarkdownDoc,
   findAllMarkdownFilesInWorkspace,
-  getDocumentUriFromWikiLinkPermalink,
-  getWikiLinkForPosition,
+  getDocumentUriFromWikilinkPermalink,
+  getWikilinkForPosition,
 } from "./utils/util";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
@@ -24,20 +24,20 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
-    const overlappingWikiLink = getWikiLinkForPosition(
+    const overlappingWikilink = getWikilinkForPosition(
       this.store,
       document,
       position
     );
-    if (overlappingWikiLink) {
-      const fileName = overlappingWikiLink.data.permalink;
+    if (overlappingWikilink) {
+      const fileName = overlappingWikilink.data.permalink;
       let matchingFile = await findAllMarkdownFilesInWorkspace().then((f) =>
         f.find((f) => parse(f.path).name === fileName)
       );
       // if the file does not exist then create it
       if (matchingFile === undefined) {
-        const newURI = getDocumentUriFromWikiLinkPermalink(fileName);
-        const title = overlappingWikiLink.data.documentReference;
+        const newURI = getDocumentUriFromWikilinkPermalink(fileName);
+        const title = overlappingWikilink.data.documentReference;
         if (newURI !== undefined) {
           await createNewMarkdownDoc(newURI, title);
           matchingFile = newURI;

@@ -13,7 +13,7 @@ import {
   convertUriToLinkedDocId,
   selectCitationKeysByDocumentId,
   selectDocumentHeadingByDocumentId,
-  selectDocumentWikiLinksByDocumentId,
+  selectDocumentWikilinksByDocumentId,
 } from "../reducers/documents";
 import {
   CiteProcCitation,
@@ -77,22 +77,22 @@ export function getHeadingForPosition(
   return undefined;
 }
 
-export function getWikiLinkForPosition(
+export function getWikilinkForPosition(
   store: LinkedNotesStore,
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
   // get all the wiki links by document id
-  const documentWikiLinksById = getAllWikiLinksByDocumentId(store);
+  const documentWikilinksById = getAllWikilinksByDocumentId(store);
   // get the document id
   const documentId = convertTextDocToLinkedDocId(document);
   // get the wiki links for the document
-  const wikilinks = documentWikiLinksById[documentId];
+  const wikilinks = documentWikilinksById[documentId];
   // get the overlapping wiki link
-  const overlappingWikiLink = wikilinks?.find((v) =>
+  const overlappingWikilink = wikilinks?.find((v) =>
     isPositionInsideNode(position, v)
   );
-  return overlappingWikiLink;
+  return overlappingWikilink;
 }
 
 export function getCitationKeysForPosition(
@@ -119,10 +119,10 @@ export function getAllCitationKeysByDocumentId(
   return selectCitationKeysByDocumentId(store.getState());
 }
 
-export function getAllWikiLinksByDocumentId(
+export function getAllWikilinksByDocumentId(
   store: LinkedNotesStore
 ): { [key: string]: Wikilink[] | undefined } {
-  return selectDocumentWikiLinksByDocumentId(store.getState());
+  return selectDocumentWikilinksByDocumentId(store.getState());
 }
 
 export function getHeadingByDocumentId(
@@ -192,7 +192,7 @@ export function getVscodeRangeFromUnistPosition(
   );
 }
 
-export function getDocumentUriFromWikiLinkPermalink(
+export function getDocumentUriFromWikilinkPermalink(
   permalink: string
 ): vscode.Uri | undefined {
   return createUriForFileRelativeToWorkspaceRoot(permalink + ".md");
@@ -211,11 +211,11 @@ export function createUriForFileRelativeToWorkspaceRoot(fileName: string) {
 }
 
 export function getDocumentUriFromDocumentSlug(slug: string) {
-  return getDocumentUriFromWikiLinkPermalink(slug);
+  return getDocumentUriFromWikilinkPermalink(slug);
 }
 
-export function getDocumentIdFromWikiLink(wikilink: Wikilink) {
-  const uri = getDocumentUriFromWikiLinkPermalink(wikilink.data.permalink);
+export function getDocumentIdFromWikilink(wikilink: Wikilink) {
+  const uri = getDocumentUriFromWikilinkPermalink(wikilink.data.permalink);
   // create a document id from the uri
   if (uri) {
     return convertUriToLinkedDocId(uri);
@@ -233,12 +233,12 @@ export function getDocumentURIForPosition(
   store: LinkedNotesStore
 ) {
   let documentUri: vscode.Uri | undefined = undefined;
-  const overlappingWikiLink = getWikiLinkForPosition(store, document, position);
+  const overlappingWikilink = getWikilinkForPosition(store, document, position);
   const overlappingHeader = getHeadingForPosition(store, document, position);
   // if overlapping a wiki link
-  if (overlappingWikiLink) {
-    documentUri = getDocumentUriFromWikiLinkPermalink(
-      overlappingWikiLink.data.permalink
+  if (overlappingWikilink) {
+    documentUri = getDocumentUriFromWikilinkPermalink(
+      overlappingWikilink.data.permalink
     );
     // if overlapping header
   } else if (overlappingHeader) {
@@ -247,7 +247,7 @@ export function getDocumentURIForPosition(
   }
   return {
     documentUri: documentUri,
-    wikilink: overlappingWikiLink,
+    wikilink: overlappingWikilink,
     header: overlappingHeader,
   };
 }
@@ -263,7 +263,7 @@ export function getHeaderContentRange(headerPosition: UNIST.Position) {
   });
 }
 
-export function getWikiLinkContentRange(wikilinkPosition: UNIST.Position) {
+export function getWikilinkContentRange(wikilinkPosition: UNIST.Position) {
   // convert the position so that the double bracket at the beginning and end aren't included
   return getVscodeRangeFromUnistPosition({
     ...wikilinkPosition,
@@ -311,7 +311,7 @@ export function getConfigurationScope(): string {
   return "linked-notes-vscode";
 }
 
-export function getWikiLinkCompletionRange(
+export function getWikilinkCompletionRange(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
@@ -332,5 +332,8 @@ export function getCiteProcCompletionRange(
 }
 
 export const getCitationKeysFromCitation = (citation: CiteProcCitation) => {
-  return unistSelectAll("citeProcKey", citation) as CiteProcCitationKey[];
+  return unistSelectAll(
+    "citeProcCitationKey",
+    citation
+  ) as CiteProcCitationKey[];
 };

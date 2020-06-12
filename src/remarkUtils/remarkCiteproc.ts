@@ -22,7 +22,7 @@ export interface CiteProcCitation extends UNIST.Node {
 }
 
 export interface CiteProcCitationKey extends UNIST.Node {
-  type: "citeProcKey";
+  type: "citeProcCitationKey";
   data: {
     citation: CslData[number];
   };
@@ -144,7 +144,7 @@ function remarkCiteProc(
       }
       const add = eat(citationKeyMatch![0]);
       const node = add(<CiteProcCitationKey>{
-        type: "citeProcKey",
+        type: "citeProcCitationKey",
         data: {
           citation: { ...citationKeyMatches[0].value },
         },
@@ -157,9 +157,9 @@ function remarkCiteProc(
     value.indexOf("@", fromIndex);
 
   // add a tokenizer for citation keys
-  tokenizers.citeProcKey = tokenizeCiteProcKey;
+  tokenizers.citeProcCitationKey = tokenizeCiteProcKey;
   // run the citeproc tokenizer before links
-  methods.splice(methods.indexOf("citeProc"), 0, "citeProcKey");
+  methods.splice(methods.indexOf("citeProc"), 0, "citeProcCitationKey");
 }
 
 export default remarkCiteProc as Plugin<[RemarkCiteProcOptions]>;

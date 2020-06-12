@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import {
   convertUriToLinkedDocId,
   selectDocumentIds,
-  selectWikiLinkBackReferencesToDocumentId,
+  selectWikilinkBackReferencesToDocumentId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
@@ -13,7 +13,7 @@ import {
   getDocumentUriFromDocumentSlug,
   getHeaderContentRange,
   getHeadingByDocumentId,
-  getWikiLinkContentRange,
+  getWikilinkContentRange,
 } from "./utils/util";
 import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 
@@ -42,7 +42,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
         return getHeaderContentRange(header.position);
       }
       if (wikilink && wikilink.position) {
-        return getWikiLinkContentRange(wikilink.position);
+        return getWikilinkContentRange(wikilink.position);
       }
     }
     throw new Error("You cannot rename this element.");
@@ -73,7 +73,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
       // get the id of the referenced document
       const documentId = convertUriToLinkedDocId(documentUri);
       // get all backlink MDAST nodes to the referenced document
-      const backLinks = selectWikiLinkBackReferencesToDocumentId(
+      const backLinks = selectWikilinkBackReferencesToDocumentId(
         this.store.getState()
       )[documentId];
       // get the header of the referenced document
@@ -88,7 +88,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
         }
         workspaceEdit.replace(
           getDocumentUriFromDocumentId(backLink.containingDocumentId),
-          getWikiLinkContentRange(backLink.wikilink.position),
+          getWikilinkContentRange(backLink.wikilink.position),
           newName
         );
       }

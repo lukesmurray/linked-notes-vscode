@@ -7,7 +7,7 @@ import {
 import { LinkedNotesStore } from "./store";
 import {
   getCiteProcCompletionRange,
-  getWikiLinkCompletionRange,
+  getWikilinkCompletionRange,
 } from "./utils/util";
 
 class MarkdownCiteProcCitationKeyCompletionProvider
@@ -25,7 +25,7 @@ class MarkdownCiteProcCitationKeyCompletionProvider
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
     let citeProcRange = getCiteProcCompletionRange(document, position);
-    let wikilinkRange = getWikiLinkCompletionRange(document, position);
+    let wikilinkRange = getWikilinkCompletionRange(document, position);
     if (citeProcRange && !wikilinkRange) {
       return selectCitationKeyCompletions(this.store.getState());
     }

@@ -4,7 +4,7 @@ import { createAhoCorasickFromCSLJSON } from "./createAhoCorasickFromCSLData";
 import { getMDASTFromText } from "./getMDASTFromText";
 import {
   MDASTCiteProcCitationSelectAll,
-  MDASTWikiLinkSelectAll,
+  MDASTWikilinkSelectAll,
 } from "./MDASTSelectors";
 
 suite("mdast parsing", () => {
@@ -14,7 +14,7 @@ suite("mdast parsing", () => {
       `this markdown has [[${alias}]]`,
       createAhoCorasickFromCSLJSON([])
     );
-    const wikilinks = MDASTWikiLinkSelectAll(root);
+    const wikilinks = MDASTWikilinkSelectAll(root);
     assert.equal(wikilinks.length, 1, "one wiki link in the text");
     assert.equal(
       wikilinks[0].data.documentReference,

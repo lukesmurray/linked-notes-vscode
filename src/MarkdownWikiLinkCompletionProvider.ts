@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 import {
-  selectWikiLinkCompletions,
+  selectWikilinkCompletions,
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getWikiLinkCompletionRange } from "./utils/util";
+import { getWikilinkCompletionRange } from "./utils/util";
 
-class MarkdownWikiLinkCompletionProvider
+class MarkdownWikilinkCompletionProvider
   implements vscode.CompletionItemProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -21,9 +21,9 @@ class MarkdownWikiLinkCompletionProvider
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
-    let range = getWikiLinkCompletionRange(document, position);
+    let range = getWikilinkCompletionRange(document, position);
     if (range) {
-      return selectWikiLinkCompletions(this.store.getState()).map(
+      return selectWikilinkCompletions(this.store.getState()).map(
         (match) =>
           new vscode.CompletionItem(match, vscode.CompletionItemKind.File)
       );
@@ -32,4 +32,4 @@ class MarkdownWikiLinkCompletionProvider
   }
 }
 
-export default MarkdownWikiLinkCompletionProvider;
+export default MarkdownWikilinkCompletionProvider;

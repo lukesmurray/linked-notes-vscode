@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import {
   convertUriToLinkedDocId,
-  selectWikiLinkBackReferencesToDocumentId,
+  selectWikilinkBackReferencesToDocumentId,
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
-  selectCitationKeyBackReferencesToCitationKeyId,
+  selectCitationKeyBackReferencesToCitationKey,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
@@ -41,7 +41,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
 
     if (documentUri) {
       const documentId = convertUriToLinkedDocId(documentUri);
-      const wikilinkBackReferences = selectWikiLinkBackReferencesToDocumentId(
+      const wikilinkBackReferences = selectWikilinkBackReferencesToDocumentId(
         this.store.getState()
       )[documentId];
       const headerBackReference = getHeadingByDocumentId(this.store)[
@@ -79,7 +79,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
       overlappingCitationKey &&
       overlappingCitationKey.position !== undefined
     ) {
-      const citationKeyBackReferences = selectCitationKeyBackReferencesToCitationKeyId(
+      const citationKeyBackReferences = selectCitationKeyBackReferencesToCitationKey(
         this.store.getState()
       )[overlappingCitationKey.data.citation.id];
       return [
