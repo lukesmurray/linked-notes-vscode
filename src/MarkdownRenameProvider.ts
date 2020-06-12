@@ -5,17 +5,19 @@ import {
   selectDocumentIds,
   selectWikilinkBackReferencesToDocumentId,
   waitForLinkedDocToParse,
+  selectTopLevelHeaderByDocumentId,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
-  getDocumentURIForPosition,
   getDocumentUriFromDocumentId,
   getDocumentUriFromDocumentSlug,
-  getHeaderContentRange,
-  getHeadingByDocumentId,
-  getWikilinkContentRange,
 } from "./utils/util";
 import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
+import {
+  getDocumentURIForPosition,
+  getHeaderContentRange,
+  getWikilinkContentRange,
+} from "./utils/positionToRemarkUtils";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
   private store: LinkedNotesStore;
@@ -77,7 +79,9 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
         this.store.getState()
       )[documentId];
       // get the header of the referenced document
-      const documentHeader = getHeadingByDocumentId(this.store)[documentId];
+      const documentHeader = selectTopLevelHeaderByDocumentId(
+        this.store.getState()
+      )[documentId];
       // create a new workspace edit to apply
       const workspaceEdit = new vscode.WorkspaceEdit();
 

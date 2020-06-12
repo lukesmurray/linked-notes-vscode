@@ -8,19 +8,18 @@ import {
   ExtensionConfiguration,
   selectDefaultBibUri,
 } from "../reducers/configuration";
-import {
-  convertTextDocToLinkedDocId,
-  convertUriToLinkedDocId,
-  selectCitationKeysByDocumentId,
-  selectDocumentHeadingByDocumentId,
-  selectDocumentWikilinksByDocumentId,
-} from "../reducers/documents";
+import { convertUriToLinkedDocId } from "../reducers/documents";
 import {
   CiteProcCitation,
   CiteProcCitationKey,
 } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
 import type { LinkedNotesStore } from "../store";
+import {
+  getWikilinkForPosition,
+  getHeadingForPosition,
+  getVscodeRangeFromUnistPosition,
+} from "./positionToRemarkUtils";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -60,138 +59,6 @@ export async function findAllMarkdownFilesInWorkspace() {
   );
 }
 
-export function getHeadingForPosition(
-  store: LinkedNotesStore,
-  document: vscode.TextDocument,
-  position: vscode.Position
-) {
-  const documentHeadingById = getHeadingByDocumentId(store);
-  // get the document id
-  const documentId = convertTextDocToLinkedDocId(document);
-  // get the wiki links for the document
-  const heading = documentHeadingById[documentId];
-  // get the overlapping wiki link
-  if (heading !== undefined && isPositionInsideNode(position, heading)) {
-    return heading;
-  }
-  return undefined;
-}
-
-export function getWikilinkForPosition(
-  store: LinkedNotesStore,
-  document: vscode.TextDocument,
-  position: vscode.Position
-) {
-  // get all the wiki links by document id
-  const documentWikilinksById = getAllWikilinksByDocumentId(store);
-  // get the document id
-  const documentId = convertTextDocToLinkedDocId(document);
-  // get the wiki links for the document
-  const wikilinks = documentWikilinksById[documentId];
-  // get the overlapping wiki link
-  const overlappingWikilink = wikilinks?.find((v) =>
-    isPositionInsideNode(position, v)
-  );
-  return overlappingWikilink;
-}
-
-export function getCitationKeysForPosition(
-  store: LinkedNotesStore,
-  document: vscode.TextDocument,
-  position: vscode.Position
-) {
-  // get all the citaiton keys by document id
-  const citationKeysById = getAllCitationKeysByDocumentId(store);
-  // get the document id
-  const documentId = convertTextDocToLinkedDocId(document);
-  // get the citation keys for the document
-  const citationKeys = citationKeysById[documentId];
-  // get the overlapping wiki link
-  const overlappingCitationKey = citationKeys?.find((v) =>
-    isPositionInsideNode(position, v)
-  );
-  return overlappingCitationKey;
-}
-
-export function getAllCitationKeysByDocumentId(
-  store: LinkedNotesStore
-): { [key: string]: CiteProcCitationKey[] | undefined } {
-  return selectCitationKeysByDocumentId(store.getState());
-}
-
-export function getAllWikilinksByDocumentId(
-  store: LinkedNotesStore
-): { [key: string]: Wikilink[] | undefined } {
-  return selectDocumentWikilinksByDocumentId(store.getState());
-}
-
-export function getHeadingByDocumentId(
-  store: LinkedNotesStore
-): { [key: string]: MDAST.Heading | undefined } {
-  return selectDocumentHeadingByDocumentId(store.getState());
-}
-
-export function isPositionInsideNode(
-  position: vscode.Position,
-  node: UNIST.Node
-) {
-  if (node.position === undefined) {
-    return false;
-  }
-  const positionLine = position.line;
-  const nodeStartLine = node.position.start.line - 1;
-  const nodeEndLine = node.position.end.line - 1;
-  const positionCharacter = position.character;
-  const nodeStartCharacter = node.position.start.column - 1;
-  const nodeEndCharacter = node.position.end.column - 1;
-
-  if (nodeStartCharacter === undefined || nodeEndCharacter === undefined) {
-    throw new Error("start or end character is undefined");
-  }
-
-  // if outside the lines then no overlap
-  if (positionLine < nodeStartLine || positionLine > nodeEndLine) {
-    return false;
-  }
-
-  // if inside the lines then definite overlap
-  if (positionLine > nodeStartLine && positionLine < nodeEndLine) {
-    return true;
-  }
-
-  // position line must be start or end line or both
-  const [onStart, onEnd] = [
-    positionLine === nodeStartLine,
-    positionLine === nodeEndLine,
-  ];
-  // if on start and end make sure between characters
-  if (onStart && onEnd) {
-    return (
-      positionCharacter >= nodeStartCharacter &&
-      positionCharacter <= nodeEndCharacter
-    );
-  }
-  // if on start make sure after start character
-  if (onStart) {
-    return positionCharacter >= nodeStartCharacter;
-  }
-  // if on end make sure after end character
-  if (onEnd) {
-    return positionCharacter <= nodeEndCharacter;
-  }
-  // otherwise not in the bounds
-  return false;
-}
-
-export function getVscodeRangeFromUnistPosition(
-  position: UNIST.Position
-): vscode.Range {
-  return new vscode.Range(
-    new vscode.Position(position.start.line - 1, position.start.column - 1),
-    new vscode.Position(position.end.line - 1, position.end.column - 1)
-  );
-}
-
 export function getDocumentUriFromWikilinkPermalink(
   permalink: string
 ): vscode.Uri | undefined {
@@ -225,57 +92,6 @@ export function getDocumentIdFromWikilink(wikilink: Wikilink) {
 
 export function getDocumentUriFromDocumentId(documentId: string) {
   return vscode.Uri.file(documentId);
-}
-
-export function getDocumentURIForPosition(
-  document: vscode.TextDocument,
-  position: vscode.Position,
-  store: LinkedNotesStore
-) {
-  let documentUri: vscode.Uri | undefined = undefined;
-  const overlappingWikilink = getWikilinkForPosition(store, document, position);
-  const overlappingHeader = getHeadingForPosition(store, document, position);
-  // if overlapping a wiki link
-  if (overlappingWikilink) {
-    documentUri = getDocumentUriFromWikilinkPermalink(
-      overlappingWikilink.data.permalink
-    );
-    // if overlapping header
-  } else if (overlappingHeader) {
-    // create a document id from the current document
-    documentUri = document.uri;
-  }
-  return {
-    documentUri: documentUri,
-    wikilink: overlappingWikilink,
-    header: overlappingHeader,
-  };
-}
-
-export function getHeaderContentRange(headerPosition: UNIST.Position) {
-  // convert the position so that the # and space are not included
-  return getVscodeRangeFromUnistPosition({
-    ...headerPosition,
-    start: {
-      ...headerPosition.start,
-      column: headerPosition.start.column + 2,
-    },
-  });
-}
-
-export function getWikilinkContentRange(wikilinkPosition: UNIST.Position) {
-  // convert the position so that the double bracket at the beginning and end aren't included
-  return getVscodeRangeFromUnistPosition({
-    ...wikilinkPosition,
-    start: {
-      ...wikilinkPosition.start,
-      column: wikilinkPosition.start.column + 2,
-    },
-    end: {
-      ...wikilinkPosition.end,
-      column: wikilinkPosition.end.column - 2,
-    },
-  });
 }
 
 export function getDefaultNoteText(noteTitle: string): string {
@@ -337,3 +153,11 @@ export const getCitationKeysFromCitation = (citation: CiteProcCitation) => {
     citation
   ) as CiteProcCitationKey[];
 };
+
+// return true if t is not null or undefined
+// very useful in filter functions
+export function isNotNullOrUndefined<T>(
+  t: T | undefined | null | void
+): t is T {
+  return t !== undefined && t !== null;
+}

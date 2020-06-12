@@ -14,7 +14,7 @@ import { getMDASTFromText } from "../remarkUtils/getMDASTFromText";
 import {
   MDASTCiteProcCitationKeySelectAll,
   MDASTCiteProcCitationSelectAll,
-  MDASTTopLevelHeadingSelectAll,
+  MDASTTopLevelHeaderSelect,
   MDASTWikilinkSelectAll,
 } from "../remarkUtils/MDASTSelectors";
 import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
@@ -23,8 +23,9 @@ import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
   delay,
   getDocumentIdFromWikilink,
-  getVscodeRangeFromUnistPosition,
+  isNotNullOrUndefined,
 } from "../utils/util";
+import { getVscodeRangeFromUnistPosition } from "../utils/positionToRemarkUtils";
 import { selectCitationItemAho } from "./citationItems";
 
 export interface LinkedNotesDocument {
@@ -156,7 +157,7 @@ export const selectCitationsByDocumentId = createObjectSelector(
   }
 );
 
-export const selectDocumentWikilinksByDocumentId = createObjectSelector(
+export const selectWikilinksByDocumentId = createObjectSelector(
   selectDocumentEntities,
   (docEntity) => {
     if (docEntity?.document?.syntaxTree === undefined) {
@@ -166,23 +167,23 @@ export const selectDocumentWikilinksByDocumentId = createObjectSelector(
   }
 );
 
-export const selectDocumentHeadingByDocumentId = createObjectSelector(
+export const selectTopLevelHeaderByDocumentId = createObjectSelector(
   selectDocumentEntities,
   (docEntity) => {
     if (docEntity?.document?.syntaxTree === undefined) {
       return undefined;
     }
-    return MDASTTopLevelHeadingSelectAll(docEntity.document.syntaxTree);
+    return MDASTTopLevelHeaderSelect(docEntity.document.syntaxTree);
   }
 );
 
-const selectDocumentHeadingTextByDocumentId = createObjectSelector(
-  selectDocumentHeadingByDocumentId,
+const selectTopLevelHeaderTextByDocumentId = createObjectSelector(
+  selectTopLevelHeaderByDocumentId,
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
 );
 
 export const selectDocumentLinksByDocumentId = createObjectSelector(
-  selectDocumentWikilinksByDocumentId,
+  selectWikilinksByDocumentId,
   (allWikilinks) =>
     allWikilinks
       ?.filter((v) => v.position !== undefined)
@@ -193,7 +194,7 @@ export const selectDocumentLinksByDocumentId = createObjectSelector(
 );
 
 export const selectWikilinkBackReferencesToDocumentId = createSelector(
-  selectDocumentWikilinksByDocumentId,
+  selectWikilinksByDocumentId,
   (allLinks) => {
     // output of the format Dict<Referenced Doc ID, Reference List>
     const output: {
@@ -253,8 +254,8 @@ export const selectCitationKeyBackReferencesToCitationKey = createSelector(
 );
 
 export const selectWikilinkCompletions = createSelector(
-  selectDocumentWikilinksByDocumentId,
-  selectDocumentHeadingTextByDocumentId,
+  selectWikilinksByDocumentId,
+  selectTopLevelHeaderTextByDocumentId,
   (wikilinksByDocumentId, headingTextByDocumentId) => {
     return [
       ...new Set([
@@ -263,7 +264,9 @@ export const selectWikilinkCompletions = createSelector(
           .flat()
           .map((v) => v.data.documentReference),
         // the heading text
-        ...Object.values(headingTextByDocumentId).flat(),
+        ...Object.values(headingTextByDocumentId)
+          .filter(isNotNullOrUndefined)
+          .flat(),
       ]),
     ].sort();
   }

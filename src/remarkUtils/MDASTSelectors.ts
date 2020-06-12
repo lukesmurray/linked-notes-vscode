@@ -19,7 +19,7 @@ export function MDASTCiteProcCitationKeySelectAll(
   return selectAll("citeProcCitationKey", root) as CiteProcCitationKey[];
 }
 
-export function MDASTTopLevelHeadingSelectAll(
+export function MDASTTopLevelHeaderSelect(
   root: MDAST.Root
 ): MDAST.Heading | undefined {
   return (select(`heading[depth="1"]`, root) as MDAST.Heading) ?? undefined;

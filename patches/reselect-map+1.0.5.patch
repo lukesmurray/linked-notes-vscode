@@ -1,0 +1,13 @@
+diff --git a/node_modules/reselect-map/lib/index.d.ts b/node_modules/reselect-map/lib/index.d.ts
+index e929cc2..092e946 100644
+--- a/node_modules/reselect-map/lib/index.d.ts
++++ b/node_modules/reselect-map/lib/index.d.ts
+@@ -7,7 +7,7 @@ import {
+ 
+ export as namespace ReselectMap;
+ 
+-type ObjectMap<T> = { [key: string]: T } | { [key: number]: T };
++type ObjectMap<T> = Record<string | number, T>;
+ 
+ // Typings for memoize functions
+ 

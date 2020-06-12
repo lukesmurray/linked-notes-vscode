@@ -5,15 +5,15 @@ import {
   convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
   selectCitationKeyBackReferencesToCitationKey,
+  selectTopLevelHeaderByDocumentId,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
+import { getDocumentUriFromDocumentId } from "./utils/util";
 import {
-  getDocumentUriFromDocumentId,
-  getDocumentURIForPosition,
-  getHeadingByDocumentId,
   getVscodeRangeFromUnistPosition,
   getCitationKeysForPosition,
-} from "./utils/util";
+  getDocumentURIForPosition,
+} from "./utils/positionToRemarkUtils";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;
@@ -44,9 +44,9 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
       const wikilinkBackReferences = selectWikilinkBackReferencesToDocumentId(
         this.store.getState()
       )[documentId];
-      const headerBackReference = getHeadingByDocumentId(this.store)[
-        documentId
-      ];
+      const headerBackReference = selectTopLevelHeaderByDocumentId(
+        this.store.getState()
+      )[documentId];
 
       return [
         ...wikilinkBackReferences
