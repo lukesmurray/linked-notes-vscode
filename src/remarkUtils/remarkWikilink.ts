@@ -7,7 +7,7 @@ import {
 } from "../types/remarkParse";
 
 export interface Wikilink extends UNIST.Node {
-  type: "wikiLink";
+  type: "wikilink";
   data: {
     /**
      * the display name for the page
@@ -44,23 +44,23 @@ function remarkWikilink(
     value: string,
     silent: boolean
   ): IInlineTokenizerReturn {
-    const wikiLinkMatch = /^\[\[(.+?)\]\]/g.exec(value);
+    const wikilinkMatch = /^\[\[(.+?)\]\]/g.exec(value);
 
-    if (wikiLinkMatch) {
+    if (wikilinkMatch) {
       if (silent) {
         return true;
       }
-      const add = eat(wikiLinkMatch![0]);
+      const add = eat(wikilinkMatch![0]);
       const node = add(<Wikilink>{
-        type: "wikiLink",
+        type: "wikilink",
         data: {
-          documentReference: wikiLinkMatch[1],
-          permalink: settings.documentResolver(wikiLinkMatch[0]),
+          documentReference: wikilinkMatch[1],
+          permalink: settings.documentResolver(wikilinkMatch[0]),
         },
         children: [
           <MDAST.Text>{
             type: "text",
-            value: wikiLinkMatch[0],
+            value: wikilinkMatch[0],
           },
         ],
       });

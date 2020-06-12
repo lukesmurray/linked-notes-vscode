@@ -3,13 +3,13 @@
   "name": "markdown",
   "injectionSelector": "L:text.html.markdown",
   "patterns": [
-    { "include": "#wikiLink" },
+    { "include": "#wikilink" },
     { "include": "#keyValue" },
     { "include": "#pandoc-citationA" },
     { "include": "#pandoc-citationB" }
   ],
   "repository": {
-    "wikiLink": {
+    "wikilink": {
       "match": "(\\[\\[)([^\\]]+)(\\]\\])",
       "name": "text.markdown.notes.wiki-link",
       "captures": {

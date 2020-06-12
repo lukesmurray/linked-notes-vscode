@@ -12,7 +12,7 @@ export default function ExtendMarkdownIt(md: MarkdownIt) {
   // function. The match is the portion of the replace function
   // in the parentheses
   return md.use(markdownItRegex, {
-    name: "wikiLink",
+    name: "wikilink",
     // match inside wiki links
     regex: /\[\[(.+?)\]\]/,
     // replace inside wiki links with a url

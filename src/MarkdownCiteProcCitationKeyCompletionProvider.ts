@@ -25,8 +25,8 @@ class MarkdownCiteProcCitationKeyCompletionProvider
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
     let citeProcRange = getCiteProcCompletionRange(document, position);
-    let wikiLinkRange = getWikiLinkCompletionRange(document, position);
-    if (citeProcRange && !wikiLinkRange) {
+    let wikilinkRange = getWikiLinkCompletionRange(document, position);
+    if (citeProcRange && !wikilinkRange) {
       return selectCitationKeyCompletions(this.store.getState());
     }
     return;

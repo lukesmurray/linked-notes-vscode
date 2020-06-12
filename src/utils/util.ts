@@ -87,9 +87,9 @@ export function getWikiLinkForPosition(
   // get the document id
   const documentId = convertTextDocToLinkedDocId(document);
   // get the wiki links for the document
-  const wikiLinks = documentWikiLinksById[documentId];
+  const wikilinks = documentWikiLinksById[documentId];
   // get the overlapping wiki link
-  const overlappingWikiLink = wikiLinks?.find((v) =>
+  const overlappingWikiLink = wikilinks?.find((v) =>
     isPositionInsideNode(position, v)
   );
   return overlappingWikiLink;
@@ -214,8 +214,8 @@ export function getDocumentUriFromDocumentSlug(slug: string) {
   return getDocumentUriFromWikiLinkPermalink(slug);
 }
 
-export function getDocumentIdFromWikiLink(wikiLink: Wikilink) {
-  const uri = getDocumentUriFromWikiLinkPermalink(wikiLink.data.permalink);
+export function getDocumentIdFromWikiLink(wikilink: Wikilink) {
+  const uri = getDocumentUriFromWikiLinkPermalink(wikilink.data.permalink);
   // create a document id from the uri
   if (uri) {
     return convertUriToLinkedDocId(uri);
@@ -247,7 +247,7 @@ export function getDocumentURIForPosition(
   }
   return {
     documentUri: documentUri,
-    wikiLink: overlappingWikiLink,
+    wikilink: overlappingWikiLink,
     header: overlappingHeader,
   };
 }
@@ -263,17 +263,17 @@ export function getHeaderContentRange(headerPosition: UNIST.Position) {
   });
 }
 
-export function getWikiLinkContentRange(wikiLinkPosition: UNIST.Position) {
+export function getWikiLinkContentRange(wikilinkPosition: UNIST.Position) {
   // convert the position so that the double bracket at the beginning and end aren't included
   return getVscodeRangeFromUnistPosition({
-    ...wikiLinkPosition,
+    ...wikilinkPosition,
     start: {
-      ...wikiLinkPosition.start,
-      column: wikiLinkPosition.start.column + 2,
+      ...wikilinkPosition.start,
+      column: wikilinkPosition.start.column + 2,
     },
     end: {
-      ...wikiLinkPosition.end,
-      column: wikiLinkPosition.end.column - 2,
+      ...wikilinkPosition.end,
+      column: wikilinkPosition.end.column - 2,
     },
   });
 }

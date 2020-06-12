@@ -208,22 +208,22 @@ export const selectWikiLinkBackReferencesToDocumentId = createSelector(
     const output: {
       [key: string]: {
         containingDocumentId: string;
-        wikiLink: Wikilink;
+        wikilink: Wikilink;
       }[];
     } = {};
 
     for (let containingDocumentId of Object.keys(allLinks)) {
-      for (let wikiLink of (allLinks as { [key: string]: Wikilink[] })[
+      for (let wikilink of (allLinks as { [key: string]: Wikilink[] })[
         containingDocumentId
       ]) {
-        const wikiLinkReferenceDocumentId = getDocumentIdFromWikiLink(wikiLink);
-        if (wikiLinkReferenceDocumentId !== undefined) {
-          if (output[wikiLinkReferenceDocumentId] === undefined) {
-            output[wikiLinkReferenceDocumentId] = [];
+        const wikilinkReferenceDocumentId = getDocumentIdFromWikiLink(wikilink);
+        if (wikilinkReferenceDocumentId !== undefined) {
+          if (output[wikilinkReferenceDocumentId] === undefined) {
+            output[wikilinkReferenceDocumentId] = [];
           }
-          output[wikiLinkReferenceDocumentId].push({
+          output[wikilinkReferenceDocumentId].push({
             containingDocumentId: containingDocumentId,
-            wikiLink,
+            wikilink,
           });
         }
       }
@@ -263,11 +263,11 @@ export const selectCitationKeyBackReferencesToCitationKeyId = createSelector(
 export const selectWikiLinkCompletions = createSelector(
   selectDocumentWikiLinksByDocumentId,
   selectDocumentHeadingTextByDocumentId,
-  (wikiLinksByDocumentId, headingTextByDocumentId) => {
+  (wikilinksByDocumentId, headingTextByDocumentId) => {
     return [
       ...new Set([
         // the wiki link aliases
-        ...Object.values(wikiLinksByDocumentId)
+        ...Object.values(wikilinksByDocumentId)
           .flat()
           .map((v) => v.data.documentReference),
         // the heading text

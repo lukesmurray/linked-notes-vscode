@@ -31,7 +31,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
   ): vscode.ProviderResult<
     vscode.Range | { range: vscode.Range; placeholder: string }
   > {
-    let { documentUri, wikiLink, header } = getDocumentURIForPosition(
+    let { documentUri, wikilink, header } = getDocumentURIForPosition(
       document,
       position,
       this.store
@@ -41,8 +41,8 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
       if (header && header.position) {
         return getHeaderContentRange(header.position);
       }
-      if (wikiLink && wikiLink.position) {
-        return getWikiLinkContentRange(wikiLink.position);
+      if (wikilink && wikilink.position) {
+        return getWikiLinkContentRange(wikilink.position);
       }
     }
     throw new Error("You cannot rename this element.");
@@ -83,12 +83,12 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
 
       // rename each of the wiki links
       for (let backLink of backLinks) {
-        if (backLink.wikiLink.position === undefined) {
+        if (backLink.wikilink.position === undefined) {
           continue;
         }
         workspaceEdit.replace(
           getDocumentUriFromDocumentId(backLink.containingDocumentId),
-          getWikiLinkContentRange(backLink.wikiLink.position),
+          getWikiLinkContentRange(backLink.wikilink.position),
           newName
         );
       }

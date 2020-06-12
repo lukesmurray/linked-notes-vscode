@@ -4,7 +4,7 @@ import { CiteProcCitation } from "./remarkCiteproc";
 import { Wikilink } from "./remarkWikilink";
 
 export function MDASTWikiLinkSelectAll(root: MDAST.Root) {
-  return selectAll("wikiLink", root) as Wikilink[];
+  return selectAll("wikilink", root) as Wikilink[];
 }
 
 export function MDASTCiteProcCitationSelectAll(

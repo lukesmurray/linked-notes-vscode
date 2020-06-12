@@ -41,7 +41,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
 
     if (documentUri) {
       const documentId = convertUriToLinkedDocId(documentUri);
-      const wikiLinkBackReferences = selectWikiLinkBackReferencesToDocumentId(
+      const wikilinkBackReferences = selectWikiLinkBackReferencesToDocumentId(
         this.store.getState()
       )[documentId];
       const headerBackReference = getHeadingByDocumentId(this.store)[
@@ -49,12 +49,12 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
       ];
 
       return [
-        ...wikiLinkBackReferences
-          .filter((v) => v.wikiLink.position !== undefined)
-          .map(({ containingDocumentId, wikiLink }) => {
+        ...wikilinkBackReferences
+          .filter((v) => v.wikilink.position !== undefined)
+          .map(({ containingDocumentId, wikilink }) => {
             return new vscode.Location(
               getDocumentUriFromDocumentId(containingDocumentId),
-              getVscodeRangeFromUnistPosition(wikiLink.position!)
+              getVscodeRangeFromUnistPosition(wikilink.position!)
             );
           }),
         headerBackReference?.position !== undefined

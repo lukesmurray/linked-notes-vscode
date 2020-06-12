@@ -14,10 +14,10 @@ suite("mdast parsing", () => {
       `this markdown has [[${alias}]]`,
       createAhoCorasickFromCSLJSON([])
     );
-    const wikiLinks = MDASTWikiLinkSelectAll(root);
-    assert.equal(wikiLinks.length, 1, "one wiki link in the text");
+    const wikilinks = MDASTWikiLinkSelectAll(root);
+    assert.equal(wikilinks.length, 1, "one wiki link in the text");
     assert.equal(
-      wikiLinks[0].data.documentReference,
+      wikilinks[0].data.documentReference,
       alias,
       "the wiki link has the expected alias"
     );
