@@ -8,8 +8,8 @@ import { LinkedNotesStore } from "./store";
 import {
   createNewMarkdownDoc,
   findAllMarkdownFilesInWorkspace,
-  getDocumentUriFromWikilinkPermalink,
 } from "./utils/util";
+import { getDocumentUriFromWikilinkPermalink } from "./utils/uriUtils";
 import { getWikilinkForPosition } from "./utils/positionUtils";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {

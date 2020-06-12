@@ -1,6 +1,6 @@
 import MarkdownIt from "markdown-it";
 import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
-import { getDocumentUriFromDocumentSlug } from "./utils/util";
+import { getDocumentUriFromDocumentSlug } from "./utils/uriUtils";
 import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 
 /**

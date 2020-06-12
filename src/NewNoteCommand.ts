@@ -1,9 +1,9 @@
 import vscode from "vscode";
 import {
-  getDocumentUriFromDocumentSlug,
   findAllMarkdownFilesInWorkspace,
   createNewMarkdownDoc,
 } from "./utils/util";
+import { getDocumentUriFromDocumentSlug } from "./utils/uriUtils";
 import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 
 function NewNoteCommand() {

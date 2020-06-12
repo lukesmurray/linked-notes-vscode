@@ -11,7 +11,7 @@ import { LinkedNotesStore } from "./store";
 import {
   getDocumentUriFromDocumentId,
   getDocumentUriFromDocumentSlug,
-} from "./utils/util";
+} from "./utils/uriUtils";
 import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 import {
   getDocumentURIForPosition,

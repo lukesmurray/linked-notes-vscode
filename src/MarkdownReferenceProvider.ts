@@ -8,7 +8,7 @@ import {
   selectTopLevelHeaderByDocumentId,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getDocumentUriFromDocumentId } from "./utils/util";
+import { getDocumentUriFromDocumentId } from "./utils/uriUtils";
 import {
   unistPositionToVscodeRange,
   getCitationKeysForPosition,

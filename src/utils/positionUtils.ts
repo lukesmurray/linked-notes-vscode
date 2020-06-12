@@ -7,7 +7,7 @@ import {
   selectWikilinksByDocumentId,
 } from "../reducers/documents";
 import { LinkedNotesStore } from "../store";
-import { getDocumentUriFromWikilinkPermalink } from "./util";
+import { getDocumentUriFromWikilinkPermalink } from "./uriUtils";
 
 const CITEPROC_COMPLETION_RANGE_REGEX = /(?<=(?:^|[ ;\[-]))\@([^\]\s]*)/g;
 const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;

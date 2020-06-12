@@ -20,11 +20,8 @@ import {
 import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
 import type { AppDispatch, LinkedNotesStore } from "../store";
-import {
-  delay,
-  getDocumentIdFromWikilink,
-  isNotNullOrUndefined,
-} from "../utils/util";
+import { delay, isNotNullOrUndefined } from "../utils/util";
+import { getDocumentIdFromWikilink } from "../utils/uriUtils";
 import { unistPositionToVscodeRange } from "../utils/positionUtils";
 import { selectCitationItemAho } from "./citationItems";
 

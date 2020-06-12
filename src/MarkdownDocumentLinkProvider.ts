@@ -16,9 +16,10 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
     await waitForLinkedDocToParse(this.store, documentId);
-    return (selectDocumentLinksByDocumentId(this.store.getState()) as {
-      [key: string]: vscode.DocumentLink[];
-    })[documentId];
+    const documentLinks = selectDocumentLinksByDocumentId(
+      this.store.getState()
+    )[documentId];
+    return documentLinks;
   }
 }
 
