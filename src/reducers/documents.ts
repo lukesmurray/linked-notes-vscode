@@ -4,6 +4,7 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
+  combineReducers,
 } from "@reduxjs/toolkit";
 import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
@@ -20,32 +21,45 @@ import {
 import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
 import type { AppDispatch, LinkedNotesStore } from "../store";
-import { delay, isNotNullOrUndefined } from "../utils/util";
-import { getDocumentIdFromWikilink } from "../utils/uriUtils";
 import { unistPositionToVscodeRange } from "../utils/positionUtils";
+import { getDocumentIdFromWikilink } from "../utils/uriUtils";
+import { delay, isNotNullOrUndefined } from "../utils/util";
 import { selectCitationItemAho } from "./citationItems";
 
-export interface LinkedNotesDocument {
+/**
+ * the time in milliseconds that updates to the document ast will be debounced
+ * remark takes a long time so this should allow for performant typing
+ */
+const UPDATE_DOC_DEBOUNCE_DELAY = 1000;
+
+export interface Identifiable {
   /**
    * see https://code.visualstudio.com/api/references/vscode-api#Uri fsPath
    * The string representing the corresponding file system path of this Uri.
    */
   id: string;
+}
+
+export interface LinkedNotesDocument extends Identifiable {
   /**
    * the mdast syntax tree representing this document
    */
-  syntaxTree: MDAST.Root | undefined;
+  syntaxTree?: MDAST.Root;
+}
+
+export interface LinkedNotesDocumentStatus extends Identifiable {
+  status: "up to date" | "pending changes";
 }
 
 /*******************************************************************************
  * Thunks
  ******************************************************************************/
 
-export const documentChangePending = createAction<{ id: string }>(
+const documentChangePending = createAction<{ id: string }>(
   "linkedDocuments/changePending"
 );
 
-export const updateDocumentSyntaxTree = createAsyncThunk<
+const updateDocumentSyntaxTree = createAsyncThunk<
   LinkedNotesDocument,
   vscode.TextDocument,
   { dispatch: AppDispatch; state: RootState }
@@ -53,7 +67,14 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
   "linkedDocuments/updateSyntaxTree",
   async (document: vscode.TextDocument, thunkApi) => {
     const textDocumentId = convertTextDocToLinkedDocId(document);
+    /// mark the document as dirty
     thunkApi.dispatch(documentChangePending({ id: textDocumentId }));
+    // wait for any more updates (they will cancel this update)
+    await delay(UPDATE_DOC_DEBOUNCE_DELAY);
+    // check if we've been cancelled
+    if (thunkApi.signal.aborted) {
+      throw new Error("the update has been cancelled");
+    }
     const syntaxTree = await getMDASTFromText(
       document.getText(),
       selectCitationItemAho(thunkApi.getState())
@@ -66,68 +87,104 @@ export const updateDocumentSyntaxTree = createAsyncThunk<
 );
 
 /*******************************************************************************
- * Reducers
+ * Document Reducer
  ******************************************************************************/
 
 // create adapter for managing documents
-const documentsAdapter = createEntityAdapter<{
-  document: LinkedNotesDocument;
-  status: "pending changes" | "up to date";
-}>({
-  selectId: (entity) => convertLinkedDocToLinkedDocId(entity.document),
-  sortComparer: (a, b) => a.document.id.localeCompare(b.document.id),
+const documentsAdapter = createEntityAdapter<LinkedNotesDocument>({
+  selectId: (entity) => convertLinkedDocToLinkedDocId(entity),
+  sortComparer: (a, b) => a.id.localeCompare(b.id),
 });
 
 // create documents slice
 const documentsSlice = createSlice({
-  name: "linkedDocuments",
+  name: "linked/documents",
   initialState: documentsAdapter.getInitialState(),
   reducers: {
-    documentAdded: documentsAdapter.upsertOne,
-    documentUpdated: documentsAdapter.updateOne,
+    documentRenamed: documentsAdapter.updateOne,
     documentDeleted: documentsAdapter.removeOne,
   },
   extraReducers: (builder) => {
     builder.addCase(updateDocumentSyntaxTree.fulfilled, (state, action) => {
-      return documentsAdapter.upsertOne(state, {
-        document: action.payload,
-        status: "up to date",
-      });
+      return documentsAdapter.upsertOne(state, action.payload);
     });
     builder.addCase(documentChangePending, (state, action) => {
-      return documentsAdapter.upsertOne(state, {
-        document: { id: action.payload.id, syntaxTree: undefined },
-        status: "pending changes",
-      });
+      return documentsAdapter.upsertOne(state, action.payload);
     });
   },
 });
 
-// export reducer as the default
-export default documentsSlice.reducer;
-
 /*******************************************************************************
- * Actions
+ * Document Reducer Actions
  ******************************************************************************/
 
 // export actions
-export const {
-  documentAdded,
-  documentDeleted,
-  documentUpdated,
-} = documentsSlice.actions;
+export const { documentDeleted, documentRenamed } = documentsSlice.actions;
+
+/*******************************************************************************
+ * Status Reducer
+ ******************************************************************************/
+
+const statusAdapter = createEntityAdapter<LinkedNotesDocumentStatus>({
+  selectId: (entity) => convertLinkedDocToLinkedDocId(entity),
+  sortComparer: (a, b) => a.id.localeCompare(b.id),
+});
+
+const statusSlice = createSlice({
+  name: "linked/status",
+  initialState: statusAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(updateDocumentSyntaxTree.fulfilled, (state, action) => {
+      return statusAdapter.upsertOne(state, {
+        id: action.payload.id,
+        status: "up to date",
+      });
+    });
+    builder.addCase(documentChangePending, (state, action) => {
+      return statusAdapter.upsertOne(state, {
+        id: action.payload.id,
+        status: "pending changes",
+      });
+    });
+    builder.addCase(documentRenamed, (state, action) => {
+      return statusAdapter.updateOne(state, {
+        id: action.payload.id,
+        changes: {
+          id: action.payload.changes.id,
+        },
+      });
+    });
+    builder.addCase(documentDeleted, (state, action) => {
+      return statusAdapter.removeOne(state, action.payload);
+    });
+  },
+});
+
+// export combined reducer as the default
+export default combineReducers({
+  documents: documentsSlice.reducer,
+  status: statusSlice.reducer,
+});
 
 /*******************************************************************************
  * Selectors
  ******************************************************************************/
 
-export const selectDocumentSlice = (state: RootState) => state.documents;
+export const selectDocumentSlice = (state: RootState) =>
+  state.documents.documents;
+
+export const selectStatusSlice = (state: RootState) => state.documents.status;
 
 export const {
   selectById: selectDocumentById,
-  selectEntities: selectDocumentEntities,
+  selectEntities: selectDocuments,
   selectIds: selectDocumentIds,
 } = documentsAdapter.getSelectors<RootState>(selectDocumentSlice);
+
+export const {
+  selectById: selectDocumentStatusById,
+} = statusAdapter.getSelectors<RootState>(selectStatusSlice);
 
 export const selectDocumentByUri = (
   state: RootState,
@@ -135,42 +192,42 @@ export const selectDocumentByUri = (
 ) => selectDocumentById(state, convertUriToLinkedDocId(documentUri));
 
 export const selectCitationKeysByDocumentId = createObjectSelector(
-  selectDocumentEntities,
-  (docEntity) => {
-    if (docEntity?.document?.syntaxTree === undefined) {
+  selectDocuments,
+  (document) => {
+    if (document?.syntaxTree === undefined) {
       return [];
     }
-    return MDASTCiteProcCitationKeySelectAll(docEntity.document.syntaxTree);
+    return MDASTCiteProcCitationKeySelectAll(document.syntaxTree);
   }
 );
 
 export const selectCitationsByDocumentId = createObjectSelector(
-  selectDocumentEntities,
-  (docEntity) => {
-    if (docEntity?.document?.syntaxTree === undefined) {
+  selectDocuments,
+  (document) => {
+    if (document?.syntaxTree === undefined) {
       return [];
     }
-    return MDASTCiteProcCitationSelectAll(docEntity.document.syntaxTree);
+    return MDASTCiteProcCitationSelectAll(document.syntaxTree);
   }
 );
 
 export const selectWikilinksByDocumentId = createObjectSelector(
-  selectDocumentEntities,
-  (docEntity) => {
-    if (docEntity?.document?.syntaxTree === undefined) {
+  selectDocuments,
+  (document) => {
+    if (document?.syntaxTree === undefined) {
       return [];
     }
-    return MDASTWikilinkSelectAll(docEntity.document.syntaxTree);
+    return MDASTWikilinkSelectAll(document.syntaxTree);
   }
 );
 
 export const selectTopLevelHeaderByDocumentId = createObjectSelector(
-  selectDocumentEntities,
-  (docEntity) => {
-    if (docEntity?.document?.syntaxTree === undefined) {
+  selectDocuments,
+  (document) => {
+    if (document?.syntaxTree === undefined) {
       return undefined;
     }
-    return MDASTTopLevelHeaderSelect(docEntity.document.syntaxTree);
+    return MDASTTopLevelHeaderSelect(document.syntaxTree);
   }
 );
 
@@ -272,20 +329,55 @@ export const selectWikilinkCompletions = createSelector(
  * Utils
  ******************************************************************************/
 
+// promise returned from dispatching updateDocumentSyntaxTree
+type updateDocumentSyntaxTreePromise = ReturnType<
+  ReturnType<typeof updateDocumentSyntaxTree>
+>;
+
+// dictionary of document id to promise returned from dispatching updateDocumentSyntaxTree
+const pendingUpdateDocumentThunks: Record<
+  string,
+  updateDocumentSyntaxTreePromise | undefined
+> = {};
+
+// flag a document for update
+export function flagDocumentForUpdate(
+  store: LinkedNotesStore,
+  document: vscode.TextDocument
+) {
+  const docId = convertTextDocToLinkedDocId(document);
+  // if there is a pending thunk then cancel it
+  const pendingThunk = pendingUpdateDocumentThunks[docId];
+  if (pendingThunk !== undefined) {
+    pendingThunk.abort();
+  }
+  // dispatch the new thunk
+  pendingUpdateDocumentThunks[docId] = store.dispatch(
+    updateDocumentSyntaxTree(document)
+  );
+}
+
 export const waitForLinkedDocToParse = (
   store: LinkedNotesStore,
-  documentId: string
+  documentId: string,
+  token: vscode.CancellationToken
 ) => {
   return new Promise<void>(async (resolve, reject) => {
     while (true) {
-      const documentEntity = selectDocumentById(store.getState(), documentId);
-      if (documentEntity?.status === "up to date") {
+      if (token.isCancellationRequested) {
+        resolve();
+      }
+      const documentStatus = selectDocumentStatusById(
+        store.getState(),
+        documentId
+      );
+      if (documentStatus?.status === "up to date") {
         break;
       }
       // TODO(lukemurray): there's a memory leak here if the document is removed from the
       // store. We probably want to retry or something a specific number of times then
       // give up
-      await delay(50);
+      await delay(250);
     }
     resolve();
   });
@@ -311,5 +403,5 @@ export const convertUriToLinkedDocId: (uri: vscode.Uri) => string = (uri) =>
  * @param document a linked notes document
  */
 export const convertLinkedDocToLinkedDocId: (
-  document: LinkedNotesDocument
+  document: Identifiable
 ) => string = (document) => document.id;

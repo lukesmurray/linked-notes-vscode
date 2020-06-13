@@ -15,7 +15,10 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     token: vscode.CancellationToken
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
-    await waitForLinkedDocToParse(this.store, documentId);
+    await waitForLinkedDocToParse(this.store, documentId, token);
+    if (token.isCancellationRequested) {
+      return;
+    }
     const documentLinks = selectDocumentLinksByDocumentId(
       this.store.getState()
     )[documentId];

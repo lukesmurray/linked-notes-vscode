@@ -23,7 +23,10 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     token: vscode.CancellationToken
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
-    await waitForLinkedDocToParse(this.store, documentId);
+    await waitForLinkedDocToParse(this.store, documentId, token);
+    if (token.isCancellationRequested) {
+      return;
+    }
     const overlappingWikilink = getWikilinkForPosition(
       this.store,
       document,

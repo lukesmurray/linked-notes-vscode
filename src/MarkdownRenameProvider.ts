@@ -60,9 +60,12 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     const allDocumentIds = selectDocumentIds(this.store.getState());
     await Promise.all([
       allDocumentIds.map(async (documentId) => {
-        await waitForLinkedDocToParse(this.store, documentId as string);
+        await waitForLinkedDocToParse(this.store, documentId as string, token);
       }),
     ]);
+    if (token.isCancellationRequested) {
+      return;
+    }
 
     // get the referenced document
     let { documentUri } = getDocumentURIForPosition(

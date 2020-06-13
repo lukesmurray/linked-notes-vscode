@@ -49,4 +49,16 @@ suite("mdast parsing", () => {
       "the ids match"
     );
   });
+
+  test("it finds people wikilinks", async () => {
+    const root = await getMDASTFromText(
+      "[[@david karger]] and [[@yellow submarine]] and [[@samantha]]",
+      createAhoCorasickFromCSLJSON([])
+    );
+    const wikilinks = MDASTWikilinkSelectAll(root);
+    assert.equal(wikilinks.length, 3);
+    assert.equal(wikilinks[0].data.documentReference, "@david karger");
+    assert.equal(wikilinks[1].data.documentReference, "@yellow submarine");
+    assert.equal(wikilinks[2].data.documentReference, "@samantha");
+  });
 });

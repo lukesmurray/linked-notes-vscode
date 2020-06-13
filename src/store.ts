@@ -1,17 +1,9 @@
-import {
-  configureStore,
-  getDefaultMiddleware,
-  Middleware,
-} from "@reduxjs/toolkit";
-import loggerMiddleware from "./middleware/logger";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer, { RootState } from "./reducers";
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [
-    // loggerMiddleware as Middleware<RootState>,
-    ...getDefaultMiddleware<RootState>(),
-  ],
+  middleware: [...getDefaultMiddleware<RootState>()],
 });
 
 export type AppDispatch = typeof store.dispatch;

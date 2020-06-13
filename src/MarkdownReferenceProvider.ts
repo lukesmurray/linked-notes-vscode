@@ -32,7 +32,10 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
      * Document References
      **************************************************************************/
     const documentId = convertTextDocToLinkedDocId(document);
-    await waitForLinkedDocToParse(this.store, documentId);
+    await waitForLinkedDocToParse(this.store, documentId, token);
+    if (token.isCancellationRequested) {
+      return;
+    }
     let { documentUri } = getDocumentURIForPosition(
       document,
       position,

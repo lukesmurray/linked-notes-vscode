@@ -26,7 +26,10 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
     token: vscode.CancellationToken
   ) {
     const documentId = convertTextDocToLinkedDocId(document);
-    await waitForLinkedDocToParse(this.store, documentId);
+    await waitForLinkedDocToParse(this.store, documentId, token);
+    if (token.isCancellationRequested) {
+      return;
+    }
     const overlappingCitationKey = getCitationKeysForPosition(
       this.store,
       document,

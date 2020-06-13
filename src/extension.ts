@@ -1,5 +1,4 @@
-import debounce from "lodash/debounce";
-import memoize from "lodash/memoize";
+import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
 import * as vscode from "vscode";
 import ExtendMarkdownIt from "./ExtendMarkdownIt";
 import MarkdownCiteProcCitationKeyCompletionProvider from "./MarkdownCiteProcCitationKeyCompletionProvider";
@@ -13,12 +12,11 @@ import NewNoteCommand from "./NewNoteCommand";
 import { updateCitationItems } from "./reducers/citationItems";
 import { updateConfiguration } from "./reducers/configuration";
 import {
-  convertTextDocToLinkedDocId,
   convertUriToLinkedDocId,
   documentDeleted,
-  documentUpdated,
+  documentRenamed,
   selectDocumentByUri,
-  updateDocumentSyntaxTree,
+  flagDocumentForUpdate,
 } from "./reducers/documents";
 import store from "./store";
 import {
@@ -52,7 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
       fileUris.map((uri) =>
         vscode.workspace
           .openTextDocument(uri)
-          .then((doc) => store.dispatch(updateDocumentSyntaxTree(doc)))
+          .then((doc) => flagDocumentForUpdate(store, doc))
       ),
     ]);
   });
@@ -149,27 +147,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // listen for when documents are opened in the workspace
   vscode.workspace.onDidOpenTextDocument(async (e) => {
     if (isMarkdownFile(e.uri)) {
-      store.dispatch(updateDocumentSyntaxTree(e));
+      flagDocumentForUpdate(store, e);
     }
   });
-
-  // TODO(lukemurray): consider changing this to a set of documents which are pending
-  // create a memoized handler for document changes by id
-  const textDocumentChangeHandler = memoize(
-    (_textDocumentId: string, e: vscode.TextDocumentChangeEvent) => {
-      return debounce(() => {
-        if (isMarkdownFile(e.document.uri)) {
-          store.dispatch(updateDocumentSyntaxTree(e.document));
-        }
-      }, 1000);
-    }
-  );
 
   // listen for when documents are changed in the workspace
   vscode.workspace.onDidChangeTextDocument((e) => {
     if (isMarkdownFile(e.document.uri)) {
-      const textDocumentId = convertTextDocToLinkedDocId(e.document);
-      textDocumentChangeHandler(textDocumentId, e)();
+      flagDocumentForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
       store.dispatch(updateCitationItems());
     }
@@ -185,13 +170,10 @@ export async function activate(context: vscode.ExtensionContext) {
       if (oldIsMarkdown && newIsMarkdown) {
         const oldDocument = selectDocumentByUri(store.getState(), file.oldUri);
         store.dispatch(
-          documentUpdated({
+          documentRenamed({
             id: convertUriToLinkedDocId(file.oldUri),
             changes: {
-              document: {
-                ...oldDocument!.document,
-                id: convertUriToLinkedDocId(file.newUri),
-              },
+              id: convertUriToLinkedDocId(file.newUri),
             },
           })
         );
@@ -199,7 +181,7 @@ export async function activate(context: vscode.ExtensionContext) {
         store.dispatch(documentDeleted(convertUriToLinkedDocId(file.oldUri)));
       } else if (newIsMarkdown) {
         vscode.workspace.openTextDocument(file.newUri).then((doc) => {
-          store.dispatch(updateDocumentSyntaxTree(doc));
+          flagDocumentForUpdate(store, doc);
         });
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
         store.dispatch(updateCitationItems());
@@ -252,7 +234,7 @@ export async function activate(context: vscode.ExtensionContext) {
   ): Promise<void> => {
     if (isMarkdownFile(uri)) {
       await vscode.workspace.openTextDocument(uri).then((doc) => {
-        store.dispatch(updateDocumentSyntaxTree(doc));
+        flagDocumentForUpdate(store, doc);
       });
     }
   };

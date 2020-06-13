@@ -1,9 +1,5 @@
 import * as vscode from "vscode";
 import { selectCitationKeyCompletions } from "./reducers/citationItems";
-import {
-  convertTextDocToLinkedDocId,
-  waitForLinkedDocToParse,
-} from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import {
   getCiteProcCompletionRange,
@@ -19,13 +15,12 @@ class MarkdownCiteProcCitationKeyCompletionProvider
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
-    _token: vscode.CancellationToken,
+    token: vscode.CancellationToken,
     context: vscode.CompletionContext
   ) {
-    const documentId = convertTextDocToLinkedDocId(document);
-    await waitForLinkedDocToParse(this.store, documentId);
     let citeProcRange = getCiteProcCompletionRange(document, position);
     let wikilinkRange = getWikilinkCompletionRange(document, position);
+    // no citeproc completions in a wikilink
     if (citeProcRange && !wikilinkRange) {
       return selectCitationKeyCompletions(this.store.getState());
     }

@@ -1,9 +1,5 @@
 import * as vscode from "vscode";
-import {
-  convertTextDocToLinkedDocId,
-  selectWikilinkCompletions,
-  waitForLinkedDocToParse,
-} from "./reducers/documents";
+import { selectWikilinkCompletions } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import { getWikilinkCompletionRange } from "./utils/positionUtils";
 
@@ -16,14 +12,13 @@ class MarkdownWikilinkCompletionProvider
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
-    _token: vscode.CancellationToken,
+    token: vscode.CancellationToken,
     context: vscode.CompletionContext
   ) {
-    const documentId = convertTextDocToLinkedDocId(document);
-    await waitForLinkedDocToParse(this.store, documentId);
     let range = getWikilinkCompletionRange(document, position);
     if (range) {
-      return selectWikilinkCompletions(this.store.getState()).map(
+      const completions = selectWikilinkCompletions(this.store.getState());
+      return completions.map(
         (match) =>
           new vscode.CompletionItem(match, vscode.CompletionItemKind.File)
       );
