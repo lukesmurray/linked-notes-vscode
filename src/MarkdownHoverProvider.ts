@@ -1,28 +1,21 @@
 import * as vscode from "vscode";
+import { waitForLinkedDocToParse } from "./reducers/linkedFiles";
 import {
   bibliographicItemAuthorString,
   bibliographicItemTitleString,
 } from "./remarkUtils/citeProcUtils";
-import {
-  waitForLinkedDocToParse,
-  selectDocumentById,
-} from "./reducers/documents";
+import { CiteProcCitationKey } from "./remarkUtils/remarkCiteproc";
+import { Wikilink } from "./remarkUtils/remarkWikilink";
 import { LinkedNotesStore } from "./store";
-import { CslData } from "./types/csl-data";
 import {
   getCitationKeyForPosition,
-  unistPositionToVscodeRange,
   getWikilinkForPosition,
+  unistPositionToVscodeRange,
 } from "./utils/positionUtils";
-import { Wikilink } from "./remarkUtils/remarkWikilink";
-import { CiteProcCitationKey } from "./remarkUtils/remarkCiteproc";
 import {
-  convertTextDocToLinkedDocId,
-  getDocumentUriFromDocumentSlug,
-  getDocumentIdFromWikilink,
   getDocumentUriFromWikilink,
+  textDocumentFsPath,
 } from "./utils/uriUtils";
-import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
@@ -35,7 +28,7 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ) {
-    const documentId = convertTextDocToLinkedDocId(document);
+    const documentId = textDocumentFsPath(document);
     await waitForLinkedDocToParse(this.store, documentId, token);
     if (token.isCancellationRequested) {
       return;

@@ -6,7 +6,6 @@ import {
   createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
-import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
 import { createObjectSelector } from "reselect-map";
 import * as vscode from "vscode";
@@ -20,106 +19,86 @@ import {
 } from "../remarkUtils/MDASTSelectors";
 import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
+import { LinkedFile, LinkedFileStatus } from "../rewrite/types";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../utils/positionUtils";
-import {
-  convertLinkedDocToLinkedDocId,
-  convertTextDocToLinkedDocId,
-  convertUriToLinkedDocId,
-  getDocumentIdFromWikilink,
-} from "../utils/uriUtils";
+import { getDocumentIdFromWikilink } from "../utils/uriUtils";
 import { delay, isNotNullOrUndefined } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
+import { textDocumentFsPath } from "../rewrite/textDocumentFsPath";
+import { linkedFileFsPath } from "../rewrite/linkedFileFsPath";
+import { uriFsPath } from "../rewrite/uriFsPath";
 
 /**
- * the time in milliseconds that updates to the document ast will be debounced
+ * the time in milliseconds that updates to the linked file ast will be debounced.
  * remark takes a long time so this should allow for performant typing
  */
-const UPDATE_DOC_DEBOUNCE_DELAY = 1000;
+const UPDATE_LINKED_FILE_DEBOUNCE_DELAY = 1000;
 
 /**
- * the time in milliseconds that the system will poll for the document to be updated
+ * the time in milliseconds that the system will poll for the linked file
+ * to be updated
  */
-const WAIT_FOR_DOC_TO_PARSE_POLL_DELAY = 250;
-
-export interface Identifiable {
-  /**
-   * see https://code.visualstudio.com/api/references/vscode-api#Uri fsPath
-   * The string representing the corresponding file system path of this Uri.
-   */
-  id: string;
-}
-
-export interface LinkedNotesDocument extends Identifiable {
-  /**
-   * the mdast syntax tree representing this document
-   */
-  syntaxTree?: MDAST.Root;
-}
-
-export interface LinkedNotesDocumentStatus extends Identifiable {
-  status: "up to date" | "pending changes";
-}
+const WAIT_FOR_LINKED_FILE_POLL_DELAY = 250;
 
 /*******************************************************************************
  * Thunks
  ******************************************************************************/
 
-const documentChangePending = createAction<{ id: string }>(
-  "linkedDocuments/changePending"
+const linkedFileChangePending = createAction<{ fsPath: string }>(
+  "linkedFiles/changePending"
 );
 
-const updateDocumentSyntaxTree = createAsyncThunk<
-  LinkedNotesDocument,
+const updateLinkedFileSyntaxTree = createAsyncThunk<
+  LinkedFile,
   vscode.TextDocument,
   { dispatch: AppDispatch; state: RootState }
 >(
-  "linkedDocuments/updateSyntaxTree",
-  async (document: vscode.TextDocument, thunkApi) => {
-    const textDocumentId = convertTextDocToLinkedDocId(document);
+  "linkedFiles/updateSyntaxTree",
+  async (textDocument: vscode.TextDocument, thunkApi) => {
+    const fsPath = textDocumentFsPath(textDocument);
     /// mark the document as dirty
-    thunkApi.dispatch(documentChangePending({ id: textDocumentId }));
+    thunkApi.dispatch(linkedFileChangePending({ fsPath }));
     // wait for any more updates (they will cancel this update)
-    await delay(UPDATE_DOC_DEBOUNCE_DELAY);
+    await delay(UPDATE_LINKED_FILE_DEBOUNCE_DELAY);
     // check if we've been cancelled
     if (thunkApi.signal.aborted) {
       throw new Error("the update has been cancelled");
     }
     const syntaxTree = await getMDASTFromText(
-      document.getText(),
+      textDocument.getText(),
       selectBibliographicItemAho(thunkApi.getState())
     );
     return {
-      id: textDocumentId,
+      fsPath,
       syntaxTree,
     };
   }
 );
 
 /*******************************************************************************
- * Document Reducer
+ * Linked Files Reducer
  ******************************************************************************/
 
-// create adapter for managing documents
-const documentsAdapter = createEntityAdapter<LinkedNotesDocument>({
-  selectId: (entity) => convertLinkedDocToLinkedDocId(entity),
-  sortComparer: (a, b) => a.id.localeCompare(b.id),
+const linkedFileAdapter = createEntityAdapter<LinkedFile>({
+  selectId: (entity) => linkedFileFsPath(entity),
+  sortComparer: (a, b) => a.fsPath.localeCompare(b.fsPath),
 });
 
-// create documents slice
-const documentsSlice = createSlice({
-  name: "linked/documents",
-  initialState: documentsAdapter.getInitialState(),
+// create linked files slice
+const linkedFilesSlice = createSlice({
+  name: "linkedFiles/files",
+  initialState: linkedFileAdapter.getInitialState(),
   reducers: {
-    documentRenamed: documentsAdapter.updateOne,
-    documentDeleted: documentsAdapter.removeOne,
+    fileRenamed: linkedFileAdapter.updateOne,
+    fileDeleted: linkedFileAdapter.removeOne,
   },
   extraReducers: (builder) => {
-    builder.addCase(updateDocumentSyntaxTree.fulfilled, (state, action) => {
-      return documentsAdapter.upsertOne(state, action.payload);
+    builder.addCase(updateLinkedFileSyntaxTree.fulfilled, (state, action) => {
+      return linkedFileAdapter.upsertOne(state, action.payload);
     });
-    builder.addCase(documentChangePending, (state, action) => {
-      return documentsAdapter.upsertOne(state, action.payload);
+    builder.addCase(linkedFileChangePending, (state, action) => {
+      return linkedFileAdapter.upsertOne(state, action.payload);
     });
   },
 });
@@ -129,43 +108,43 @@ const documentsSlice = createSlice({
  ******************************************************************************/
 
 // export actions
-export const { documentDeleted, documentRenamed } = documentsSlice.actions;
+export const { fileDeleted, fileRenamed } = linkedFilesSlice.actions;
 
 /*******************************************************************************
  * Status Reducer
  ******************************************************************************/
 
-const statusAdapter = createEntityAdapter<LinkedNotesDocumentStatus>({
-  selectId: (entity) => convertLinkedDocToLinkedDocId(entity),
-  sortComparer: (a, b) => a.id.localeCompare(b.id),
+const statusAdapter = createEntityAdapter<LinkedFileStatus>({
+  selectId: (entity) => linkedFileFsPath(entity),
+  sortComparer: (a, b) => a.fsPath.localeCompare(b.fsPath),
 });
 
-const statusSlice = createSlice({
-  name: "linked/status",
+const linkedFilesStatusSlice = createSlice({
+  name: "linkedFiles/status",
   initialState: statusAdapter.getInitialState(),
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(updateDocumentSyntaxTree.fulfilled, (state, action) => {
+    builder.addCase(updateLinkedFileSyntaxTree.fulfilled, (state, action) => {
       return statusAdapter.upsertOne(state, {
-        id: action.payload.id,
+        fsPath: action.payload.fsPath,
         status: "up to date",
       });
     });
-    builder.addCase(documentChangePending, (state, action) => {
+    builder.addCase(linkedFileChangePending, (state, action) => {
       return statusAdapter.upsertOne(state, {
-        id: action.payload.id,
+        fsPath: action.payload.fsPath,
         status: "pending changes",
       });
     });
-    builder.addCase(documentRenamed, (state, action) => {
+    builder.addCase(fileRenamed, (state, action) => {
       return statusAdapter.updateOne(state, {
         id: action.payload.id,
         changes: {
-          id: action.payload.changes.id,
+          fsPath: action.payload.changes.fsPath,
         },
       });
     });
-    builder.addCase(documentDeleted, (state, action) => {
+    builder.addCase(fileDeleted, (state, action) => {
       return statusAdapter.removeOne(state, action.payload);
     });
   },
@@ -173,97 +152,63 @@ const statusSlice = createSlice({
 
 // export combined reducer as the default
 export default combineReducers({
-  documents: documentsSlice.reducer,
-  status: statusSlice.reducer,
+  files: linkedFilesSlice.reducer,
+  status: linkedFilesStatusSlice.reducer,
 });
 
 /*******************************************************************************
  * Selectors
  ******************************************************************************/
 
-export const selectDocumentSlice = (state: RootState) =>
-  state.documents.documents;
+export const selectLinkedFilesSlice = (state: RootState) =>
+  state.linkedFiles.files;
 
-export const selectStatusSlice = (state: RootState) => state.documents.status;
-
-export const {
-  selectById: selectDocumentById,
-  selectEntities: selectDocuments,
-  selectIds: selectDocumentIds,
-} = documentsAdapter.getSelectors<RootState>(selectDocumentSlice);
+export const selectLinkedFilesStatusSlice = (state: RootState) =>
+  state.linkedFiles.status;
 
 export const {
-  selectById: selectDocumentStatusById,
-} = statusAdapter.getSelectors<RootState>(selectStatusSlice);
+  selectById: selectLinkedFileByFsPath,
+  selectEntities: selectLinkedFiles,
+  selectIds: selectLinkedFileFsPaths,
+} = linkedFileAdapter.getSelectors<RootState>(selectLinkedFilesSlice);
 
-export const selectDocumentByUri = (
-  state: RootState,
-  documentUri: vscode.Uri
-) => selectDocumentById(state, convertUriToLinkedDocId(documentUri));
+export const {
+  selectById: selectLinkedFileStatusByFsPath,
+} = statusAdapter.getSelectors<RootState>(selectLinkedFilesStatusSlice);
 
-export const selectCitationKeysByDocumentId = createObjectSelector(
-  selectDocuments,
-  (document) => {
-    if (document?.syntaxTree === undefined) {
+export const selectCitationKeysByFsPath = createObjectSelector(
+  selectLinkedFiles,
+  (linkedFile) => {
+    if (linkedFile?.syntaxTree === undefined) {
       return [];
     }
-    return MDASTCiteProcCitationKeySelectAll(document.syntaxTree);
+    return MDASTCiteProcCitationKeySelectAll(linkedFile.syntaxTree);
   }
 );
 
-export const selectCitationsByDocumentId = createObjectSelector(
-  selectDocuments,
-  (document) => {
-    if (document?.syntaxTree === undefined) {
+export const selectWikilinksByFsPath = createObjectSelector(
+  selectLinkedFiles,
+  (linkedFile) => {
+    if (linkedFile?.syntaxTree === undefined) {
       return [];
     }
-    return MDASTCiteProcCitationSelectAll(document.syntaxTree);
+    return MDASTWikilinkSelectAll(linkedFile.syntaxTree);
   }
 );
 
-export const selectWikilinksByDocumentId = createObjectSelector(
-  selectDocuments,
-  (document) => {
-    if (document?.syntaxTree === undefined) {
-      return [];
-    }
-    return MDASTWikilinkSelectAll(document.syntaxTree);
-  }
-);
-
-export const selectTopLevelHeaderByDocumentId = createObjectSelector(
-  selectDocuments,
-  (document) => {
-    if (document?.syntaxTree === undefined) {
+export const selectTopLevelHeaderByFsPath = createObjectSelector(
+  selectLinkedFiles,
+  (linkedFile) => {
+    if (linkedFile?.syntaxTree === undefined) {
       return undefined;
     }
-    return MDASTTopLevelHeaderSelect(document.syntaxTree);
+    return MDASTTopLevelHeaderSelect(linkedFile.syntaxTree);
   }
 );
 
-const selectTopLevelHeaderTextByDocumentId = createObjectSelector(
-  selectTopLevelHeaderByDocumentId,
+const selectTopLevelHeaderTextByFsPath = createObjectSelector(
+  selectTopLevelHeaderByFsPath,
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
-);
-
-const selectWikilinkDocumentLinksByDocumentId = createObjectSelector(
-  selectWikilinksByDocumentId,
-  (allWikilinks) => {
-    return allWikilinks
-      .map((v) => v.position)
-      .filter(isNotNullOrUndefined)
-      .map((v) => new vscode.DocumentLink(unistPositionToVscodeRange(v)));
-  }
-);
-
-const selectCitationKeyDocumentLinksByDocumentId = createObjectSelector(
-  selectCitationKeysByDocumentId,
-  (allCitationKeys) => {
-    return allCitationKeys
-      .map((v) => v.position)
-      .filter(isNotNullOrUndefined)
-      .map((v) => new vscode.DocumentLink(unistPositionToVscodeRange(v)));
-  }
 );
 
 // the first arg to createObjectSelector has its values mapped by key.
@@ -274,11 +219,11 @@ const selectCitationKeyDocumentLinksByDocumentId = createObjectSelector(
 // in this case the documentId. We manually map the citation keys
 // but this creates a cache busting problem. When the citation keys
 // in one document change the cache is invalidated for all documents.
-export const selectDocumentLinksByDocumentId = createObjectSelector(
-  selectWikilinksByDocumentId,
-  selectCitationKeysByDocumentId,
-  (allWikilinks, allCitationKeysByDocumentId, key) => {
-    const allCitationKeys = allCitationKeysByDocumentId[key];
+export const selectDocumentLinksByFsPath = createObjectSelector(
+  selectWikilinksByFsPath,
+  selectCitationKeysByFsPath,
+  (allWikilinks, citationKeysByFsPath, key) => {
+    const allCitationKeys = citationKeysByFsPath[key];
     return [...allWikilinks, ...allCitationKeys]
       .map((v) => v.position)
       .filter(isNotNullOrUndefined)
@@ -286,28 +231,26 @@ export const selectDocumentLinksByDocumentId = createObjectSelector(
   }
 );
 
-export const selectWikilinkBackReferencesToDocumentId = createSelector(
-  selectWikilinksByDocumentId,
+export const selectWikilinkBackReferencesToFsPath = createSelector(
+  selectWikilinksByFsPath,
   (allLinks) => {
     // output of the format Dict<Referenced Doc ID, Reference List>
     const output: {
       [key: string]: {
-        containingDocumentId: string;
+        srcFsPath: string;
         wikilink: Wikilink;
       }[];
     } = {};
 
-    for (let containingDocumentId of Object.keys(allLinks)) {
-      for (let wikilink of (allLinks as { [key: string]: Wikilink[] })[
-        containingDocumentId
-      ]) {
+    for (let srcFsPath of Object.keys(allLinks)) {
+      for (let wikilink of allLinks[srcFsPath]) {
         const wikilinkReferenceDocumentId = getDocumentIdFromWikilink(wikilink);
         if (wikilinkReferenceDocumentId !== undefined) {
           if (output[wikilinkReferenceDocumentId] === undefined) {
             output[wikilinkReferenceDocumentId] = [];
           }
           output[wikilinkReferenceDocumentId].push({
-            containingDocumentId: containingDocumentId,
+            srcFsPath,
             wikilink,
           });
         }
@@ -318,7 +261,7 @@ export const selectWikilinkBackReferencesToDocumentId = createSelector(
 );
 
 export const selectCitationKeyBackReferencesToCitationKey = createSelector(
-  selectCitationKeysByDocumentId,
+  selectCitationKeysByFsPath,
   (allLinks) => {
     // output of the format Dict<Citation Key, Reference List>
     const output: {
@@ -348,8 +291,8 @@ export const selectCitationKeyBackReferencesToCitationKey = createSelector(
 );
 
 export const selectWikilinkCompletions = createSelector(
-  selectWikilinksByDocumentId,
-  selectTopLevelHeaderTextByDocumentId,
+  selectWikilinksByFsPath,
+  selectTopLevelHeaderTextByFsPath,
   (wikilinksByDocumentId, headingTextByDocumentId) => {
     return [
       ...new Set([
@@ -372,7 +315,7 @@ export const selectWikilinkCompletions = createSelector(
 
 // promise returned from dispatching updateDocumentSyntaxTree
 type updateDocumentSyntaxTreePromise = ReturnType<
-  ReturnType<typeof updateDocumentSyntaxTree>
+  ReturnType<typeof updateLinkedFileSyntaxTree>
 >;
 
 // dictionary of document id to promise returned from dispatching updateDocumentSyntaxTree
@@ -386,7 +329,7 @@ export function flagDocumentForUpdate(
   store: LinkedNotesStore,
   document: vscode.TextDocument
 ) {
-  const docId = convertTextDocToLinkedDocId(document);
+  const docId = textDocumentFsPath(document);
   // if there is a pending thunk then cancel it
   const pendingThunk = pendingUpdateDocumentThunks[docId];
   if (pendingThunk !== undefined) {
@@ -394,7 +337,7 @@ export function flagDocumentForUpdate(
   }
   // dispatch the new thunk
   pendingUpdateDocumentThunks[docId] = store.dispatch(
-    updateDocumentSyntaxTree(document)
+    updateLinkedFileSyntaxTree(document)
   );
 }
 
@@ -408,7 +351,7 @@ export const waitForLinkedDocToParse = (
       if (token.isCancellationRequested) {
         resolve();
       }
-      const documentStatus = selectDocumentStatusById(
+      const documentStatus = selectLinkedFileStatusByFsPath(
         store.getState(),
         documentId
       );
@@ -418,7 +361,7 @@ export const waitForLinkedDocToParse = (
       // TODO(lukemurray): there's a memory leak here if the document is removed from the
       // store. We probably want to retry or something a specific number of times then
       // give up
-      await delay(WAIT_FOR_DOC_TO_PARSE_POLL_DELAY);
+      await delay(WAIT_FOR_LINKED_FILE_POLL_DELAY);
     }
     resolve();
   });

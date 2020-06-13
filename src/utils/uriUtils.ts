@@ -1,6 +1,5 @@
 import path from "path";
 import * as vscode from "vscode";
-import { Identifiable } from "../reducers/documents";
 import { BibliographicItem } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
 import { LinkedNotesStore } from "../store";
@@ -54,7 +53,7 @@ export function getDocumentIdFromWikilink(wikilink: Wikilink) {
   const uri = getDocumentUriFromWikilink(wikilink);
   // create a document id from the uri
   if (uri) {
-    return convertUriToLinkedDocId(uri);
+    return uriFsPath(uri);
   }
   return undefined;
 }
@@ -81,26 +80,3 @@ export function getDocumentUriFromBibliographicItem(
     defaultReferencesFolder
   );
 }
-
-/**
- * Get the documents slice id from the text document.
- * @param doc the text document in the workspace
- */
-export const convertTextDocToLinkedDocId: (
-  uri: vscode.TextDocument
-) => string = (doc) => convertUriToLinkedDocId(doc.uri);
-
-/**
- * Get the documents slice id from the text document uri.
- * @param uri the uri from a vscode.TextDocument
- */
-export const convertUriToLinkedDocId: (uri: vscode.Uri) => string = (uri) =>
-  uri.fsPath;
-
-/**
- * Return the document slice id for a linked notes document
- * @param document a linked notes document
- */
-export const convertLinkedDocToLinkedDocId: (
-  document: Identifiable
-) => string = (document) => document.id;

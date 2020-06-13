@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { selectWikilinkCompletions } from "./reducers/documents";
+import { selectWikilinkCompletions } from "./reducers/linkedFiles";
 import { LinkedNotesStore } from "./store";
 import { getWikilinkCompletionRange } from "./utils/positionUtils";
 

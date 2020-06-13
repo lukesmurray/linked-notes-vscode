@@ -1,15 +1,15 @@
 import * as vscode from "vscode";
 import {
-  selectWikilinkBackReferencesToDocumentId,
+  selectWikilinkBackReferencesToFsPath,
   waitForLinkedDocToParse,
   selectCitationKeyBackReferencesToCitationKey,
-  selectTopLevelHeaderByDocumentId,
-} from "./reducers/documents";
+  selectTopLevelHeaderByFsPath,
+} from "./reducers/linkedFiles";
 import { LinkedNotesStore } from "./store";
 import {
   getDocumentUriFromDocumentId,
-  convertUriToLinkedDocId,
-  convertTextDocToLinkedDocId,
+  uriFsPath,
+  textDocumentFsPath,
 } from "./utils/uriUtils";
 import {
   unistPositionToVscodeRange,
@@ -33,7 +33,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     /***************************************************************************
      * Document References
      **************************************************************************/
-    const documentId = convertTextDocToLinkedDocId(document);
+    const documentId = textDocumentFsPath(document);
     await waitForLinkedDocToParse(this.store, documentId, token);
     if (token.isCancellationRequested) {
       return;
@@ -45,18 +45,18 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     );
 
     if (documentUri) {
-      const documentId = convertUriToLinkedDocId(documentUri);
-      const wikilinkBackReferences = selectWikilinkBackReferencesToDocumentId(
+      const documentId = uriFsPath(documentUri);
+      const wikilinkBackReferences = selectWikilinkBackReferencesToFsPath(
         this.store.getState()
       )[documentId];
-      const headerBackReference = selectTopLevelHeaderByDocumentId(
+      const headerBackReference = selectTopLevelHeaderByFsPath(
         this.store.getState()
       )[documentId];
 
       return [
         ...wikilinkBackReferences
           .filter((v) => v.wikilink.position !== undefined)
-          .map(({ containingDocumentId, wikilink }) => {
+          .map(({ srcFsPath: containingDocumentId, wikilink }) => {
             return new vscode.Location(
               getDocumentUriFromDocumentId(containingDocumentId),
               unistPositionToVscodeRange(wikilink.position!)

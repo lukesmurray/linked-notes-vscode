@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import {
-  selectDocumentLinksByDocumentId,
+  selectDocumentLinksByFsPath,
   waitForLinkedDocToParse,
-} from "./reducers/documents";
+} from "./reducers/linkedFiles";
 import { LinkedNotesStore } from "./store";
-import { convertTextDocToLinkedDocId } from "./utils/uriUtils";
+import { textDocumentFsPath } from "./utils/uriUtils";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -14,14 +14,14 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     document: vscode.TextDocument,
     token: vscode.CancellationToken
   ) {
-    const documentId = convertTextDocToLinkedDocId(document);
+    const documentId = textDocumentFsPath(document);
     await waitForLinkedDocToParse(this.store, documentId, token);
     if (token.isCancellationRequested) {
       return;
     }
-    const documentLinks = selectDocumentLinksByDocumentId(
-      this.store.getState()
-    )[documentId];
+    const documentLinks = selectDocumentLinksByFsPath(this.store.getState())[
+      documentId
+    ];
     return documentLinks;
   }
 }

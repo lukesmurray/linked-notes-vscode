@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { waitForLinkedDocToParse } from "./reducers/documents";
+import { waitForLinkedDocToParse } from "./reducers/linkedFiles";
 import { LinkedNotesStore } from "./store";
 import {
   createNoteFileIfNotExists,
@@ -11,7 +11,7 @@ import {
 } from "./utils/positionUtils";
 import {
   getDocumentUriFromWikilink,
-  convertTextDocToLinkedDocId,
+  textDocumentFsPath,
   getDocumentUriFromBibliographicItem,
 } from "./utils/uriUtils";
 
@@ -25,7 +25,7 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ) {
-    const documentId = convertTextDocToLinkedDocId(document);
+    const documentId = textDocumentFsPath(document);
     await waitForLinkedDocToParse(this.store, documentId, token);
     if (token.isCancellationRequested) {
       return;

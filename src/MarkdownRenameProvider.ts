@@ -1,16 +1,16 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import {
-  selectDocumentIds,
-  selectWikilinkBackReferencesToDocumentId,
+  selectLinkedFileFsPaths,
+  selectWikilinkBackReferencesToFsPath,
   waitForLinkedDocToParse,
-  selectTopLevelHeaderByDocumentId,
-} from "./reducers/documents";
+  selectTopLevelHeaderByFsPath,
+} from "./reducers/linkedFiles";
 import { LinkedNotesStore } from "./store";
 import {
   getDocumentUriFromDocumentId,
   getDocumentUriFromDocumentSlug,
-  convertUriToLinkedDocId,
+  uriFsPath,
 } from "./utils/uriUtils";
 import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 import {
@@ -57,7 +57,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     token: vscode.CancellationToken
   ) {
     // wait for all documents to be up to date
-    const allDocumentIds = selectDocumentIds(this.store.getState());
+    const allDocumentIds = selectLinkedFileFsPaths(this.store.getState());
     await Promise.all([
       allDocumentIds.map(async (documentId) => {
         await waitForLinkedDocToParse(this.store, documentId as string, token);
@@ -76,13 +76,13 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
 
     if (documentUri) {
       // get the id of the referenced document
-      const documentId = convertUriToLinkedDocId(documentUri);
+      const documentId = uriFsPath(documentUri);
       // get all backlink MDAST nodes to the referenced document
-      const backLinks = selectWikilinkBackReferencesToDocumentId(
+      const backLinks = selectWikilinkBackReferencesToFsPath(
         this.store.getState()
       )[documentId];
       // get the header of the referenced document
-      const documentHeader = selectTopLevelHeaderByDocumentId(
+      const documentHeader = selectTopLevelHeaderByFsPath(
         this.store.getState()
       )[documentId];
       // create a new workspace edit to apply
@@ -94,7 +94,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
           continue;
         }
         workspaceEdit.replace(
-          getDocumentUriFromDocumentId(backLink.containingDocumentId),
+          getDocumentUriFromDocumentId(backLink.srcFsPath),
           getWikilinkContentRange(backLink.wikilink.position),
           newName
         );
@@ -126,8 +126,10 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
         // check if the uri already exists
         // can occur if the user is trying to rename all instances of one reference
         // to another reference
-        const documentIds = new Set(selectDocumentIds(this.store.getState()));
-        const newDocumentId = convertUriToLinkedDocId(newUri);
+        const documentIds = new Set(
+          selectLinkedFileFsPaths(this.store.getState())
+        );
+        const newDocumentId = uriFsPath(newUri);
         // throw an error if the user is merging references (not sure how to support)
         if (documentIds.has(newDocumentId)) {
           throw new Error(

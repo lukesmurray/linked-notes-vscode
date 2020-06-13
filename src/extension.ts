@@ -11,27 +11,26 @@ import MarkdownWikilinkCompletionProvider from "./MarkdownWikilinkCompletionProv
 import NewNoteCommand from "./NewNoteCommand";
 import { updateBibliographicItems } from "./reducers/bibliographicItems";
 import {
-  updateConfiguration,
-  readConfiguration,
   getConfigurationScope,
+  readConfiguration,
+  updateConfiguration,
 } from "./reducers/configuration";
 import {
-  documentDeleted,
-  documentRenamed,
-  selectDocumentByUri,
+  fileDeleted,
+  fileRenamed,
   flagDocumentForUpdate,
-} from "./reducers/documents";
+} from "./reducers/linkedFiles";
+import { uriFsPath } from "./rewrite/uriFsPath";
 import store from "./store";
 import {
   BIB_FILE_GLOB_PATTERN,
   findAllMarkdownFilesInWorkspace,
+  isDefaultBibFile,
   isMarkdownFile,
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
-  isDefaultBibFile,
 } from "./utils/util";
 import WriteDefaultSettingsCommand from "./WriteDefaultSettingsCommand";
-import { convertUriToLinkedDocId } from "./utils/uriUtils";
 
 export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
@@ -170,17 +169,16 @@ export async function activate(context: vscode.ExtensionContext) {
       const oldIsMarkdown = isMarkdownFile(file.oldUri);
       const newIsMarkdown = isMarkdownFile(file.newUri);
       if (oldIsMarkdown && newIsMarkdown) {
-        const oldDocument = selectDocumentByUri(store.getState(), file.oldUri);
         store.dispatch(
-          documentRenamed({
-            id: convertUriToLinkedDocId(file.oldUri),
+          fileRenamed({
+            id: uriFsPath(file.oldUri),
             changes: {
-              id: convertUriToLinkedDocId(file.newUri),
+              fsPath: uriFsPath(file.newUri),
             },
           })
         );
       } else if (oldIsMarkdown) {
-        store.dispatch(documentDeleted(convertUriToLinkedDocId(file.oldUri)));
+        store.dispatch(fileDeleted(uriFsPath(file.oldUri)));
       } else if (newIsMarkdown) {
         vscode.workspace.openTextDocument(file.newUri).then((doc) => {
           flagDocumentForUpdate(store, doc);
@@ -196,7 +194,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidDeleteFiles((e) => {
     for (let fileUri of e.files) {
       if (isMarkdownFile(fileUri)) {
-        store.dispatch(documentDeleted(convertUriToLinkedDocId(fileUri)));
+        store.dispatch(fileDeleted(uriFsPath(fileUri)));
       } else if (isDefaultBibFile(fileUri, store.getState())) {
         store.dispatch(updateBibliographicItems());
       }
@@ -228,7 +226,7 @@ export async function activate(context: vscode.ExtensionContext) {
     uri: vscode.Uri
   ): Promise<void> => {
     if (isMarkdownFile(uri)) {
-      store.dispatch(documentDeleted(convertUriToLinkedDocId(uri)));
+      store.dispatch(fileDeleted(uriFsPath(uri)));
     }
   };
   const markdownFileWatchUpdateHandler = async (

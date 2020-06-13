@@ -1,15 +1,12 @@
 import * as UNIST from "unist";
 import * as vscode from "vscode";
 import {
-  selectCitationKeysByDocumentId,
-  selectTopLevelHeaderByDocumentId,
-  selectWikilinksByDocumentId,
-} from "../reducers/documents";
+  selectCitationKeysByFsPath,
+  selectTopLevelHeaderByFsPath,
+  selectWikilinksByFsPath,
+} from "../reducers/linkedFiles";
 import { LinkedNotesStore } from "../store";
-import {
-  getDocumentUriFromWikilink,
-  convertTextDocToLinkedDocId,
-} from "./uriUtils";
+import { getDocumentUriFromWikilink, textDocumentFsPath } from "./uriUtils";
 
 const CITEPROC_COMPLETION_RANGE_REGEX = /(?<=(?:^|[ ;\[-]))\@([^\]\s]*)/g;
 const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;
@@ -23,8 +20,8 @@ export function getHeadingForPosition(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
-  const topLevelHeaderById = selectTopLevelHeaderByDocumentId(store.getState());
-  const documentId = convertTextDocToLinkedDocId(document);
+  const topLevelHeaderById = selectTopLevelHeaderByFsPath(store.getState());
+  const documentId = textDocumentFsPath(document);
   const heading = topLevelHeaderById[documentId];
   if (heading !== undefined && isPositionInsideNode(position, heading)) {
     return heading;
@@ -37,8 +34,8 @@ export function getWikilinkForPosition(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
-  const documentWikilinksById = selectWikilinksByDocumentId(store.getState());
-  const documentId = convertTextDocToLinkedDocId(document);
+  const documentWikilinksById = selectWikilinksByFsPath(store.getState());
+  const documentId = textDocumentFsPath(document);
   const wikilinks = documentWikilinksById[documentId];
   const overlappingWikilink = wikilinks?.find((v) =>
     isPositionInsideNode(position, v)
@@ -51,8 +48,8 @@ export function getCitationKeyForPosition(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
-  const citationKeysById = selectCitationKeysByDocumentId(store.getState());
-  const documentId = convertTextDocToLinkedDocId(document);
+  const citationKeysById = selectCitationKeysByFsPath(store.getState());
+  const documentId = textDocumentFsPath(document);
   const citationKeys = citationKeysById[documentId];
   const overlappingCitationKey = citationKeys?.find((v) =>
     isPositionInsideNode(position, v)
