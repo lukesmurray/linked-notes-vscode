@@ -1,12 +1,9 @@
 import * as vscode from "vscode";
 import {
-  citationItemAuthorString,
-  citationItemTitleString,
-} from "./reducers/citationItems";
-import {
-  convertTextDocToLinkedDocId,
-  waitForLinkedDocToParse,
-} from "./reducers/documents";
+  bibliographicItemAuthorString,
+  bibliographicItemTitleString,
+} from "./reducers/bibliographicItems";
+import { waitForLinkedDocToParse } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import { CslData } from "./types/csl-data";
 import {
@@ -16,6 +13,7 @@ import {
 } from "./utils/positionUtils";
 import { Wikilink } from "./remarkUtils/remarkWikilink";
 import { CiteProcCitationKey } from "./remarkUtils/remarkCiteproc";
+import { convertTextDocToLinkedDocId } from "./utils/uriUtils";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
@@ -72,9 +70,9 @@ function citationKeyHoverText(citationKey: CiteProcCitationKey) {
   const citationItem = citationKey.data.citation;
   return new vscode.MarkdownString(
     [
-      `${citationItemTitleString(citationItem)}`,
+      `${bibliographicItemTitleString(citationItem)}`,
       ``,
-      `Authors: ${citationItemAuthorString(citationItem, ", ")}`,
+      `Authors: ${bibliographicItemAuthorString(citationItem, ", ")}`,
     ].join("\n")
   );
 }

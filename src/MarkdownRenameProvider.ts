@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import {
-  convertUriToLinkedDocId,
   selectDocumentIds,
   selectWikilinkBackReferencesToDocumentId,
   waitForLinkedDocToParse,
@@ -11,8 +10,9 @@ import { LinkedNotesStore } from "./store";
 import {
   getDocumentUriFromDocumentId,
   getDocumentUriFromDocumentSlug,
+  convertUriToLinkedDocId,
 } from "./utils/uriUtils";
-import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
+import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 import {
   getDocumentURIForPosition,
   getHeaderContentRange,
@@ -112,7 +112,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
       // rename the file
       // get the new uri
       const newUri = getDocumentUriFromDocumentSlug(
-        sluggifyDocumentReference(newName)
+        sluggifyDocumentTitle(newName)
       );
       // if we fail to create the uri throw an error
       if (newUri === undefined) {

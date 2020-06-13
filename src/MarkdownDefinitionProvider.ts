@@ -1,16 +1,15 @@
-import { parse } from "path";
 import * as vscode from "vscode";
-import {
-  convertTextDocToLinkedDocId,
-  waitForLinkedDocToParse,
-} from "./reducers/documents";
+import { waitForLinkedDocToParse } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
+import { createNewNoteFileIfNotExists } from "./utils/newFileUtils";
 import {
-  createNewMarkdownDoc,
-  findAllMarkdownFilesInWorkspace,
-} from "./utils/util";
-import { getDocumentUriFromWikilinkPermalink } from "./utils/uriUtils";
-import { getWikilinkForPosition } from "./utils/positionUtils";
+  getCitationKeyForPosition,
+  getWikilinkForPosition,
+} from "./utils/positionUtils";
+import {
+  getDocumentUriFromWikilink,
+  convertTextDocToLinkedDocId,
+} from "./utils/uriUtils";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;
@@ -27,25 +26,26 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     if (token.isCancellationRequested) {
       return;
     }
+    const overlappingCitationKey = getCitationKeyForPosition(
+      this.store,
+      document,
+      position
+    );
+    if (overlappingCitationKey) {
+      // TODO(lukemurray): implement go to definition for citation keys
+    }
+
     const overlappingWikilink = getWikilinkForPosition(
       this.store,
       document,
       position
     );
     if (overlappingWikilink) {
-      const fileName = overlappingWikilink.data.permalink;
-      let matchingFile = await findAllMarkdownFilesInWorkspace().then((f) =>
-        f.find((f) => parse(f.path).name === fileName)
+      const wikiLinkUri = getDocumentUriFromWikilink(overlappingWikilink);
+      let matchingFile = await createNewNoteFileIfNotExists(
+        overlappingWikilink.data.title,
+        wikiLinkUri
       );
-      // if the file does not exist then create it
-      if (matchingFile === undefined) {
-        const newURI = getDocumentUriFromWikilinkPermalink(fileName);
-        const title = overlappingWikilink.data.documentReference;
-        if (newURI !== undefined) {
-          await createNewMarkdownDoc(newURI, title);
-          matchingFile = newURI;
-        }
-      }
       // jump to the start of the file
       if (matchingFile !== undefined) {
         const p = new vscode.Position(0, 0);

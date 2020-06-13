@@ -1,14 +1,16 @@
 import * as vscode from "vscode";
 import {
-  convertUriToLinkedDocId,
   selectWikilinkBackReferencesToDocumentId,
-  convertTextDocToLinkedDocId,
   waitForLinkedDocToParse,
   selectCitationKeyBackReferencesToCitationKey,
   selectTopLevelHeaderByDocumentId,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { getDocumentUriFromDocumentId } from "./utils/uriUtils";
+import {
+  getDocumentUriFromDocumentId,
+  convertUriToLinkedDocId,
+  convertTextDocToLinkedDocId,
+} from "./utils/uriUtils";
 import {
   unistPositionToVscodeRange,
   getCitationKeyForPosition,

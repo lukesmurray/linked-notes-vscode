@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import {
-  convertTextDocToLinkedDocId,
   selectDocumentLinksByDocumentId,
   waitForLinkedDocToParse,
 } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
+import { convertTextDocToLinkedDocId } from "./utils/uriUtils";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {

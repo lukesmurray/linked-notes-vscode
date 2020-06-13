@@ -1,9 +1,6 @@
 import * as vscode from "vscode";
 import { RootState } from "../reducers";
-import {
-  ExtensionConfiguration,
-  selectDefaultBibUri,
-} from "../reducers/configuration";
+import { selectDefaultBibUri } from "../reducers/configuration";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -39,25 +36,8 @@ export async function findAllMarkdownFilesInWorkspace() {
   );
 }
 
-export function getDefaultNoteText(noteTitle: string): string {
-  return `---
-draft: true
----
-
-# ${noteTitle}
-
-`;
-}
-
 export const delay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-export async function createNewMarkdownDoc(newURI: vscode.Uri, title: string) {
-  await vscode.workspace.fs.writeFile(
-    newURI,
-    Buffer.from(getDefaultNoteText(title))
-  );
-}
 
 // return true if t is not null or undefined
 // very useful in filter functions

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { selectCitationKeyCompletions } from "./reducers/citationItems";
+import { selectCitationKeyCompletions } from "./reducers/bibliographicItems";
 import { LinkedNotesStore } from "./store";
 import {
   getCiteProcCompletionRange,

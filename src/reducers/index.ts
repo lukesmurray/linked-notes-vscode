@@ -1,12 +1,12 @@
 import { combineReducers, createAction } from "@reduxjs/toolkit";
 import documents from "./documents";
 import configuration from "./configuration";
-import citationItems from "./citationItems";
+import bibliographicItems from "./bibliographicItems";
 
 const rootReducer = combineReducers({
   documents,
   configuration,
-  citationItems,
+  bibliographicItems,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

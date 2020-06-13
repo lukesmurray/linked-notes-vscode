@@ -1,10 +1,10 @@
 import {
+  combineReducers,
   createAction,
   createAsyncThunk,
   createEntityAdapter,
   createSelector,
   createSlice,
-  combineReducers,
 } from "@reduxjs/toolkit";
 import * as MDAST from "mdast";
 import mdastNodeToString from "mdast-util-to-string";
@@ -22,15 +22,25 @@ import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
 import { Wikilink } from "../remarkUtils/remarkWikilink";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../utils/positionUtils";
-import { getDocumentIdFromWikilink } from "../utils/uriUtils";
+import {
+  convertLinkedDocToLinkedDocId,
+  convertTextDocToLinkedDocId,
+  convertUriToLinkedDocId,
+  getDocumentIdFromWikilink,
+} from "../utils/uriUtils";
 import { delay, isNotNullOrUndefined } from "../utils/util";
-import { selectCitationItemAho } from "./citationItems";
+import { selectBibliographicItemAho } from "./bibliographicItems";
 
 /**
  * the time in milliseconds that updates to the document ast will be debounced
  * remark takes a long time so this should allow for performant typing
  */
 const UPDATE_DOC_DEBOUNCE_DELAY = 1000;
+
+/**
+ * the time in milliseconds that the system will poll for the document to be updated
+ */
+const WAIT_FOR_DOC_TO_PARSE_POLL_DELAY = 250;
 
 export interface Identifiable {
   /**
@@ -77,7 +87,7 @@ const updateDocumentSyntaxTree = createAsyncThunk<
     }
     const syntaxTree = await getMDASTFromText(
       document.getText(),
-      selectCitationItemAho(thunkApi.getState())
+      selectBibliographicItemAho(thunkApi.getState())
     );
     return {
       id: textDocumentId,
@@ -312,10 +322,10 @@ export const selectWikilinkCompletions = createSelector(
   (wikilinksByDocumentId, headingTextByDocumentId) => {
     return [
       ...new Set([
-        // the wiki link aliases
+        // the wiki link titles
         ...Object.values(wikilinksByDocumentId)
           .flat()
-          .map((v) => v.data.documentReference),
+          .map((v) => v.data.title),
         // the heading text
         ...Object.values(headingTextByDocumentId)
           .filter(isNotNullOrUndefined)
@@ -377,31 +387,8 @@ export const waitForLinkedDocToParse = (
       // TODO(lukemurray): there's a memory leak here if the document is removed from the
       // store. We probably want to retry or something a specific number of times then
       // give up
-      await delay(250);
+      await delay(WAIT_FOR_DOC_TO_PARSE_POLL_DELAY);
     }
     resolve();
   });
 };
-
-/**
- * Get the documents slice id from the text document.
- * @param doc the text document in the workspace
- */
-export const convertTextDocToLinkedDocId: (
-  uri: vscode.TextDocument
-) => string = (doc) => convertUriToLinkedDocId(doc.uri);
-
-/**
- * Get the documents slice id from the text document uri.
- * @param uri the uri from a vscode.TextDocument
- */
-export const convertUriToLinkedDocId: (uri: vscode.Uri) => string = (uri) =>
-  uri.fsPath;
-
-/**
- * Return the document slice id for a linked notes document
- * @param document a linked notes document
- */
-export const convertLinkedDocToLinkedDocId: (
-  document: Identifiable
-) => string = (document) => document.id;

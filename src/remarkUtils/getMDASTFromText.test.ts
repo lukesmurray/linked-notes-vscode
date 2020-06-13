@@ -9,18 +9,14 @@ import {
 
 suite("mdast parsing", () => {
   test("it finds a wiki link", async () => {
-    const alias = "a wiki link";
+    const title = "a wiki link";
     const root = await getMDASTFromText(
-      `this markdown has [[${alias}]]`,
+      `this markdown has [[${title}]]`,
       createAhoCorasickFromCSLJSON([])
     );
     const wikilinks = MDASTWikilinkSelectAll(root);
-    assert.equal(wikilinks.length, 1, "one wiki link in the text");
-    assert.equal(
-      wikilinks[0].data.documentReference,
-      alias,
-      "the wiki link has the expected alias"
-    );
+    assert.equal(wikilinks.length, 1);
+    assert.equal(wikilinks[0].data.title, title);
   });
 
   test("it finds a citation", async () => {
@@ -57,8 +53,8 @@ suite("mdast parsing", () => {
     );
     const wikilinks = MDASTWikilinkSelectAll(root);
     assert.equal(wikilinks.length, 3);
-    assert.equal(wikilinks[0].data.documentReference, "@david karger");
-    assert.equal(wikilinks[1].data.documentReference, "@yellow submarine");
-    assert.equal(wikilinks[2].data.documentReference, "@samantha");
+    assert.equal(wikilinks[0].data.title, "@david karger");
+    assert.equal(wikilinks[1].data.title, "@yellow submarine");
+    assert.equal(wikilinks[2].data.title, "@samantha");
   });
 });

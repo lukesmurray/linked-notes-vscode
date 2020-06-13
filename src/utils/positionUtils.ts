@@ -1,13 +1,15 @@
 import * as UNIST from "unist";
 import * as vscode from "vscode";
 import {
-  convertTextDocToLinkedDocId,
   selectCitationKeysByDocumentId,
   selectTopLevelHeaderByDocumentId,
   selectWikilinksByDocumentId,
 } from "../reducers/documents";
 import { LinkedNotesStore } from "../store";
-import { getDocumentUriFromWikilinkPermalink } from "./uriUtils";
+import {
+  getDocumentUriFromWikilink,
+  convertTextDocToLinkedDocId,
+} from "./uriUtils";
 
 const CITEPROC_COMPLETION_RANGE_REGEX = /(?<=(?:^|[ ;\[-]))\@([^\]\s]*)/g;
 const WIKILINK_COMPLETION_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*)/g;
@@ -120,9 +122,7 @@ export function getDocumentURIForPosition(
   const overlappingHeader = getHeadingForPosition(store, document, position);
   // if overlapping a wiki link
   if (overlappingWikilink) {
-    documentUri = getDocumentUriFromWikilinkPermalink(
-      overlappingWikilink.data.permalink
-    );
+    documentUri = getDocumentUriFromWikilink(overlappingWikilink);
     // if overlapping header
   } else if (overlappingHeader) {
     // create a document id from the current document

@@ -9,14 +9,13 @@ import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
 import MarkdownRenameProvider from "./MarkdownRenameProvider";
 import MarkdownWikilinkCompletionProvider from "./MarkdownWikilinkCompletionProvider";
 import NewNoteCommand from "./NewNoteCommand";
-import { updateCitationItems } from "./reducers/citationItems";
+import { updateBibliographicItems } from "./reducers/bibliographicItems";
 import {
   updateConfiguration,
   readConfiguration,
   getConfigurationScope,
 } from "./reducers/configuration";
 import {
-  convertUriToLinkedDocId,
   documentDeleted,
   documentRenamed,
   selectDocumentByUri,
@@ -32,6 +31,7 @@ import {
   isDefaultBibFile,
 } from "./utils/util";
 import WriteDefaultSettingsCommand from "./WriteDefaultSettingsCommand";
+import { convertUriToLinkedDocId } from "./utils/uriUtils";
 
 export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
@@ -158,7 +158,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (isMarkdownFile(e.document.uri)) {
       flagDocumentForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
-      store.dispatch(updateCitationItems());
+      store.dispatch(updateBibliographicItems());
     }
   });
 
@@ -186,9 +186,9 @@ export async function activate(context: vscode.ExtensionContext) {
           flagDocumentForUpdate(store, doc);
         });
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
-        store.dispatch(updateCitationItems());
+        store.dispatch(updateBibliographicItems());
       } else if (isDefaultBibFile(file.newUri, store.getState())) {
-        store.dispatch(updateCitationItems());
+        store.dispatch(updateBibliographicItems());
       }
     }
   });
@@ -198,7 +198,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (isMarkdownFile(fileUri)) {
         store.dispatch(documentDeleted(convertUriToLinkedDocId(fileUri)));
       } else if (isDefaultBibFile(fileUri, store.getState())) {
-        store.dispatch(updateCitationItems());
+        store.dispatch(updateBibliographicItems());
       }
     }
   });
@@ -213,7 +213,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   const bibFileWatcherHandler = (uri: vscode.Uri): void => {
     if (isDefaultBibFile(uri, store.getState())) {
-      store.dispatch(updateCitationItems());
+      store.dispatch(updateBibliographicItems());
     }
   };
   bibFileWatcher.onDidChange(bibFileWatcherHandler);

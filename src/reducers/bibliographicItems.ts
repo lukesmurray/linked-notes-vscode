@@ -5,112 +5,117 @@ import {
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
+import { createAhoCorasickFromCSLJSON } from "../remarkUtils/createAhoCorasickFromCSLData";
+import { BibliographicItem } from "../remarkUtils/remarkCiteproc";
 import { AppDispatch } from "../store";
 import { CslData, NameVariable } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";
-import { createAhoCorasickFromCSLJSON } from "../remarkUtils/createAhoCorasickFromCSLData";
-
-// TODO(lukemurray): make sure we're using terminology from the terminology markdown file
 
 /*******************************************************************************
  * Thunks
  ******************************************************************************/
-export const updateCitationItems = createAsyncThunk<
+export const updateBibliographicItems = createAsyncThunk<
   CslData,
   undefined,
   { dispatch: AppDispatch; state: RootState }
->("citationItems/updateCitationItems", async (_, thunkApi) => {
+>("bibliographicItems/updateBibliographicItems", async (_, thunkApi) => {
   const defaultBibUri = selectDefaultBibUri(thunkApi.getState());
   if (defaultBibUri === undefined) {
     return [];
   }
-  const csl: CslData = await vscode.workspace.fs
+  const bibliographicItems: CslData = await vscode.workspace.fs
     .readFile(defaultBibUri)
     .then((fileBytes) => new TextDecoder("utf-8").decode(fileBytes))
     .then((text) => {
       return JSON.parse(text);
     });
-  return csl;
+  return bibliographicItems;
 });
 
 /*******************************************************************************
  * Reducers
  ******************************************************************************/
-const citationItemsSlice = createSlice({
-  name: "citationItems",
+const bibliographicItemsSlice = createSlice({
+  name: "bibliographicItems",
   initialState: [] as CslData,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(updateCitationItems.fulfilled, (state, action) => {
+    builder.addCase(updateBibliographicItems.fulfilled, (state, action) => {
       return [...action.payload];
     });
   },
 });
 
-export default citationItemsSlice.reducer;
+export default bibliographicItemsSlice.reducer;
 
 /*******************************************************************************
  * selectors
  ******************************************************************************/
-export const selectCitationItemsSlice = (state: RootState) =>
-  state.citationItems;
+export const selectBibliographicSlice = (state: RootState) =>
+  state.bibliographicItems;
 
-export const selectCitationItems = (state: RootState) =>
-  selectCitationItemsSlice(state);
+export const selectBibliographicItems = (state: RootState) =>
+  selectBibliographicSlice(state);
 
 export const selectCitationKeyCompletions = createSelector(
-  selectCitationItems,
-  (citationItems) => {
-    return citationItems
+  selectBibliographicItems,
+  (bibliographicItems) => {
+    return bibliographicItems
       .map(createCitationKeyCompletion)
       .flat() as vscode.CompletionItem[];
   }
 );
 
 /*******************************************************************************
- * Citation Item Completion Helpers
+ * Citation Key Completion Helpers
  ******************************************************************************/
 
-function createCitationKeyCompletion(citationItem: CslData[number]) {
+function createCitationKeyCompletion(bibliographicItem: BibliographicItem) {
   const completionItem = new vscode.CompletionItem(
-    citationItem.id + "",
+    bibliographicItem.id + "",
     vscode.CompletionItemKind.Reference
   );
-  completionItem.filterText = citationKeyCompletionFilterText(citationItem);
-  completionItem.insertText = `${citationItem.id}`;
-  completionItem.detail = citationItemTitleString(citationItem);
+  completionItem.filterText = citationKeyCompletionFilterText(
+    bibliographicItem
+  );
+  completionItem.insertText = `${bibliographicItem.id}`;
+  completionItem.detail = bibliographicItemTitleString(bibliographicItem);
   completionItem.documentation = citationKeyCompletionDocumentation(
-    citationItem
+    bibliographicItem
   );
   return completionItem;
 }
 
-function citationKeyCompletionDocumentation(citationItem: CslData[number]) {
+function citationKeyCompletionDocumentation(
+  bibliographicItem: BibliographicItem
+) {
   return new vscode.MarkdownString(
-    `Authors: ${citationItemAuthorString(citationItem, ", ")}`
+    `Authors: ${bibliographicItemAuthorString(bibliographicItem, ", ")}`
   );
 }
 
-function citationKeyCompletionFilterText(citationItem: CslData[number]) {
-  return `${citationItem.id} ${citationItem.title} ${citationItemAuthorString(
-    citationItem
-  )}`;
+function citationKeyCompletionFilterText(bibliographicItem: BibliographicItem) {
+  return `${bibliographicItem.id} ${
+    bibliographicItem.title
+  } ${bibliographicItemAuthorString(bibliographicItem)}`;
 }
 
-export function citationItemTitleString(citationItem: CslData[number]) {
+export function bibliographicItemTitleString(
+  bibliographicItem: BibliographicItem
+) {
   // TODO(lukemurray): review other titles and determine which to use if this is undefined
-  return citationItem.title;
+  return bibliographicItem.title;
 }
 
-export function citationItemAuthorString(
-  citationItem: CslData[number],
+export function bibliographicItemAuthorString(
+  bibliographicItem: BibliographicItem,
   separator: string = " "
 ) {
   return [
-    ...(citationItem.author ?? []),
-    ...(citationItem["container-author"] ?? []),
-    ...(citationItem["original-author"] ?? []),
-    ...(citationItem["reviewed-author"] ?? []),
+    ...(bibliographicItem.author ?? []),
+    ...(bibliographicItem["container-author"] ?? []),
+    ...(bibliographicItem["original-author"] ?? []),
+    ...(bibliographicItem["reviewed-author"] ?? []),
   ]
     .map((v) => cslNameVariableToString(v))
     .join(separator);
@@ -123,10 +128,10 @@ function cslNameVariableToString(v: NameVariable) {
 }
 
 /*******************************************************************************
- * Citation Item Aho Corasick
+ * Bibliographic Item Aho Corasick
  ******************************************************************************/
 
-export const selectCitationItemAho = createSelector(
-  selectCitationItems,
+export const selectBibliographicItemAho = createSelector(
+  selectBibliographicItems,
   (items) => createAhoCorasickFromCSLJSON(items)
 );

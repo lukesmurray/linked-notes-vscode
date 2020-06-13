@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import { RootState } from ".";
 import { AppDispatch } from "../store";
 import { createUriForFileRelativeToWorkspaceRoot } from "../utils/uriUtils";
-import { updateCitationItems } from "./citationItems";
+import { updateBibliographicItems } from "./bibliographicItems";
 
 export interface ExtensionConfiguration {
   defaultBib: string | null;
@@ -24,7 +24,7 @@ export const updateConfiguration = createAsyncThunk<
     const current = selectConfigurationSlice(thunkApi.getState());
     if (current.defaultBib !== next.defaultBib) {
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
-      thunkApi.dispatch(updateCitationItems());
+      thunkApi.dispatch(updateBibliographicItems());
     }
     if (current.defaultReferencesFile !== next.defaultReferencesFile) {
       thunkApi.dispatch(

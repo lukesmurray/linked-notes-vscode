@@ -9,8 +9,10 @@ import {
 } from "../types/remarkParse";
 import { incrementUnistPoint } from "./incrementUnistPoint";
 
+export type BibliographicItem = CslData[number];
+
 interface RemarkCiteProcOptions {
-  citationItemAho: AhoCorasick<CslData[number]>;
+  citationItemAho: AhoCorasick<BibliographicItem>;
 }
 
 export interface CiteProcCitation extends UNIST.Node {
@@ -24,7 +26,7 @@ export interface CiteProcCitation extends UNIST.Node {
 export interface CiteProcCitationKey extends UNIST.Node {
   type: "citeProcCitationKey";
   data: {
-    citation: CslData[number];
+    citation: BibliographicItem;
   };
   children: UNIST.Node[];
 }

@@ -1,16 +1,16 @@
-import AhoCorasick from "../utils/ahoCorasick";
-import { CslData } from "../types/csl-data";
-import { createMarkdownProcessor } from "./createMarkdownProcessor";
 import * as MDAST from "mdast";
+import AhoCorasick from "../utils/ahoCorasick";
+import { createMarkdownProcessor } from "./createMarkdownProcessor";
+import { BibliographicItem } from "./remarkCiteproc";
 
 /**
  * Get a syntax tree from a string asynchronously
  */
 export async function getMDASTFromText(
   text: string,
-  citationItemAho: AhoCorasick<CslData[number]>
+  bibliographicItemAho: AhoCorasick<BibliographicItem>
 ): Promise<MDAST.Root> {
-  const processor = createMarkdownProcessor(citationItemAho);
+  const processor = createMarkdownProcessor(bibliographicItemAho);
   // TODO(lukemurray): find a better way to get rid of circular references
   // since we store the syntax tree in redux we want all references to be
   // unique but the mdast shares references to things like internal arrays

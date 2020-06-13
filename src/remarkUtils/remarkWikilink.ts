@@ -10,20 +10,13 @@ export interface Wikilink extends UNIST.Node {
   type: "wikilink";
   data: {
     /**
-     * the display name for the page
+     * the title of the page
      */
-    documentReference: string;
-    /**
-     * the permalink to the page
-     */
-    permalink: string;
+    title: string;
   };
 }
 
-interface RemarkWikilinkOptions {
-  // convert a document reference into a permalink
-  documentResolver: (documentReference: string) => string;
-}
+interface RemarkWikilinkOptions {}
 
 // receive options and configure the processor
 function remarkWikilink(
@@ -54,8 +47,7 @@ function remarkWikilink(
       const node = add(<Wikilink>{
         type: "wikilink",
         data: {
-          documentReference: wikilinkMatch[1],
-          permalink: settings.documentResolver(wikilinkMatch[0]),
+          title: wikilinkMatch[1],
         },
         children: [
           <MDAST.Text>{

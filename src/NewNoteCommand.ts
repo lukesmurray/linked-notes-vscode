@@ -1,10 +1,7 @@
 import vscode from "vscode";
-import {
-  findAllMarkdownFilesInWorkspace,
-  createNewMarkdownDoc,
-} from "./utils/util";
+import { createNewNoteFileIfNotExists } from "./utils/newFileUtils";
+import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 import { getDocumentUriFromDocumentSlug } from "./utils/uriUtils";
-import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
 
 function NewNoteCommand() {
   const titlePromise = vscode.window.showInputBox({
@@ -13,16 +10,12 @@ function NewNoteCommand() {
   });
   titlePromise.then(async (title) => {
     if (title !== undefined) {
-      const documentSlug = sluggifyDocumentReference(title);
-      const newUri = getDocumentUriFromDocumentSlug(documentSlug);
-      if (newUri !== undefined) {
-        let matchingFile = await findAllMarkdownFilesInWorkspace().then((f) => {
-          return f.find((f) => f.fsPath === newUri.fsPath);
-        });
-        if (matchingFile === undefined) {
-          await createNewMarkdownDoc(newUri, title);
-        }
-        await vscode.window.showTextDocument(newUri);
+      const newUri = getDocumentUriFromDocumentSlug(
+        sluggifyDocumentTitle(title)
+      );
+      let matchingFile = await createNewNoteFileIfNotExists(title, newUri);
+      if (matchingFile !== undefined) {
+        await vscode.window.showTextDocument(matchingFile);
       }
     }
   });

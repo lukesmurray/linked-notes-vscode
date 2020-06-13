@@ -1,7 +1,7 @@
 import MarkdownIt from "markdown-it";
 import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
 import { getDocumentUriFromDocumentSlug } from "./utils/uriUtils";
-import { sluggifyDocumentReference } from "./utils/sluggifyDocumentReference";
+import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 
 /**
  * Add additional functionality to the Markdown Preview in vscode.
@@ -17,11 +17,9 @@ export default function ExtendMarkdownIt(md: MarkdownIt) {
     regex: /\[\[(.+?)\]\]/,
     // replace inside wiki links with a url
     replace: (match) => {
-      const alias = match;
-      const uri = getDocumentUriFromDocumentSlug(
-        sluggifyDocumentReference(match)
-      )!;
-      return `<a href=${encodeURI(uri.fsPath)}>${alias}</a>`;
+      const title = match;
+      const uri = getDocumentUriFromDocumentSlug(sluggifyDocumentTitle(match))!;
+      return `<a href=${encodeURI(uri.fsPath)}>${title}</a>`;
     },
   } as MarkdownItRegexOptions);
 }
