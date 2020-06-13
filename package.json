@@ -23,14 +23,14 @@
     "markdown.markdownItPlugins": true,
     "languages": [
       {
-        "id": "markdown-notes",
+        "id": "linked-notes",
         "aliases": [],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "markdown-notes",
+        "language": "linked-notes",
         "scopeName": "text.markdown.notes",
         "path": "./syntaxes/notes.tmLanguage.json",
         "injectTo": [
@@ -70,7 +70,15 @@
           }
         }
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "linked-notes-vscode.backlinksExplorerView",
+          "name": "Backlinks"
+        }
+      ]
+    }
   },
   "icon": "images/linked-notes.png",
   "activationEvents": [

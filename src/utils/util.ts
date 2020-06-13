@@ -1,6 +1,13 @@
 import * as vscode from "vscode";
 import { RootState } from "../reducers";
-import { selectDefaultBibUri } from "../reducers/configuration";
+import {
+  selectDefaultBibUri,
+  selectDefaultReferencesFolder,
+  selectDefaultReferencesFolderUri,
+} from "../reducers/configuration";
+import { LinkedNotesStore } from "../store";
+import path from "path";
+import { workspaceRootUri } from "./uriUtils";
 
 export const MarkDownDocumentSelector = {
   scheme: "file",
@@ -22,6 +29,27 @@ export function isMarkdownFile(uri: vscode.Uri) {
     uri.scheme === "file" &&
     MARKDOWN_FILE_EXT.some((ext) => uri.fsPath.endsWith(ext))
   );
+}
+
+export function isBibiliographicFile(uri: vscode.Uri, store: LinkedNotesStore) {
+  if (!isMarkdownFile(uri)) {
+    return false;
+  }
+  // TODO(lukemurray): not always true that these relative paths match reference
+  // and root URI, everywhere we calculate the reference URI we should join the
+  // value in the config with the root uri. For example a reference URI of ""
+  // would actually be the root URI and this would break.
+  const expectReferenceUri = vscode.Uri.file(path.resolve(uri.fsPath, ".."));
+  const expectRootUri = vscode.Uri.file(path.resolve(uri.fsPath, "../.."));
+  if (
+    expectRootUri.fsPath !== workspaceRootUri()?.fsPath ||
+    expectReferenceUri.fsPath !==
+      selectDefaultReferencesFolderUri(store.getState())?.fsPath
+  ) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 export function isDefaultBibFile(uri: vscode.Uri, state: RootState) {

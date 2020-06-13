@@ -15,3 +15,7 @@ this is a test to see if everythign is working well ok wow this is working prett
 [[+this is a link to a project]]
 
 [this is a link to a project](this-is-a-link-to-a-project.md)
+
+[@andyWhyBooksDon2019]
+
+[@banovicWakenReverseEngineering2012]

@@ -85,6 +85,14 @@ export function selectDefaultReferencesFolder(state: RootState) {
   return selectConfigurationSlice(state).defaultReferencesFolder;
 }
 
+export function selectDefaultReferencesFolderUri(state: RootState) {
+  const folderString = selectDefaultReferencesFolder(state);
+  if (folderString === null) {
+    return undefined;
+  }
+  return createUriForFileRelativeToWorkspaceRoot(folderString);
+}
+
 export function selectDefaultBibUri(state: RootState) {
   const defaultBib = selectDefaultBib(state);
   if (defaultBib === null) {

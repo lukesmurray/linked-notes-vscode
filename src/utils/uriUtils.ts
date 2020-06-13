@@ -18,16 +18,20 @@ export function getDocumentUriFromDocumentSlug(
 }
 
 export function createUriForFileRelativeToWorkspaceRoot(fileName: string) {
-  if (vscode.workspace.workspaceFolders === undefined) {
+  const rootURI = workspaceRootUri();
+  if (rootURI === undefined) {
     return undefined;
   }
-  const rootURI = vscode.workspace.workspaceFolders[0].uri;
   const newPath = path.format({
-    dir: rootURI?.fsPath,
+    dir: rootURI.fsPath,
     base: fileName,
   });
   const newURI = vscode.Uri.file(newPath);
   return newURI;
+}
+
+export function workspaceRootUri() {
+  return vscode.workspace.workspaceFolders?.[0].uri;
 }
 
 export function createUriForNestedFileRelativeToWorkspaceRoot(
@@ -37,9 +41,12 @@ export function createUriForNestedFileRelativeToWorkspaceRoot(
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
   }
-  const rootURI = vscode.workspace.workspaceFolders[0].uri;
+  const rootURI = workspaceRootUri();
+  if (rootURI === undefined) {
+    return undefined;
+  }
   const newPath = path.format({
-    dir: path.join(rootURI?.fsPath, ...folderNames),
+    dir: path.join(rootURI.fsPath, ...folderNames),
     base: fileName,
   });
   const newURI = vscode.Uri.file(newPath);

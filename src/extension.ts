@@ -32,6 +32,7 @@ import {
 } from "./utils/util";
 import WriteDefaultSettingsCommand from "./WriteDefaultSettingsCommand";
 import { convertUriToLinkedDocId } from "./utils/uriUtils";
+import { BacklinksTreeDataProvider } from "./BacklinksTreeDataProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
@@ -60,6 +61,15 @@ export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
    * Features
    ****************************************************************************/
+
+  // backlinks tree view
+  const backLinksTreeDataProvider = new BacklinksTreeDataProvider(store);
+  const treeView = vscode.window.createTreeView(
+    "linked-notes-vscode.backlinksExplorerView",
+    {
+      treeDataProvider: backLinksTreeDataProvider,
+    }
+  );
 
   // wiki link autocomplete
   context.subscriptions.push(
@@ -201,6 +211,10 @@ export async function activate(context: vscode.ExtensionContext) {
         store.dispatch(updateBibliographicItems());
       }
     }
+  });
+
+  vscode.window.onDidChangeActiveTextEditor(() => {
+    backLinksTreeDataProvider.refresh();
   });
 
   /*****************************************************************************
