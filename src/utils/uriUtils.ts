@@ -7,10 +7,14 @@ import { LinkedNotesStore } from "../store";
 import { sluggifyDocumentTitle } from "./sluggifyDocumentTitle";
 import { selectDefaultReferencesFolder } from "../reducers/configuration";
 
+const MARKDOWN_FILE_EXTENSION = ".md";
+
 export function getDocumentUriFromDocumentSlug(
   slug: string
 ): vscode.Uri | undefined {
-  return createUriForFileRelativeToWorkspaceRoot(slug + ".md");
+  return createUriForFileRelativeToWorkspaceRoot(
+    slug + MARKDOWN_FILE_EXTENSION
+  );
 }
 
 export function createUriForFileRelativeToWorkspaceRoot(fileName: string) {
@@ -73,7 +77,7 @@ export function getDocumentUriFromBibliographicItem(
   }
 
   return createUriForNestedFileRelativeToWorkspaceRoot(
-    bibliographicItem.id + "",
+    bibliographicItem.id + MARKDOWN_FILE_EXTENSION,
     defaultReferencesFolder
   );
 }
