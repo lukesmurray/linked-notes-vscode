@@ -1,14 +1,14 @@
 import { Plugin, Processor, Settings, Transformer } from "unified";
 import * as UNIST from "unist";
-import AhoCorasick from "../utils/ahoCorasick";
-import { CslCitation } from "../types/csl-citation";
-import { CslData } from "../types/csl-data";
+import AhoCorasick from "../../utils/ahoCorasick";
+import { CslCitation } from "../../types/csl-citation";
+import { CslData } from "../../types/csl-data";
 import {
   InlineTokenizerEat,
   IInlineTokenizerReturn,
-} from "../types/remarkParse";
-import { incrementUnistPoint } from "./incrementUnistPoint";
-import { BaseFileReferenceNode } from "./common/types";
+} from "../../types/remarkParse";
+import { incrementUnistPoint } from "./util/incrementUnistPoint";
+import { BaseFileReferenceNode } from "../common/types";
 
 export type BibliographicItem = CslData[number];
 

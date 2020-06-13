@@ -1,5 +1,5 @@
 import vscode from "vscode";
-import { BibliographicItem } from "../core/remarkCiteproc";
+import { BibliographicItem } from "../core/remarkPlugins/remarkCiteproc";
 import { NameVariable } from "../types/csl-data";
 
 export function createCitationKeyCompletion(

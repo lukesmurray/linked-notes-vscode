@@ -3,9 +3,9 @@ import markdown from "remark-parse";
 import unified from "unified";
 import vfile from "vfile";
 import reporter from "vfile-reporter";
-import { createAhoCorasickFromCSLJSON } from "../../core/createAhoCorasickFromCSLData";
-import remarkCiteproc from "../../core/remarkCiteproc";
+import remarkCiteproc from "../../core/remarkPlugins/remarkCiteproc";
 import { CslData } from "../../types/csl-data";
+import { createAhoCorasickFromCSLJSON } from "../../reducers/bibliographicItems";
 
 suite("Reducer Test Suite", () => {
   test("Attaches without throwing", () => {

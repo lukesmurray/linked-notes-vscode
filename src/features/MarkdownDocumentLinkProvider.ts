@@ -4,7 +4,7 @@ import {
   selectDocumentLinksByFsPath,
 } from "../reducers/linkedFiles";
 import { LinkedNotesStore } from "../store";
-import { textDocumentFsPath } from "../core/textDocumentFsPath";
+import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {

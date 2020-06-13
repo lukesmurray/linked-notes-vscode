@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
-import { fsPathBacklinkFileReferences } from "../core/fsPathBacklinkFileReferences";
-import { fsPathUri } from "../core/fsPathUri";
-import { positionFileReference } from "../core/positionFileReference";
-import { textDocumentFsPath } from "../core/textDocumentFsPath";
+import { fsPathBacklinkFileReferences } from "../core/fsPath/fsPathBacklinkFileReferences";
+import { fsPathUri } from "../core/fsPath/fsPathUri";
+import { positionFileReference } from "../core/fileReference/positionFileReference";
+import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import { LinkedNotesStore } from "../store";
-import { unistPositionToVscodeRange } from "../core/unistPositionToVscodeRange";
+import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;

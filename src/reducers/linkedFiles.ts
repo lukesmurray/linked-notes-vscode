@@ -9,17 +9,17 @@ import {
 import { createObjectSelector } from "reselect-map";
 import * as vscode from "vscode";
 import type { RootState } from ".";
-import { getMDASTFromText } from "../core/getMDASTFromText";
-import { linkedFileFsPath } from "../core/linkedFileFsPath";
-import { syntaxTreeFileReferences } from "../core/syntaxTreeFileReferences";
-import { textDocumentFsPath } from "../core/textDocumentFsPath";
+import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
+import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
+import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
+import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import {
   isCitationKeyFileReference,
   isWikilinkFileReference,
 } from "../core/common/typeGuards";
 import { LinkedFile, LinkedFileStatus } from "../core/common/types";
 import type { AppDispatch, LinkedNotesStore } from "../store";
-import { unistPositionToVscodeRange } from "../core/unistPositionToVscodeRange";
+import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 import { delay, isNotNullOrUndefined } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
 

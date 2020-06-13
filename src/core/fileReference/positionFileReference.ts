@@ -1,8 +1,19 @@
-import * as UNIST from "unist";
+import { LinkedNotesStore } from "../../store";
 import * as vscode from "vscode";
-/*******************************************************************************
- * Get Info for Position
- ******************************************************************************/
+import { selectFileReferencesByFsPath } from "../../reducers/linkedFiles";
+import { textDocumentFsPath } from "../fsPath/textDocumentFsPath";
+import * as UNIST from "unist";
+
+export function positionFileReference(
+  position: vscode.Position,
+  document: vscode.TextDocument,
+  store: LinkedNotesStore
+) {
+  const fileReferences = selectFileReferencesByFsPath(store.getState())[
+    textDocumentFsPath(document)
+  ];
+  return fileReferences.find((v) => isPositionInsideNode(position, v.node));
+}
 
 export function isPositionInsideNode(
   position: vscode.Position,

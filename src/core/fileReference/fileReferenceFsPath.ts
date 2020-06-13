@@ -3,8 +3,8 @@ import {
   FileReference,
   WikilinkFileReference,
   TitleFileReference,
-} from "./common/types";
-import { assertNever } from "./common/typeGuards";
+} from "../common/types";
+import { assertNever } from "../common/typeGuards";
 
 export function fileReferenceFsPath(ref: FileReference): string {
   switch (ref.type) {

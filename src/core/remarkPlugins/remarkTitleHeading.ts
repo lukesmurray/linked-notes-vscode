@@ -2,7 +2,7 @@ import mdastUtilToString from "mdast-util-to-string";
 import { Plugin, Processor, Settings, Transformer } from "unified";
 import * as UNIST from "unist";
 import { select } from "unist-util-select";
-import { BaseFileReferenceNode } from "./common/types";
+import { BaseFileReferenceNode } from "../common/types";
 
 interface RemarkTitleHeadingOptions {}
 

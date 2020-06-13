@@ -4,9 +4,9 @@ import * as UNIST from "unist";
 import {
   IInlineTokenizerReturn,
   InlineTokenizerEat,
-} from "../types/remarkParse";
-import { BaseFileReferenceNode } from "./common/types";
-import { incrementUnistPoint } from "./incrementUnistPoint";
+} from "../../types/remarkParse";
+import { BaseFileReferenceNode } from "../common/types";
+import { incrementUnistPoint } from "./util/incrementUnistPoint";
 
 export interface Wikilink extends BaseFileReferenceNode {
   type: "wikilink";

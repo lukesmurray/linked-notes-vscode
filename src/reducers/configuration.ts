@@ -5,7 +5,7 @@ import { AppDispatch } from "../store";
 import {
   createUriForFileRelativeToWorkspaceRoot,
   createUriForNestedFileRelativeToWorkspaceRoot,
-} from "../utils/uriUtils";
+} from "../utils/workspaceUtils";
 import { updateBibliographicItems } from "./bibliographicItems";
 
 export interface ExtensionConfiguration {

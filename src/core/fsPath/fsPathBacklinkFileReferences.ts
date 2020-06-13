@@ -1,4 +1,4 @@
-import { FileReference } from "./common/types";
+import { FileReference } from "../common/types";
 
 export function fsPathBacklinkFileReferences(fsPath: string): FileReference[] {
   // TODO(lukemurray): IMPLEMENT THIS METHOD

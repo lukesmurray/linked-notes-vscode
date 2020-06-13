@@ -3,8 +3,8 @@ import {
   selectLinkedFileFsPaths,
   waitForLinkedFileToUpdate,
 } from "../reducers/linkedFiles";
-import { fileReferenceContentRange } from "../core/fileReferenceContentRange";
-import { positionFileReference } from "../core/positionFileReference";
+import { fileReferenceContentRange } from "../core/fileReference/fileReferenceContentRange";
+import { positionFileReference } from "../core/fileReference/positionFileReference";
 import { LinkedNotesStore } from "../store";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {

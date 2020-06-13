@@ -1,7 +1,7 @@
 import * as MDAST from "mdast";
-import AhoCorasick from "../utils/ahoCorasick";
+import AhoCorasick from "../../utils/ahoCorasick";
 import { createMarkdownProcessor } from "./createMarkdownProcessor";
-import { BibliographicItem } from "./remarkCiteproc";
+import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
 
 /**
  * Get a syntax tree from a string asynchronously

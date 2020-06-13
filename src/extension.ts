@@ -20,7 +20,7 @@ import {
   fileRenamed,
   flagLinkedFileForUpdate,
 } from "./reducers/linkedFiles";
-import { uriFsPath } from "./core/uriFsPath";
+import { uriFsPath } from "./core/fsPath/uriFsPath";
 import store from "./store";
 import {
   BIB_FILE_GLOB_PATTERN,

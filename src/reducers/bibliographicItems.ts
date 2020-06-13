@@ -5,11 +5,11 @@ import {
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
-import { createAhoCorasickFromCSLJSON } from "../core/createAhoCorasickFromCSLData";
 import { AppDispatch } from "../store";
 import { CslData } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";
 import { createCitationKeyCompletion } from "../alpha/citeProcUtils";
+import AhoCorasick from "../utils/ahoCorasick";
 
 /*******************************************************************************
  * Thunks
@@ -70,3 +70,11 @@ export const selectBibliographicItemAho = createSelector(
   selectBibliographicItems,
   (items) => createAhoCorasickFromCSLJSON(items)
 );
+
+/*******************************************************************************
+ * util
+ ******************************************************************************/
+export function createAhoCorasickFromCSLJSON(items: CslData) {
+  // key aho corasick by the citation keys
+  return new AhoCorasick(items.map((v) => ["@" + v.id, v]));
+}

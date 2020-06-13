@@ -1,13 +1,13 @@
 import * as UNIST from "unist";
-import { CiteProcCitationKey } from "../remarkCiteproc";
-import { Wikilink } from "../remarkWikilink";
+import { CiteProcCitationKey } from "../remarkPlugins/remarkCiteproc";
+import { Wikilink } from "../remarkPlugins/remarkWikilink";
 import {
   CitationKeyFileReference,
   FileReference,
   FileReferenceNode,
   WikilinkFileReference,
 } from "./types";
-import { TitleHeading } from "../remarkTitleHeading";
+import { TitleHeading } from "../remarkPlugins/remarkTitleHeading";
 
 export function assertNever(x: never): never {
   throw new Error(`Unexpected object: ${x}`);

@@ -1,8 +1,8 @@
 import * as MDAST from "mdast";
 import * as UNIST from "unist";
-import { CiteProcCitationKey } from "../remarkCiteproc";
-import { Wikilink } from "../remarkWikilink";
-import { TitleHeading } from "../remarkTitleHeading";
+import { CiteProcCitationKey } from "../remarkPlugins/remarkCiteproc";
+import { Wikilink } from "../remarkPlugins/remarkWikilink";
+import { TitleHeading } from "../remarkPlugins/remarkTitleHeading";
 
 /*******************************************************************************
  * File References
