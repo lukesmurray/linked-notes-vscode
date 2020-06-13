@@ -2,6 +2,7 @@ import * as MDAST from "mdast";
 import * as UNIST from "unist";
 import { CiteProcCitationKey } from "../remarkCiteproc";
 import { Wikilink } from "../remarkWikilink";
+import { TitleHeading } from "../remarkTitleHeading";
 
 /*******************************************************************************
  * File References
@@ -11,13 +12,9 @@ import { Wikilink } from "../remarkWikilink";
 const FileReferenceKeys = [
   "wikilinkFileReference",
   "citationKeyFileReference",
-  // TODO(lukemurray): add header 1 to the keys
-  // "titleFileReference",
+  "titleFileReference",
 ] as const;
 type FileReferenceType = typeof FileReferenceKeys[number];
-
-// union type of all file references
-export type FileReference = CitationKeyFileReference | WikilinkFileReference;
 
 // base type of all file references
 interface BaseFileReference {
@@ -40,27 +37,44 @@ export interface WikilinkFileReference extends BaseFileReference {
   node: Wikilink;
 }
 
+export interface TitleFileReference extends BaseFileReference {
+  type: "titleFileReference";
+  node: TitleHeading;
+}
+
+// union type of all file references
+export type FileReference =
+  | CitationKeyFileReference
+  | WikilinkFileReference
+  | TitleFileReference;
+
 /*******************************************************************************
  * Remark File References
  ******************************************************************************/
 
-// union type of remark node which are file references
-export type FileReferenceRemarkNode = Wikilink | CiteProcCitationKey;
-
 // type keys of node used as file references
-export const RemarkFileReferenceTypeKeys = [
+export const FileReferenceNodeTypeKeys = [
   "citeProcCitationKey",
   "wikilink",
+  "titleHeading",
 ] as const;
-export type RemarkFileReferenceType = typeof RemarkFileReferenceTypeKeys[number];
+export type FileReferenceNodeType = typeof FileReferenceNodeTypeKeys[number];
+
+export interface BaseFileReferenceNode extends UNIST.Node {
+  type: FileReferenceNodeType;
+}
+
+// union type of remark node which are file references
+export type FileReferenceNode = Wikilink | CiteProcCitationKey | TitleHeading;
 
 // mapping from file reference types to remark file reference type
 export const FileReferenceTypeToRemarkType: Record<
   FileReferenceType,
-  RemarkFileReferenceType
+  FileReferenceNodeType
 > = {
   citationKeyFileReference: "citeProcCitationKey",
   wikilinkFileReference: "wikilink",
+  titleFileReference: "titleHeading",
 };
 
 /*******************************************************************************

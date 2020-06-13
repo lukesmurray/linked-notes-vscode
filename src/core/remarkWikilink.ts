@@ -5,8 +5,10 @@ import {
   IInlineTokenizerReturn,
   InlineTokenizerEat,
 } from "../types/remarkParse";
+import { BaseFileReferenceNode } from "./common/types";
+import { incrementUnistPoint } from "./incrementUnistPoint";
 
-export interface Wikilink extends UNIST.Node {
+export interface Wikilink extends BaseFileReferenceNode {
   type: "wikilink";
   data: {
     /**
@@ -14,6 +16,7 @@ export interface Wikilink extends UNIST.Node {
      */
     title: string;
   };
+  children: UNIST.Node[];
 }
 
 interface RemarkWikilinkOptions {}
@@ -43,6 +46,7 @@ function remarkWikilink(
       if (silent) {
         return true;
       }
+      let now = eat.now();
       const add = eat(wikilinkMatch![0]);
       const node = add(<Wikilink>{
         type: "wikilink",
@@ -50,10 +54,10 @@ function remarkWikilink(
           title: wikilinkMatch[1],
         },
         children: [
-          <MDAST.Text>{
-            type: "text",
-            value: wikilinkMatch[0],
-          },
+          ...this.tokenizeInline(
+            wikilinkMatch![0].slice(2, -2),
+            incrementUnistPoint(now, 2)
+          ),
         ],
       });
       return node;

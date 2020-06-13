@@ -2,6 +2,7 @@ import {
   CitationKeyFileReference,
   FileReference,
   WikilinkFileReference,
+  TitleFileReference,
 } from "./common/types";
 import { assertNever } from "./common/typeGuards";
 import * as vscode from "vscode";
@@ -14,6 +15,8 @@ export async function fileReferenceCreateFileIfNotExists(
       return citationKeyFileReferenceCreateFileIfNotExists(ref);
     case "wikilinkFileReference":
       return wikilinkFileReferenceCreateFileIfNotExists(ref);
+    case "titleFileReference":
+      return titleFileReferenceCreateFileIfNotExists(ref);
     default:
       assertNever(ref);
   }
@@ -28,6 +31,13 @@ function citationKeyFileReferenceCreateFileIfNotExists(
 
 function wikilinkFileReferenceCreateFileIfNotExists(
   ref: WikilinkFileReference
+): Promise<vscode.Uri> {
+  // TODO(lukemurray): IMPLEMENT THIS METHOD
+  throw new Error("NOT IMPLEMENTED");
+}
+
+function titleFileReferenceCreateFileIfNotExists(
+  ref: TitleFileReference
 ): Promise<vscode.Uri> {
   // TODO(lukemurray): IMPLEMENT THIS METHOD
   throw new Error("NOT IMPLEMENTED");

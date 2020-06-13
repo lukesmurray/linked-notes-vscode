@@ -3,6 +3,7 @@ import unified from "unified";
 import AhoCorasick from "../utils/ahoCorasick";
 import remarkCiteproc, { BibliographicItem } from "./remarkCiteproc";
 import remarkWikilink from "./remarkWikilink";
+import remarkTitleHeading from "./remarkTitleHeading";
 
 /**
  * Create the unified markdown processor for parsing text documents and
@@ -16,5 +17,6 @@ export function createMarkdownProcessor(
     .use(remarkCiteproc, {
       citationItemAho: bibliographicItemAho,
     })
-    .use(remarkWikilink, {});
+    .use(remarkWikilink, {})
+    .use(remarkTitleHeading, {});
 }

@@ -5,9 +5,11 @@ import {
   CitationKeyFileReference,
   FileReference,
   WikilinkFileReference,
+  TitleFileReference,
 } from "./common/types";
 import { assertNever } from "./common/typeGuards";
 import { Wikilink } from "./remarkWikilink";
+import { TitleHeading } from "./remarkTitleHeading";
 
 export function syntaxTreeFileReferences(
   syntaxTree: MDAST.Root
@@ -19,6 +21,8 @@ export function syntaxTreeFileReferences(
         return createCiteProcCitationKeyFileReference(node);
       case "wikilink":
         return createWikilinkFileReference(node);
+      case "titleHeading":
+        return createTitleFileReference(node);
       default:
         assertNever(node);
     }
@@ -33,6 +37,11 @@ function createCiteProcCitationKeyFileReference(
 }
 
 function createWikilinkFileReference(node: Wikilink): WikilinkFileReference {
+  // TODO(lukemurray): IMPLEMENT THIS METHOD
+  throw new Error("NOT IMPLEMENTED");
+}
+
+function createTitleFileReference(node: TitleHeading): TitleFileReference {
   // TODO(lukemurray): IMPLEMENT THIS METHOD
   throw new Error("NOT IMPLEMENTED");
 }

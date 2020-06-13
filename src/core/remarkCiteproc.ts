@@ -8,6 +8,7 @@ import {
   IInlineTokenizerReturn,
 } from "../types/remarkParse";
 import { incrementUnistPoint } from "./incrementUnistPoint";
+import { BaseFileReferenceNode } from "./common/types";
 
 export type BibliographicItem = CslData[number];
 
@@ -23,7 +24,7 @@ export interface CiteProcCitation extends UNIST.Node {
   children: UNIST.Node[];
 }
 
-export interface CiteProcCitationKey extends UNIST.Node {
+export interface CiteProcCitationKey extends BaseFileReferenceNode {
   type: "citeProcCitationKey";
   data: {
     bibliographicItem: BibliographicItem;

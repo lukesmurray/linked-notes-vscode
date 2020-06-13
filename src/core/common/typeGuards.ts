@@ -4,9 +4,10 @@ import { Wikilink } from "../remarkWikilink";
 import {
   CitationKeyFileReference,
   FileReference,
-  FileReferenceRemarkNode,
+  FileReferenceNode,
   WikilinkFileReference,
 } from "./types";
+import { TitleHeading } from "../remarkTitleHeading";
 
 export function assertNever(x: never): never {
   throw new Error(`Unexpected object: ${x}`);
@@ -22,10 +23,18 @@ export function isWikilinkNode(node: UNIST.Node): node is Wikilink {
   return node.type === "wikilink";
 }
 
+export function isTitleHeadingNode(node: UNIST.Node): node is TitleHeading {
+  return node.type === "titleHeading";
+}
+
 export function isFileReferenceRemarkNode(
   node: UNIST.Node
-): node is FileReferenceRemarkNode {
-  return isWikilinkNode(node) || isCiteProcCitationKeyNode(node);
+): node is FileReferenceNode {
+  return (
+    isWikilinkNode(node) ||
+    isCiteProcCitationKeyNode(node) ||
+    isTitleHeadingNode(node)
+  );
 }
 
 export function isWikilinkFileReference(
