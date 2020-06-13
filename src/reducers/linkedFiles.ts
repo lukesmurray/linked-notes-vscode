@@ -202,7 +202,6 @@ export const selectDocumentLinksByFsPath = createObjectSelector(
       .map((pos) => new vscode.DocumentLink(unistPositionToVscodeRange(pos)))
 );
 
-// TODO(lukemurray): reimplement as file references
 export const selectWikilinkCompletions = createSelector(
   selectWikilinksByFsPath,
   // selectTopLevelHeaderTextByFsPath,

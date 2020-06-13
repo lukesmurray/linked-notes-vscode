@@ -24,7 +24,7 @@ export function fileReferenceFsPath(
     case "wikilinkFileReference":
       return wikilinkFileReferenceFsPath(ref);
     case "titleFileReference":
-      return titleFileReferenceFsPath(ref);
+      return titleFileReferenceFsPath(ref, store);
     default:
       assertNever(ref);
   }
@@ -51,7 +51,6 @@ function citationKeyFileReferenceFsPath(
 function wikilinkFileReferenceFsPath(
   ref: WikilinkFileReference
 ): string | undefined {
-  // TODO(lukemurray): IMPLEMENT THIS METHOD
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
   }
@@ -61,7 +60,36 @@ function wikilinkFileReferenceFsPath(
   return vscode.Uri.file(path.join(workspaceRoot, baseName)).fsPath;
 }
 
-function titleFileReferenceFsPath(ref: TitleFileReference): string | undefined {
-  // TODO(lukemurray): IMPLEMENT THIS METHOD
-  throw new Error("NOT IMPLEMENTED");
+function titleFileReferenceFsPath(
+  ref: TitleFileReference,
+  store: LinkedNotesStore
+): string | undefined {
+  if (vscode.workspace.workspaceFolders === undefined) {
+    return undefined;
+  }
+  const title = fileReferenceTitle(ref);
+  const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+  const referencePathRoot = selectDefaultReferencesFolder(store.getState());
+  if (referencePathRoot === null) {
+    return undefined;
+  }
+  const baseName = sluggifyDocumentTitle(title) + `.${MARKDOWN_EXT}`;
+  // check that the node is a sub path of the reference path
+  if (
+    isSubPathOf(
+      ref.node.data.fsPath,
+      path.join(workspaceRoot, referencePathRoot)
+    )
+  ) {
+    return vscode.Uri.file(
+      path.join(workspaceRoot, referencePathRoot, baseName)
+    ).fsPath;
+  }
+  return undefined;
+}
+
+// check if dir is a subpath of parent
+function isSubPathOf(dir: string, parent: string) {
+  const relative = path.relative(parent, dir);
+  return relative && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
