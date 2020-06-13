@@ -1,5 +1,5 @@
 import vscode from "vscode";
-import { createNewNoteFileIfNotExists } from "./utils/newFileUtils";
+import { createNoteFileIfNotExists } from "./utils/newFileUtils";
 import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 import { getDocumentUriFromDocumentSlug } from "./utils/uriUtils";
 
@@ -13,7 +13,7 @@ function NewNoteCommand() {
       const newUri = getDocumentUriFromDocumentSlug(
         sluggifyDocumentTitle(title)
       );
-      let matchingFile = await createNewNoteFileIfNotExists(title, newUri);
+      let matchingFile = await createNoteFileIfNotExists(title, newUri);
       if (matchingFile !== undefined) {
         await vscode.window.showTextDocument(matchingFile);
       }

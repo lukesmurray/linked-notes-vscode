@@ -246,14 +246,44 @@ const selectTopLevelHeaderTextByDocumentId = createObjectSelector(
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
 );
 
+const selectWikilinkDocumentLinksByDocumentId = createObjectSelector(
+  selectWikilinksByDocumentId,
+  (allWikilinks) => {
+    return allWikilinks
+      .map((v) => v.position)
+      .filter(isNotNullOrUndefined)
+      .map((v) => new vscode.DocumentLink(unistPositionToVscodeRange(v)));
+  }
+);
+
+const selectCitationKeyDocumentLinksByDocumentId = createObjectSelector(
+  selectCitationKeysByDocumentId,
+  (allCitationKeys) => {
+    return allCitationKeys
+      .map((v) => v.position)
+      .filter(isNotNullOrUndefined)
+      .map((v) => new vscode.DocumentLink(unistPositionToVscodeRange(v)));
+  }
+);
+
+// the first arg to createObjectSelector has its values mapped by key.
+// in this case allWikilinks is the list of wikilinks in each document.
+// the second arg is not mapped at all so allCitationKeysByDocumentId
+// is literally the result of selectCitationKeysByDocumentId. Finally
+// the last argument, key, is the key used to identify the wikilinks
+// in this case the documentId. We manually map the citation keys
+// but this creates a cache busting problem. When the citation keys
+// in one document change the cache is invalidated for all documents.
 export const selectDocumentLinksByDocumentId = createObjectSelector(
   selectWikilinksByDocumentId,
-  (allWikilinks) =>
-    allWikilinks
-      ?.filter((v) => v.position !== undefined)
-      .map(
-        (v) => new vscode.DocumentLink(unistPositionToVscodeRange(v.position!))
-      )
+  selectCitationKeysByDocumentId,
+  (allWikilinks, allCitationKeysByDocumentId, key) => {
+    const allCitationKeys = allCitationKeysByDocumentId[key];
+    return [...allWikilinks, ...allCitationKeys]
+      .map((v) => v.position)
+      .filter(isNotNullOrUndefined)
+      .map((v) => new vscode.DocumentLink(unistPositionToVscodeRange(v)));
+  }
 );
 
 export const selectWikilinkBackReferencesToDocumentId = createSelector(
@@ -302,7 +332,8 @@ export const selectCitationKeyBackReferencesToCitationKey = createSelector(
       for (let citationKey of (allLinks as {
         [key: string]: CiteProcCitationKey[];
       })[containingDocumentId]) {
-        const citationKeyReferenceCitationKeyId = citationKey.data.citation.id;
+        const citationKeyReferenceCitationKeyId =
+          citationKey.data.bibliographicItem.id;
         if (output[citationKeyReferenceCitationKeyId] === undefined) {
           output[citationKeyReferenceCitationKeyId] = [];
         }

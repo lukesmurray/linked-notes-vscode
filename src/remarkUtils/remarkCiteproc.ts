@@ -26,7 +26,7 @@ export interface CiteProcCitation extends UNIST.Node {
 export interface CiteProcCitationKey extends UNIST.Node {
   type: "citeProcCitationKey";
   data: {
-    citation: BibliographicItem;
+    bibliographicItem: BibliographicItem;
   };
   children: UNIST.Node[];
 }
@@ -148,7 +148,7 @@ function remarkCiteProc(
       const node = add(<CiteProcCitationKey>{
         type: "citeProcCitationKey",
         data: {
-          citation: { ...citationKeyMatches[0].value },
+          bibliographicItem: { ...citationKeyMatches[0].value },
         },
       });
       return node;

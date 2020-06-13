@@ -86,7 +86,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     ) {
       const citationKeyBackReferences = selectCitationKeyBackReferencesToCitationKey(
         this.store.getState()
-      )[overlappingCitationKey.data.citation.id];
+      )[overlappingCitationKey.data.bibliographicItem.id];
       return [
         ...citationKeyBackReferences
           .filter((v) => v.citationKey.position !== undefined)

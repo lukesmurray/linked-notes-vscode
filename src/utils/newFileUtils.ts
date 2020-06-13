@@ -1,32 +1,57 @@
 import * as vscode from "vscode";
-import { findAllMarkdownFilesInWorkspace } from "./util";
+import { BibliographicItem } from "../remarkUtils/remarkCiteproc";
+import { findAllMarkdownFilesInWorkspace, isMarkdownFile } from "./util";
 
-export async function createNewNoteFileIfNotExists(
-  title: string,
-  newFileUri: vscode.Uri | undefined
+async function createMarkdownFileIfNotExists(
+  newFileUri: vscode.Uri | undefined,
+  fileCreator: () => Promise<void>
 ) {
   if (newFileUri === undefined) {
     return undefined;
+  }
+  if (!isMarkdownFile(newFileUri)) {
+    throw new Error("function only checks if markdown files exist.");
   }
   let matchingFile = await findAllMarkdownFilesInWorkspace().then((f) =>
     f.find((f) => f.fsPath === newFileUri.fsPath)
   );
   // if the file does not exist then create it
   if (matchingFile === undefined) {
-    await createNewNoteFile(title, newFileUri);
+    await fileCreator();
     matchingFile = newFileUri;
   }
   return matchingFile;
 }
 
-export async function createNewNoteFile(title: string, newFileUri: vscode.Uri) {
-  await vscode.workspace.fs.writeFile(
-    newFileUri,
-    Buffer.from(getDefaultNoteText(title))
-  );
+export async function createNoteFileIfNotExists(
+  title: string,
+  newFileUri: vscode.Uri | undefined
+) {
+  if (newFileUri === undefined) {
+    return undefined;
+  }
+  return await createMarkdownFileIfNotExists(newFileUri, async () => {
+    await vscode.workspace.fs.writeFile(
+      newFileUri,
+      Buffer.from(getDefaultNoteText(title))
+    );
+  });
 }
 
-export async function createNewBibiliographicNoteFile(newFileUri: vscode.Uri) {}
+export async function createBibiliographicNoteFileIfNotExists(
+  bibliographicItem: BibliographicItem,
+  newFileUri: vscode.Uri | undefined
+) {
+  if (newFileUri === undefined) {
+    return undefined;
+  }
+  return await createMarkdownFileIfNotExists(newFileUri, async () => {
+    await vscode.workspace.fs.writeFile(
+      newFileUri,
+      Buffer.from(getDefaultBibliographicNoteText(bibliographicItem.id + ""))
+    );
+  });
+}
 
 export function getDefaultNoteText(title: string): string {
   return `---
@@ -38,12 +63,13 @@ draft: true
 `;
 }
 
-export function getDefaultBibliographicNoteText(noteTitle: string): string {
+// TODO(lukemurray): review default text
+export function getDefaultBibliographicNoteText(title: string): string {
   return `---
 draft: true
 ---
 
-# ${noteTitle}
+# ${title}
 
 `;
 }

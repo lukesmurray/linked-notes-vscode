@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import {
   bibliographicItemAuthorString,
   bibliographicItemTitleString,
-} from "./reducers/bibliographicItems";
+} from "./remarkUtils/citeProcUtils";
 import { waitForLinkedDocToParse } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import { CslData } from "./types/csl-data";
@@ -67,7 +67,7 @@ function wikilinkHoverText(wikilink: Wikilink) {
 }
 
 function citationKeyHoverText(citationKey: CiteProcCitationKey) {
-  const citationItem = citationKey.data.citation;
+  const citationItem = citationKey.data.bibliographicItem;
   return new vscode.MarkdownString(
     [
       `${bibliographicItemTitleString(citationItem)}`,

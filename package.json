@@ -60,7 +60,7 @@
             "default": null,
             "description": "Specifies the file path to the default CSL JSON used for citations. Relative to the workspace root."
           },
-          "linked-notes-vscode.defaultReferencesFile": {
+          "linked-notes-vscode.defaultReferencesFolder": {
             "type": [
               "string",
               "null"

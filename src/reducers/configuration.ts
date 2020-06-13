@@ -2,12 +2,16 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import * as vscode from "vscode";
 import { RootState } from ".";
 import { AppDispatch } from "../store";
-import { createUriForFileRelativeToWorkspaceRoot } from "../utils/uriUtils";
+import {
+  createUriForFileRelativeToWorkspaceRoot,
+  createUriForNestedFileRelativeToWorkspaceRoot,
+} from "../utils/uriUtils";
 import { updateBibliographicItems } from "./bibliographicItems";
 
 export interface ExtensionConfiguration {
   defaultBib: string | null;
-  defaultReferencesFile: string | null;
+  // TODO(lukemurray): rename to references folder
+  defaultReferencesFolder: string | null;
 }
 
 /*******************************************************************************
@@ -26,9 +30,9 @@ export const updateConfiguration = createAsyncThunk<
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
       thunkApi.dispatch(updateBibliographicItems());
     }
-    if (current.defaultReferencesFile !== next.defaultReferencesFile) {
+    if (current.defaultReferencesFolder !== next.defaultReferencesFolder) {
       thunkApi.dispatch(
-        updateDefaultReferencesFile(next.defaultReferencesFile)
+        updatedefaultReferencesFolder(next.defaultReferencesFolder)
       );
     }
   }
@@ -39,7 +43,7 @@ export const updateConfiguration = createAsyncThunk<
  ******************************************************************************/
 const initialConfigurationState: ExtensionConfiguration = {
   defaultBib: null,
-  defaultReferencesFile: null,
+  defaultReferencesFolder: null,
 };
 const configurationSlice = createSlice({
   name: "configuration",
@@ -49,10 +53,10 @@ const configurationSlice = createSlice({
       state,
       action: PayloadAction<ExtensionConfiguration["defaultBib"]>
     ) => ({ ...state, defaultBib: action.payload }),
-    updateDefaultReferencesFile: (
+    updatedefaultReferencesFolder: (
       state,
-      action: PayloadAction<ExtensionConfiguration["defaultReferencesFile"]>
-    ) => ({ ...state, defaultReferencesFile: action.payload }),
+      action: PayloadAction<ExtensionConfiguration["defaultReferencesFolder"]>
+    ) => ({ ...state, defaultReferencesFolder: action.payload }),
   },
 });
 
@@ -62,7 +66,7 @@ const configurationSlice = createSlice({
 
 const {
   updateDefaultBib,
-  updateDefaultReferencesFile,
+  updatedefaultReferencesFolder,
 } = configurationSlice.actions;
 
 export default configurationSlice.reducer;
@@ -76,6 +80,10 @@ export function selectConfigurationSlice(state: RootState) {
 
 export function selectDefaultBib(state: RootState) {
   return selectConfigurationSlice(state).defaultBib;
+}
+
+export function selectDefaultReferencesFolder(state: RootState) {
+  return selectConfigurationSlice(state).defaultReferencesFolder;
 }
 
 export function selectDefaultBibUri(state: RootState) {
@@ -96,9 +104,9 @@ export function readConfiguration(): ExtensionConfiguration {
     defaultBib: config.get(
       "defaultBib"
     ) as ExtensionConfiguration["defaultBib"],
-    defaultReferencesFile: config.get(
-      "defaultReferencesFile"
-    ) as ExtensionConfiguration["defaultReferencesFile"],
+    defaultReferencesFolder: config.get(
+      "defaultReferencesFolder"
+    ) as ExtensionConfiguration["defaultReferencesFolder"],
   };
 }
 

@@ -1,7 +1,10 @@
 import * as vscode from "vscode";
 import { waitForLinkedDocToParse } from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
-import { createNewNoteFileIfNotExists } from "./utils/newFileUtils";
+import {
+  createNoteFileIfNotExists,
+  createBibiliographicNoteFileIfNotExists,
+} from "./utils/newFileUtils";
 import {
   getCitationKeyForPosition,
   getWikilinkForPosition,
@@ -9,6 +12,7 @@ import {
 import {
   getDocumentUriFromWikilink,
   convertTextDocToLinkedDocId,
+  getDocumentUriFromBibliographicItem,
 } from "./utils/uriUtils";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
@@ -26,13 +30,26 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     if (token.isCancellationRequested) {
       return;
     }
+
     const overlappingCitationKey = getCitationKeyForPosition(
       this.store,
       document,
       position
     );
+
     if (overlappingCitationKey) {
-      // TODO(lukemurray): implement go to definition for citation keys
+      let matchingFile = await createBibiliographicNoteFileIfNotExists(
+        overlappingCitationKey.data.bibliographicItem,
+        getDocumentUriFromBibliographicItem(
+          overlappingCitationKey.data.bibliographicItem,
+          this.store
+        )
+      );
+      // jump to the start of the file
+      if (matchingFile !== undefined) {
+        const p = new vscode.Position(0, 0);
+        return new vscode.Location(matchingFile, p);
+      }
     }
 
     const overlappingWikilink = getWikilinkForPosition(
@@ -42,7 +59,7 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     );
     if (overlappingWikilink) {
       const wikiLinkUri = getDocumentUriFromWikilink(overlappingWikilink);
-      let matchingFile = await createNewNoteFileIfNotExists(
+      let matchingFile = await createNoteFileIfNotExists(
         overlappingWikilink.data.title,
         wikiLinkUri
       );
