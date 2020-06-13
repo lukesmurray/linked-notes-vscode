@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import {
+  waitForLinkedFileToUpdate,
   selectDocumentLinksByFsPath,
-  waitForLinkedDocToParse,
 } from "./reducers/linkedFiles";
 import { LinkedNotesStore } from "./store";
-import { textDocumentFsPath } from "./utils/uriUtils";
+import { textDocumentFsPath } from "./rewrite/textDocumentFsPath";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   private store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -15,7 +15,7 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     token: vscode.CancellationToken
   ) {
     const documentId = textDocumentFsPath(document);
-    await waitForLinkedDocToParse(this.store, documentId, token);
+    await waitForLinkedFileToUpdate(this.store, documentId, token);
     if (token.isCancellationRequested) {
       return;
     }

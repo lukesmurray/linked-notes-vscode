@@ -3,6 +3,7 @@ import {
   FileReference,
   WikilinkFileReference,
 } from "./types";
+import { assertNever } from "./typeGuards";
 
 export function fileReferenceFsPath(ref: FileReference): string {
   switch (ref.type) {
@@ -12,7 +13,6 @@ export function fileReferenceFsPath(ref: FileReference): string {
       return wikilinkFileReferenceFsPath(ref);
     default:
       assertNever(ref);
-      return "";
   }
 }
 
@@ -24,8 +24,4 @@ function citationKeyFileReferenceFsPath(ref: CitationKeyFileReference): string {
 function wikilinkFileReferenceFsPath(ref: WikilinkFileReference): string {
   // TODO(lukemurray): IMPLEMENT THIS METHOD
   throw new Error("NOT IMPLEMENTED");
-}
-
-function assertNever(x: never) {
-  throw new Error(`Unexpected object: ${x}`);
 }

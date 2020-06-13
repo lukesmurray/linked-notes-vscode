@@ -1,21 +1,10 @@
 import * as vscode from "vscode";
-import { waitForLinkedDocToParse } from "./reducers/linkedFiles";
-import {
-  bibliographicItemAuthorString,
-  bibliographicItemTitleString,
-} from "./remarkUtils/citeProcUtils";
-import { CiteProcCitationKey } from "./remarkUtils/remarkCiteproc";
-import { Wikilink } from "./remarkUtils/remarkWikilink";
+import { waitForLinkedFileToUpdate } from "./reducers/linkedFiles";
+import { fileReferenceHoverText } from "./rewrite/fileReferenceHoverText";
+import { positionFileReference } from "./rewrite/positionFileReference";
+import { textDocumentFsPath } from "./rewrite/textDocumentFsPath";
 import { LinkedNotesStore } from "./store";
-import {
-  getCitationKeyForPosition,
-  getWikilinkForPosition,
-  unistPositionToVscodeRange,
-} from "./utils/positionUtils";
-import {
-  getDocumentUriFromWikilink,
-  textDocumentFsPath,
-} from "./utils/uriUtils";
+import { unistPositionToVscodeRange } from "./utils/positionUtils";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
@@ -28,81 +17,20 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ) {
-    const documentId = textDocumentFsPath(document);
-    await waitForLinkedDocToParse(this.store, documentId, token);
+    const fsPath = textDocumentFsPath(document);
+    await waitForLinkedFileToUpdate(this.store, fsPath, token);
     if (token.isCancellationRequested) {
       return;
     }
-    const overlappingCitationKey = getCitationKeyForPosition(
-      this.store,
-      document,
-      position
-    );
-    if (
-      overlappingCitationKey &&
-      overlappingCitationKey.position !== undefined
-    ) {
+    const ref = positionFileReference(position, document, this.store);
+    if (ref !== undefined && ref.node.position !== undefined) {
       return new vscode.Hover(
-        citationKeyHoverText(overlappingCitationKey),
-        unistPositionToVscodeRange(overlappingCitationKey.position)
-      );
-    }
-
-    const overlappingWikilink = getWikilinkForPosition(
-      this.store,
-      document,
-      position
-    );
-    if (overlappingWikilink && overlappingWikilink.position !== undefined) {
-      const hoverText = await wikilinkHoverText(overlappingWikilink);
-      if (hoverText === undefined) {
-        return undefined;
-      }
-      return new vscode.Hover(
-        hoverText,
-        unistPositionToVscodeRange(overlappingWikilink.position)
+        fileReferenceHoverText(ref),
+        unistPositionToVscodeRange(ref.node.position)
       );
     }
     return undefined;
   }
-}
-
-async function wikilinkHoverText(wikilink: Wikilink) {
-  const documentUri = getDocumentUriFromWikilink(wikilink);
-  if (documentUri === undefined) {
-    return undefined;
-  }
-  // TODO(lukemurray): we may want to look at other thenables and catch errors using this same method
-  return await Promise.resolve(
-    vscode.workspace.openTextDocument(documentUri).then((doc) => {
-      const numLinesToPreview = 50;
-      // TODO(lukemurray): skip front matter in preview
-      return new vscode.MarkdownString(
-        doc.getText(
-          new vscode.Range(
-            new vscode.Position(0, 0),
-            new vscode.Position(numLinesToPreview, 0)
-          )
-        )
-      );
-    })
-  ).catch((err) => {
-    // TODO(lukemurray): we only want to catch missing file error, this catches all errors
-    // example logged error
-    // Error: cannot open file:///Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md. Detail: Unable to read file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md' (Error: Unable to resolve non-existing file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md')
-    return new vscode.MarkdownString("");
-  });
-}
-
-function citationKeyHoverText(citationKey: CiteProcCitationKey) {
-  const citationItem = citationKey.data.bibliographicItem;
-  return new vscode.MarkdownString(
-    [
-      `${bibliographicItemTitleString(citationItem)}`,
-      ``,
-      `Authors: ${bibliographicItemAuthorString(citationItem, ", ")}`,
-    ].join("\n")
-  );
 }
 
 export default MarkdownHoverProvider;

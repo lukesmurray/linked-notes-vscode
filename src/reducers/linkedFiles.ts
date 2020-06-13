@@ -3,7 +3,6 @@ import {
   createAction,
   createAsyncThunk,
   createEntityAdapter,
-  createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
 import mdastNodeToString from "mdast-util-to-string";
@@ -11,23 +10,19 @@ import { createObjectSelector } from "reselect-map";
 import * as vscode from "vscode";
 import type { RootState } from ".";
 import { getMDASTFromText } from "../remarkUtils/getMDASTFromText";
+import { MDASTTopLevelHeaderSelect } from "../remarkUtils/MDASTSelectors";
+import { syntaxTreeFileReferences } from "../rewrite/syntaxTreeFileReferences";
+import { linkedFileFsPath } from "../rewrite/linkedFileFsPath";
+import { textDocumentFsPath } from "../rewrite/textDocumentFsPath";
 import {
-  MDASTCiteProcCitationKeySelectAll,
-  MDASTCiteProcCitationSelectAll,
-  MDASTTopLevelHeaderSelect,
-  MDASTWikilinkSelectAll,
-} from "../remarkUtils/MDASTSelectors";
-import type { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
-import { Wikilink } from "../remarkUtils/remarkWikilink";
+  isCitationKeyFileReference,
+  isWikilinkFileReference,
+} from "../rewrite/typeGuards";
 import { LinkedFile, LinkedFileStatus } from "../rewrite/types";
 import type { AppDispatch, LinkedNotesStore } from "../store";
-import { unistPositionToVscodeRange } from "../utils/positionUtils";
-import { getDocumentIdFromWikilink } from "../utils/uriUtils";
 import { delay, isNotNullOrUndefined } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
-import { textDocumentFsPath } from "../rewrite/textDocumentFsPath";
-import { linkedFileFsPath } from "../rewrite/linkedFileFsPath";
-import { uriFsPath } from "../rewrite/uriFsPath";
+import { unistPositionToVscodeRange } from "../utils/positionUtils";
 
 /**
  * the time in milliseconds that updates to the linked file ast will be debounced.
@@ -69,9 +64,11 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       textDocument.getText(),
       selectBibliographicItemAho(thunkApi.getState())
     );
+    const fileReferences = syntaxTreeFileReferences(syntaxTree);
     return {
       fsPath,
       syntaxTree,
+      fileReferences,
     };
   }
 );
@@ -176,24 +173,24 @@ export const {
   selectById: selectLinkedFileStatusByFsPath,
 } = statusAdapter.getSelectors<RootState>(selectLinkedFilesStatusSlice);
 
-export const selectCitationKeysByFsPath = createObjectSelector(
+export const selectFileReferencesByFsPath = createObjectSelector(
   selectLinkedFiles,
   (linkedFile) => {
-    if (linkedFile?.syntaxTree === undefined) {
+    if (linkedFile?.fileReferences === undefined) {
       return [];
     }
-    return MDASTCiteProcCitationKeySelectAll(linkedFile.syntaxTree);
+    return linkedFile.fileReferences;
   }
 );
 
+export const selectCitationKeysByFsPath = createObjectSelector(
+  selectFileReferencesByFsPath,
+  (fileReferences) => fileReferences.filter(isCitationKeyFileReference)
+);
+
 export const selectWikilinksByFsPath = createObjectSelector(
-  selectLinkedFiles,
-  (linkedFile) => {
-    if (linkedFile?.syntaxTree === undefined) {
-      return [];
-    }
-    return MDASTWikilinkSelectAll(linkedFile.syntaxTree);
-  }
+  selectFileReferencesByFsPath,
+  (fileReferences) => fileReferences.filter(isWikilinkFileReference)
 );
 
 export const selectTopLevelHeaderByFsPath = createObjectSelector(
@@ -211,139 +208,131 @@ const selectTopLevelHeaderTextByFsPath = createObjectSelector(
   (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
 );
 
-// the first arg to createObjectSelector has its values mapped by key.
-// in this case allWikilinks is the list of wikilinks in each document.
-// the second arg is not mapped at all so allCitationKeysByDocumentId
-// is literally the result of selectCitationKeysByDocumentId. Finally
-// the last argument, key, is the key used to identify the wikilinks
-// in this case the documentId. We manually map the citation keys
-// but this creates a cache busting problem. When the citation keys
-// in one document change the cache is invalidated for all documents.
 export const selectDocumentLinksByFsPath = createObjectSelector(
-  selectWikilinksByFsPath,
-  selectCitationKeysByFsPath,
-  (allWikilinks, citationKeysByFsPath, key) => {
-    const allCitationKeys = citationKeysByFsPath[key];
-    return [...allWikilinks, ...allCitationKeys]
-      .map((v) => v.position)
+  selectFileReferencesByFsPath,
+  (allFileReferences) =>
+    allFileReferences
+      .map((ref) => ref.node.position)
       .filter(isNotNullOrUndefined)
-      .map((v) => new vscode.DocumentLink(unistPositionToVscodeRange(v)));
-  }
+      .map((pos) => new vscode.DocumentLink(unistPositionToVscodeRange(pos)))
 );
 
-export const selectWikilinkBackReferencesToFsPath = createSelector(
-  selectWikilinksByFsPath,
-  (allLinks) => {
-    // output of the format Dict<Referenced Doc ID, Reference List>
-    const output: {
-      [key: string]: {
-        srcFsPath: string;
-        wikilink: Wikilink;
-      }[];
-    } = {};
+// TODO(lukemurray): reimplement as file references
+// export const selectWikilinkBackReferencesToFsPath = createSelector(
+//   selectWikilinksByFsPath,
+//   (allLinks) => {
+//     // output of the format Dict<Referenced Doc ID, Reference List>
+//     const output: {
+//       [key: string]: {
+//         srcFsPath: string;
+//         wikilink: Wikilink;
+//       }[];
+//     } = {};
 
-    for (let srcFsPath of Object.keys(allLinks)) {
-      for (let wikilink of allLinks[srcFsPath]) {
-        const wikilinkReferenceDocumentId = getDocumentIdFromWikilink(wikilink);
-        if (wikilinkReferenceDocumentId !== undefined) {
-          if (output[wikilinkReferenceDocumentId] === undefined) {
-            output[wikilinkReferenceDocumentId] = [];
-          }
-          output[wikilinkReferenceDocumentId].push({
-            srcFsPath,
-            wikilink,
-          });
-        }
-      }
-    }
-    return output;
-  }
-);
+//     for (let srcFsPath of Object.keys(allLinks)) {
+//       for (let wikilink of allLinks[srcFsPath]) {
+//         const wikilinkReferenceDocumentId = getDocumentIdFromWikilink(wikilink);
+//         if (wikilinkReferenceDocumentId !== undefined) {
+//           if (output[wikilinkReferenceDocumentId] === undefined) {
+//             output[wikilinkReferenceDocumentId] = [];
+//           }
+//           output[wikilinkReferenceDocumentId].push({
+//             srcFsPath,
+//             wikilink,
+//           });
+//         }
+//       }
+//     }
+//     return output;
+//   }
+// );
 
-export const selectCitationKeyBackReferencesToCitationKey = createSelector(
-  selectCitationKeysByFsPath,
-  (allLinks) => {
-    // output of the format Dict<Citation Key, Reference List>
-    const output: {
-      [key: string]: {
-        containingDocumentId: string;
-        citationKey: CiteProcCitationKey;
-      }[];
-    } = {};
+// TODO(lukemurray): reimplement as file references
+// export const selectCitationKeyBackReferencesToCitationKey = createSelector(
+//   selectCitationKeysByFsPath,
+//   (allLinks) => {
+//     // output of the format Dict<Citation Key, Reference List>
+//     const output: {
+//       [key: string]: {
+//         containingDocumentId: string;
+//         citationKey: CiteProcCitationKey;
+//       }[];
+//     } = {};
 
-    for (let containingDocumentId of Object.keys(allLinks)) {
-      for (let citationKey of (allLinks as {
-        [key: string]: CiteProcCitationKey[];
-      })[containingDocumentId]) {
-        const citationKeyReferenceCitationKeyId =
-          citationKey.data.bibliographicItem.id;
-        if (output[citationKeyReferenceCitationKeyId] === undefined) {
-          output[citationKeyReferenceCitationKeyId] = [];
-        }
-        output[citationKeyReferenceCitationKeyId].push({
-          containingDocumentId: containingDocumentId,
-          citationKey,
-        });
-      }
-    }
-    return output;
-  }
-);
+//     for (let containingDocumentId of Object.keys(allLinks)) {
+//       for (let citationKey of (allLinks as {
+//         [key: string]: CiteProcCitationKey[];
+//       })[containingDocumentId]) {
+//         const citationKeyReferenceCitationKeyId =
+//           citationKey.data.bibliographicItem.id;
+//         if (output[citationKeyReferenceCitationKeyId] === undefined) {
+//           output[citationKeyReferenceCitationKeyId] = [];
+//         }
+//         output[citationKeyReferenceCitationKeyId].push({
+//           containingDocumentId: containingDocumentId,
+//           citationKey,
+//         });
+//       }
+//     }
+//     return output;
+//   }
+// );
 
-export const selectWikilinkCompletions = createSelector(
-  selectWikilinksByFsPath,
-  selectTopLevelHeaderTextByFsPath,
-  (wikilinksByDocumentId, headingTextByDocumentId) => {
-    return [
-      ...new Set([
-        // the wiki link titles
-        ...Object.values(wikilinksByDocumentId)
-          .flat()
-          .map((v) => v.data.title),
-        // the heading text
-        ...Object.values(headingTextByDocumentId)
-          .filter(isNotNullOrUndefined)
-          .flat(),
-      ]),
-    ].sort();
-  }
-);
+// TODO(lukemurray): reimplement as file references
+// export const selectWikilinkCompletions = createSelector(
+//   selectWikilinksByFsPath,
+//   selectTopLevelHeaderTextByFsPath,
+//   (wikilinksByDocumentId, headingTextByDocumentId) => {
+//     return [
+//       ...new Set([
+//         // the wiki link titles
+//         ...Object.values(wikilinksByDocumentId)
+//           .flat()
+//           .map((v) => v.data.title),
+//         // the heading text
+//         ...Object.values(headingTextByDocumentId)
+//           .filter(isNotNullOrUndefined)
+//           .flat(),
+//       ]),
+//     ].sort();
+//   }
+// );
 
 /*******************************************************************************
  * Utils
  ******************************************************************************/
 
-// promise returned from dispatching updateDocumentSyntaxTree
-type updateDocumentSyntaxTreePromise = ReturnType<
+// promise returned from dispatching updateLinkedFileSyntaxTree
+type updatedLinkedFileSyntaxTreePromise = ReturnType<
   ReturnType<typeof updateLinkedFileSyntaxTree>
 >;
 
-// dictionary of document id to promise returned from dispatching updateDocumentSyntaxTree
-const pendingUpdateDocumentThunks: Record<
+// map from fsPath to thunk promises
+const updateLinkedFileSyntaxTreePromises: Record<
   string,
-  updateDocumentSyntaxTreePromise | undefined
+  updatedLinkedFileSyntaxTreePromise | undefined
 > = {};
 
 // flag a document for update
-export function flagDocumentForUpdate(
+export function flagLinkedFileForUpdate(
   store: LinkedNotesStore,
   document: vscode.TextDocument
 ) {
   const docId = textDocumentFsPath(document);
   // if there is a pending thunk then cancel it
-  const pendingThunk = pendingUpdateDocumentThunks[docId];
+  const pendingThunk = updateLinkedFileSyntaxTreePromises[docId];
   if (pendingThunk !== undefined) {
     pendingThunk.abort();
   }
   // dispatch the new thunk
-  pendingUpdateDocumentThunks[docId] = store.dispatch(
+  updateLinkedFileSyntaxTreePromises[docId] = store.dispatch(
     updateLinkedFileSyntaxTree(document)
   );
 }
 
-export const waitForLinkedDocToParse = (
+export const waitForLinkedFileToUpdate = (
   store: LinkedNotesStore,
-  documentId: string,
+  fsPath: string,
   token: vscode.CancellationToken
 ) => {
   return new Promise<void>(async (resolve, reject) => {
@@ -351,11 +340,11 @@ export const waitForLinkedDocToParse = (
       if (token.isCancellationRequested) {
         resolve();
       }
-      const documentStatus = selectLinkedFileStatusByFsPath(
+      const linkedFileStatus = selectLinkedFileStatusByFsPath(
         store.getState(),
-        documentId
+        fsPath
       );
-      if (documentStatus?.status === "up to date") {
+      if (linkedFileStatus?.status === "up to date") {
         break;
       }
       // TODO(lukemurray): there's a memory leak here if the document is removed from the

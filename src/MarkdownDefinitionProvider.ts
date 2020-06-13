@@ -1,19 +1,9 @@
 import * as vscode from "vscode";
-import { waitForLinkedDocToParse } from "./reducers/linkedFiles";
+import { waitForLinkedFileToUpdate } from "./reducers/linkedFiles";
+import { fileReferenceCreateFileIfNotExists } from "./rewrite/fileReferenceCreateFileIfNotExists";
+import { positionFileReference } from "./rewrite/positionFileReference";
+import { textDocumentFsPath } from "./rewrite/textDocumentFsPath";
 import { LinkedNotesStore } from "./store";
-import {
-  createNoteFileIfNotExists,
-  createBibiliographicNoteFileIfNotExists,
-} from "./utils/newFileUtils";
-import {
-  getCitationKeyForPosition,
-  getWikilinkForPosition,
-} from "./utils/positionUtils";
-import {
-  getDocumentUriFromWikilink,
-  textDocumentFsPath,
-  getDocumentUriFromBibliographicItem,
-} from "./utils/uriUtils";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;
@@ -25,50 +15,19 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ) {
-    const documentId = textDocumentFsPath(document);
-    await waitForLinkedDocToParse(this.store, documentId, token);
+    const fsPath = textDocumentFsPath(document);
+    await waitForLinkedFileToUpdate(this.store, fsPath, token);
     if (token.isCancellationRequested) {
       return;
     }
-
-    const overlappingCitationKey = getCitationKeyForPosition(
-      this.store,
-      document,
-      position
-    );
-
-    if (overlappingCitationKey) {
-      let matchingFile = await createBibiliographicNoteFileIfNotExists(
-        overlappingCitationKey.data.bibliographicItem,
-        getDocumentUriFromBibliographicItem(
-          overlappingCitationKey.data.bibliographicItem,
-          this.store
-        )
-      );
-      // jump to the start of the file
-      if (matchingFile !== undefined) {
-        const p = new vscode.Position(0, 0);
-        return new vscode.Location(matchingFile, p);
+    const ref = positionFileReference(position, document, this.store);
+    if (ref !== undefined) {
+      const uri = await fileReferenceCreateFileIfNotExists(ref);
+      if (uri !== undefined) {
+        return new vscode.Location(uri, new vscode.Position(0, 0));
       }
     }
 
-    const overlappingWikilink = getWikilinkForPosition(
-      this.store,
-      document,
-      position
-    );
-    if (overlappingWikilink) {
-      const wikiLinkUri = getDocumentUriFromWikilink(overlappingWikilink);
-      let matchingFile = await createNoteFileIfNotExists(
-        overlappingWikilink.data.title,
-        wikiLinkUri
-      );
-      // jump to the start of the file
-      if (matchingFile !== undefined) {
-        const p = new vscode.Position(0, 0);
-        return new vscode.Location(matchingFile, p);
-      }
-    }
     return undefined;
   }
 }

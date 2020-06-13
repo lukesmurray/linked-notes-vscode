@@ -18,7 +18,7 @@ import {
 import {
   fileDeleted,
   fileRenamed,
-  flagDocumentForUpdate,
+  flagLinkedFileForUpdate,
 } from "./reducers/linkedFiles";
 import { uriFsPath } from "./rewrite/uriFsPath";
 import store from "./store";
@@ -51,7 +51,7 @@ export async function activate(context: vscode.ExtensionContext) {
       fileUris.map((uri) =>
         vscode.workspace
           .openTextDocument(uri)
-          .then((doc) => flagDocumentForUpdate(store, doc))
+          .then((doc) => flagLinkedFileForUpdate(store, doc))
       ),
     ]);
   });
@@ -148,14 +148,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // listen for when documents are opened in the workspace
   vscode.workspace.onDidOpenTextDocument(async (e) => {
     if (isMarkdownFile(e.uri)) {
-      flagDocumentForUpdate(store, e);
+      flagLinkedFileForUpdate(store, e);
     }
   });
 
   // listen for when documents are changed in the workspace
   vscode.workspace.onDidChangeTextDocument((e) => {
     if (isMarkdownFile(e.document.uri)) {
-      flagDocumentForUpdate(store, e.document);
+      flagLinkedFileForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
       store.dispatch(updateBibliographicItems());
     }
@@ -181,7 +181,7 @@ export async function activate(context: vscode.ExtensionContext) {
         store.dispatch(fileDeleted(uriFsPath(file.oldUri)));
       } else if (newIsMarkdown) {
         vscode.workspace.openTextDocument(file.newUri).then((doc) => {
-          flagDocumentForUpdate(store, doc);
+          flagLinkedFileForUpdate(store, doc);
         });
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
         store.dispatch(updateBibliographicItems());
@@ -234,7 +234,7 @@ export async function activate(context: vscode.ExtensionContext) {
   ): Promise<void> => {
     if (isMarkdownFile(uri)) {
       await vscode.workspace.openTextDocument(uri).then((doc) => {
-        flagDocumentForUpdate(store, doc);
+        flagLinkedFileForUpdate(store, doc);
       });
     }
   };

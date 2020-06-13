@@ -1,21 +1,11 @@
 import * as vscode from "vscode";
-import {
-  selectWikilinkBackReferencesToFsPath,
-  waitForLinkedDocToParse,
-  selectCitationKeyBackReferencesToCitationKey,
-  selectTopLevelHeaderByFsPath,
-} from "./reducers/linkedFiles";
+import { waitForLinkedFileToUpdate } from "./reducers/linkedFiles";
+import { fsPathBacklinkFileReferences } from "./rewrite/fsPathBacklinkFileReferences";
+import { fsPathUri } from "./rewrite/fsPathUri";
+import { positionFileReference } from "./rewrite/positionFileReference";
+import { textDocumentFsPath } from "./rewrite/textDocumentFsPath";
 import { LinkedNotesStore } from "./store";
-import {
-  getDocumentUriFromDocumentId,
-  uriFsPath,
-  textDocumentFsPath,
-} from "./utils/uriUtils";
-import {
-  unistPositionToVscodeRange,
-  getCitationKeyForPosition,
-  getDocumentURIForPosition,
-} from "./utils/positionUtils";
+import { unistPositionToVscodeRange } from "./utils/positionUtils";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;
@@ -30,75 +20,24 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     context: vscode.ReferenceContext,
     token: vscode.CancellationToken
   ) {
-    /***************************************************************************
-     * Document References
-     **************************************************************************/
-    const documentId = textDocumentFsPath(document);
-    await waitForLinkedDocToParse(this.store, documentId, token);
+    const fsPath = textDocumentFsPath(document);
+    await waitForLinkedFileToUpdate(this.store, fsPath, token);
     if (token.isCancellationRequested) {
       return;
     }
-    let { documentUri } = getDocumentURIForPosition(
-      document,
-      position,
-      this.store
-    );
-
-    if (documentUri) {
-      const documentId = uriFsPath(documentUri);
-      const wikilinkBackReferences = selectWikilinkBackReferencesToFsPath(
-        this.store.getState()
-      )[documentId];
-      const headerBackReference = selectTopLevelHeaderByFsPath(
-        this.store.getState()
-      )[documentId];
-
-      return [
-        ...wikilinkBackReferences
-          .filter((v) => v.wikilink.position !== undefined)
-          .map(({ srcFsPath: containingDocumentId, wikilink }) => {
-            return new vscode.Location(
-              getDocumentUriFromDocumentId(containingDocumentId),
-              unistPositionToVscodeRange(wikilink.position!)
-            );
-          }),
-        headerBackReference?.position !== undefined
-          ? new vscode.Location(
-              getDocumentUriFromDocumentId(documentId),
-              unistPositionToVscodeRange(headerBackReference?.position!)
+    const ref = positionFileReference(position, document, this.store);
+    if (ref !== undefined) {
+      const backlinks = fsPathBacklinkFileReferences(ref.targetFsPath);
+      return backlinks
+        .filter((link) => link.node.position !== undefined)
+        .map(
+          (link) =>
+            new vscode.Location(
+              fsPathUri(link.sourceFsPath),
+              unistPositionToVscodeRange(link.node.position!)
             )
-          : undefined,
-      ].filter((v) => v !== undefined) as vscode.Location[];
+        );
     }
-
-    /***************************************************************************
-     * Citation References
-     **************************************************************************/
-    const overlappingCitationKey = getCitationKeyForPosition(
-      this.store,
-      document,
-      position
-    );
-
-    if (
-      overlappingCitationKey &&
-      overlappingCitationKey.position !== undefined
-    ) {
-      const citationKeyBackReferences = selectCitationKeyBackReferencesToCitationKey(
-        this.store.getState()
-      )[overlappingCitationKey.data.bibliographicItem.id];
-      return [
-        ...citationKeyBackReferences
-          .filter((v) => v.citationKey.position !== undefined)
-          .map(({ containingDocumentId, citationKey }) => {
-            return new vscode.Location(
-              getDocumentUriFromDocumentId(containingDocumentId),
-              unistPositionToVscodeRange(citationKey.position!)
-            );
-          }),
-      ];
-    }
-
     return undefined;
   }
 }
