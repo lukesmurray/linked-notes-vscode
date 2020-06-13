@@ -11,7 +11,7 @@ import { LinkedNotesStore } from "./store";
 import { getDocumentUriFromDocumentId } from "./utils/uriUtils";
 import {
   unistPositionToVscodeRange,
-  getCitationKeysForPosition,
+  getCitationKeyForPosition,
   getDocumentURIForPosition,
 } from "./utils/positionUtils";
 
@@ -72,7 +72,7 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     /***************************************************************************
      * Citation References
      **************************************************************************/
-    const overlappingCitationKey = getCitationKeysForPosition(
+    const overlappingCitationKey = getCitationKeyForPosition(
       this.store,
       document,
       position

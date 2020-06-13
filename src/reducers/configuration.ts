@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import * as vscode from "vscode";
 import { RootState } from ".";
 import { AppDispatch } from "../store";
-import { updateCitationItems } from "./citationItems";
 import { createUriForFileRelativeToWorkspaceRoot } from "../utils/uriUtils";
+import { updateCitationItems } from "./citationItems";
 
 export interface ExtensionConfiguration {
-  defaultBib: null | string;
+  defaultBib: string | null;
+  defaultReferencesFile: string | null;
 }
 
 /*******************************************************************************
@@ -24,13 +26,21 @@ export const updateConfiguration = createAsyncThunk<
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
       thunkApi.dispatch(updateCitationItems());
     }
+    if (current.defaultReferencesFile !== next.defaultReferencesFile) {
+      thunkApi.dispatch(
+        updateDefaultReferencesFile(next.defaultReferencesFile)
+      );
+    }
   }
 );
 
 /*******************************************************************************
  * Reducers
  ******************************************************************************/
-const initialConfigurationState: ExtensionConfiguration = { defaultBib: null };
+const initialConfigurationState: ExtensionConfiguration = {
+  defaultBib: null,
+  defaultReferencesFile: null,
+};
 const configurationSlice = createSlice({
   name: "configuration",
   initialState: initialConfigurationState,
@@ -39,6 +49,10 @@ const configurationSlice = createSlice({
       state,
       action: PayloadAction<ExtensionConfiguration["defaultBib"]>
     ) => ({ ...state, defaultBib: action.payload }),
+    updateDefaultReferencesFile: (
+      state,
+      action: PayloadAction<ExtensionConfiguration["defaultReferencesFile"]>
+    ) => ({ ...state, defaultReferencesFile: action.payload }),
   },
 });
 
@@ -46,7 +60,10 @@ const configurationSlice = createSlice({
  * Actions
  ******************************************************************************/
 
-const { updateDefaultBib } = configurationSlice.actions;
+const {
+  updateDefaultBib,
+  updateDefaultReferencesFile,
+} = configurationSlice.actions;
 
 export default configurationSlice.reducer;
 
@@ -67,4 +84,24 @@ export function selectDefaultBibUri(state: RootState) {
     return undefined;
   }
   return createUriForFileRelativeToWorkspaceRoot(defaultBib);
+}
+
+/*******************************************************************************
+ * Utils
+ ******************************************************************************/
+
+export function readConfiguration(): ExtensionConfiguration {
+  const config = vscode.workspace.getConfiguration(getConfigurationScope());
+  return {
+    defaultBib: config.get(
+      "defaultBib"
+    ) as ExtensionConfiguration["defaultBib"],
+    defaultReferencesFile: config.get(
+      "defaultReferencesFile"
+    ) as ExtensionConfiguration["defaultReferencesFile"],
+  };
+}
+
+export function getConfigurationScope(): string {
+  return "linked-notes-vscode";
 }

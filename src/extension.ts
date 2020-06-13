@@ -10,7 +10,11 @@ import MarkdownRenameProvider from "./MarkdownRenameProvider";
 import MarkdownWikilinkCompletionProvider from "./MarkdownWikilinkCompletionProvider";
 import NewNoteCommand from "./NewNoteCommand";
 import { updateCitationItems } from "./reducers/citationItems";
-import { updateConfiguration } from "./reducers/configuration";
+import {
+  updateConfiguration,
+  readConfiguration,
+  getConfigurationScope,
+} from "./reducers/configuration";
 import {
   convertUriToLinkedDocId,
   documentDeleted,
@@ -22,12 +26,10 @@ import store from "./store";
 import {
   BIB_FILE_GLOB_PATTERN,
   findAllMarkdownFilesInWorkspace,
-  getConfigurationScope,
-  isDefaultBibFile,
   isMarkdownFile,
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
-  readConfiguration,
+  isDefaultBibFile,
 } from "./utils/util";
 import WriteDefaultSettingsCommand from "./WriteDefaultSettingsCommand";
 

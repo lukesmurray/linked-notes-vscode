@@ -10,9 +10,12 @@ import {
 import { LinkedNotesStore } from "./store";
 import { CslData } from "./types/csl-data";
 import {
-  getCitationKeysForPosition,
+  getCitationKeyForPosition,
   unistPositionToVscodeRange,
+  getWikilinkForPosition,
 } from "./utils/positionUtils";
+import { Wikilink } from "./remarkUtils/remarkWikilink";
+import { CiteProcCitationKey } from "./remarkUtils/remarkCiteproc";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
@@ -30,7 +33,7 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
     if (token.isCancellationRequested) {
       return;
     }
-    const overlappingCitationKey = getCitationKeysForPosition(
+    const overlappingCitationKey = getCitationKeyForPosition(
       this.store,
       document,
       position
@@ -40,15 +43,33 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
       overlappingCitationKey.position !== undefined
     ) {
       return new vscode.Hover(
-        citationItemHoverText(overlappingCitationKey.data.citation),
+        citationKeyHoverText(overlappingCitationKey),
         unistPositionToVscodeRange(overlappingCitationKey.position)
+      );
+    }
+
+    const overlappingWikilink = getWikilinkForPosition(
+      this.store,
+      document,
+      position
+    );
+    if (overlappingWikilink && overlappingWikilink.position !== undefined) {
+      return new vscode.Hover(
+        wikilinkHoverText(overlappingWikilink),
+        unistPositionToVscodeRange(overlappingWikilink.position)
       );
     }
     return undefined;
   }
 }
 
-function citationItemHoverText(citationItem: CslData[number]) {
+// TODO(lukemurray): create hover text for a wikilink
+function wikilinkHoverText(wikilink: Wikilink) {
+  return new vscode.MarkdownString([`TODO`, `implement this`].join("\n"));
+}
+
+function citationKeyHoverText(citationKey: CiteProcCitationKey) {
+  const citationItem = citationKey.data.citation;
   return new vscode.MarkdownString(
     [
       `${citationItemTitleString(citationItem)}`,

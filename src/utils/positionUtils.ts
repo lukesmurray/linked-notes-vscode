@@ -44,7 +44,7 @@ export function getWikilinkForPosition(
   return overlappingWikilink;
 }
 
-export function getCitationKeysForPosition(
+export function getCitationKeyForPosition(
   store: LinkedNotesStore,
   document: vscode.TextDocument,
   position: vscode.Position

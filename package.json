@@ -59,6 +59,14 @@
             ],
             "default": null,
             "description": "Specifies the file path to the default CSL JSON used for citations. Relative to the workspace root."
+          },
+          "linked-notes-vscode.defaultReferencesFile": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": "references",
+            "description": "Specifies the file path to the default file created for citation reference files. Relative to the workspace root."
           }
         }
       }

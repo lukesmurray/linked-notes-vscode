@@ -59,19 +59,6 @@ export async function createNewMarkdownDoc(newURI: vscode.Uri, title: string) {
   );
 }
 
-export function readConfiguration(): ExtensionConfiguration {
-  const config = vscode.workspace.getConfiguration(getConfigurationScope());
-  return {
-    defaultBib: config.get(
-      "defaultBib"
-    ) as ExtensionConfiguration["defaultBib"],
-  };
-}
-
-export function getConfigurationScope(): string {
-  return "linked-notes-vscode";
-}
-
 // return true if t is not null or undefined
 // very useful in filter functions
 export function isNotNullOrUndefined<T>(
