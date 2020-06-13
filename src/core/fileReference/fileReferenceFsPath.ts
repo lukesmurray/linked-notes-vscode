@@ -8,13 +8,19 @@ import { assertNever } from "../common/typeGuards";
 import * as vscode from "vscode";
 import path from "path";
 import { sluggifyDocumentTitle } from "../common/sluggifyDocumentTitle";
+import { fileReferenceTitle } from "./fileReferenceTitle";
+import { LinkedNotesStore } from "../../store";
+import { selectDefaultReferencesFolder } from "../../reducers/configuration";
 
 const MARKDOWN_EXT = "md";
 
-export function fileReferenceFsPath(ref: FileReference): string | undefined {
+export function fileReferenceFsPath(
+  ref: FileReference,
+  store: LinkedNotesStore
+): string | undefined {
   switch (ref.type) {
     case "citationKeyFileReference":
-      return citationKeyFileReferenceFsPath(ref);
+      return citationKeyFileReferenceFsPath(ref, store);
     case "wikilinkFileReference":
       return wikilinkFileReferenceFsPath(ref);
     case "titleFileReference":
@@ -25,10 +31,21 @@ export function fileReferenceFsPath(ref: FileReference): string | undefined {
 }
 
 function citationKeyFileReferenceFsPath(
-  ref: CitationKeyFileReference
+  ref: CitationKeyFileReference,
+  store: LinkedNotesStore
 ): string | undefined {
-  // TODO(lukemurray): IMPLEMENT THIS METHOD
-  throw new Error("NOT IMPLEMENTED");
+  if (vscode.workspace.workspaceFolders === undefined) {
+    return undefined;
+  }
+  const title = fileReferenceTitle(ref);
+  const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+  const referencePathRoot = selectDefaultReferencesFolder(store.getState());
+  if (referencePathRoot === null) {
+    return;
+  }
+  const baseName = sluggifyDocumentTitle(title) + `.${MARKDOWN_EXT}`;
+  return vscode.Uri.file(path.join(workspaceRoot, referencePathRoot, baseName))
+    .fsPath;
 }
 
 function wikilinkFileReferenceFsPath(
@@ -38,7 +55,7 @@ function wikilinkFileReferenceFsPath(
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
   }
-  const title = ref.node.data.title;
+  const title = fileReferenceTitle(ref);
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
   const baseName = sluggifyDocumentTitle(title) + `.${MARKDOWN_EXT}`;
   return vscode.Uri.file(path.join(workspaceRoot, baseName)).fsPath;

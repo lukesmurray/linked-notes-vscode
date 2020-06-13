@@ -81,15 +81,29 @@ export const FileReferenceTypeToRemarkType: Record<
  *  Linked Files
  ******************************************************************************/
 
+export const LinkedFileTypeKeys = ["note", "reference"] as const;
+export type LinkedFileType = typeof LinkedFileTypeKeys[number];
+
 export interface LinkedFileIdentifiable {
   // the fsPath of the file that identifies this item
   fsPath: string;
 }
 
-export interface LinkedFile extends LinkedFileIdentifiable {
+export interface BaseLinkedFile extends LinkedFileIdentifiable {
   syntaxTree?: MDAST.Root;
   fileReferences?: FileReference[];
+  type: LinkedFileType;
 }
+
+interface NoteLinkedFile extends BaseLinkedFile {
+  type: "note";
+}
+
+interface ReferenceLinkedFile extends BaseLinkedFile {
+  type: "reference";
+}
+
+export type LinkedFile = NoteLinkedFile | ReferenceLinkedFile;
 
 export interface LinkedFileStatus extends LinkedFileIdentifiable {
   status: "up to date" | "pending changes";
