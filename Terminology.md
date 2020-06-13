@@ -24,4 +24,6 @@
   <dd>
     A citation key is a unique string used to identify a bibliographic reference in a bibliography export. A citation key is created by prefixing the bibliographic item's id with an <code>@</code> symbol.
   </dd>
+  <dt>File Reference</dt>
+  <dd>A bidirectional link from a node in a remark AST to a file.</dd>
 </dl>

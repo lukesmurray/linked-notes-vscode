@@ -63,7 +63,7 @@ draft: true
 `;
 }
 
-// TODO(lukemurray): review default text
+// TODO(lukemurray): review default text for bibliographic notes
 export function getDefaultBibliographicNoteText(title: string): string {
   return `---
 draft: true

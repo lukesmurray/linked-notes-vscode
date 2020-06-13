@@ -10,7 +10,6 @@ import { updateBibliographicItems } from "./bibliographicItems";
 
 export interface ExtensionConfiguration {
   defaultBib: string | null;
-  // TODO(lukemurray): rename to references folder
   defaultReferencesFolder: string | null;
 }
 

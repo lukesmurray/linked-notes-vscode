@@ -3,7 +3,10 @@ import {
   bibliographicItemAuthorString,
   bibliographicItemTitleString,
 } from "./remarkUtils/citeProcUtils";
-import { waitForLinkedDocToParse } from "./reducers/documents";
+import {
+  waitForLinkedDocToParse,
+  selectDocumentById,
+} from "./reducers/documents";
 import { LinkedNotesStore } from "./store";
 import { CslData } from "./types/csl-data";
 import {
@@ -13,7 +16,13 @@ import {
 } from "./utils/positionUtils";
 import { Wikilink } from "./remarkUtils/remarkWikilink";
 import { CiteProcCitationKey } from "./remarkUtils/remarkCiteproc";
-import { convertTextDocToLinkedDocId } from "./utils/uriUtils";
+import {
+  convertTextDocToLinkedDocId,
+  getDocumentUriFromDocumentSlug,
+  getDocumentIdFromWikilink,
+  getDocumentUriFromWikilink,
+} from "./utils/uriUtils";
+import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;
@@ -52,8 +61,12 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
       position
     );
     if (overlappingWikilink && overlappingWikilink.position !== undefined) {
+      const hoverText = await wikilinkHoverText(overlappingWikilink);
+      if (hoverText === undefined) {
+        return undefined;
+      }
       return new vscode.Hover(
-        wikilinkHoverText(overlappingWikilink),
+        hoverText,
         unistPositionToVscodeRange(overlappingWikilink.position)
       );
     }
@@ -61,9 +74,31 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
   }
 }
 
-// TODO(lukemurray): create hover text for a wikilink
-function wikilinkHoverText(wikilink: Wikilink) {
-  return new vscode.MarkdownString([`TODO`, `implement this`].join("\n"));
+async function wikilinkHoverText(wikilink: Wikilink) {
+  const documentUri = getDocumentUriFromWikilink(wikilink);
+  if (documentUri === undefined) {
+    return undefined;
+  }
+  // TODO(lukemurray): we may want to look at other thenables and catch errors using this same method
+  return await Promise.resolve(
+    vscode.workspace.openTextDocument(documentUri).then((doc) => {
+      const numLinesToPreview = 50;
+      // TODO(lukemurray): skip front matter in preview
+      return new vscode.MarkdownString(
+        doc.getText(
+          new vscode.Range(
+            new vscode.Position(0, 0),
+            new vscode.Position(numLinesToPreview, 0)
+          )
+        )
+      );
+    })
+  ).catch((err) => {
+    // TODO(lukemurray): we only want to catch missing file error, this catches all errors
+    // example logged error
+    // Error: cannot open file:///Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md. Detail: Unable to read file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md' (Error: Unable to resolve non-existing file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md')
+    return new vscode.MarkdownString("");
+  });
 }
 
 function citationKeyHoverText(citationKey: CiteProcCitationKey) {
