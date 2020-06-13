@@ -4,7 +4,9 @@ import * as UNIST from "unist";
 import { select } from "unist-util-select";
 import { BaseFileReferenceNode } from "../common/types";
 
-interface RemarkTitleHeadingOptions {}
+interface RemarkTitleHeadingOptions {
+  fsPath: string;
+}
 
 export interface TitleHeading extends BaseFileReferenceNode {
   type: "titleHeading";
@@ -13,6 +15,10 @@ export interface TitleHeading extends BaseFileReferenceNode {
      * the title of the page
      */
     title: string;
+    /**
+     * the fspath of the page
+     */
+    fsPath: string;
   };
   children: UNIST.Node[];
 }
@@ -29,6 +35,7 @@ function remarkTitleHeading(
       titleHeading.type = "titleHeading";
       titleHeading.data = {
         title: mdastUtilToString(topLevelHeading),
+        fsPath: settings.fsPath,
       };
     }
     return node;

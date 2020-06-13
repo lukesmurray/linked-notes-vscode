@@ -61,7 +61,8 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
     }
     const syntaxTree = await getMDASTFromText(
       textDocument.getText(),
-      selectBibliographicItemAho(thunkApi.getState())
+      selectBibliographicItemAho(thunkApi.getState()),
+      textDocumentFsPath(textDocument)
     );
     const fileReferences = syntaxTreeFileReferences(syntaxTree);
     return {

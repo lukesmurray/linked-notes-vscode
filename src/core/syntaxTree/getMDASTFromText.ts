@@ -8,9 +8,10 @@ import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
  */
 export async function getMDASTFromText(
   text: string,
-  bibliographicItemAho: AhoCorasick<BibliographicItem>
+  bibliographicItemAho: AhoCorasick<BibliographicItem>,
+  fsPath: string
 ): Promise<MDAST.Root> {
-  const processor = createMarkdownProcessor(bibliographicItemAho);
+  const processor = createMarkdownProcessor(bibliographicItemAho, fsPath);
   // TODO(lukemurray): find a better way to get rid of circular references
   // since we store the syntax tree in redux we want all references to be
   // unique but the mdast shares references to things like internal arrays

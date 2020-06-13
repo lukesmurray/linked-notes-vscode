@@ -1,8 +1,5 @@
 import * as UNIST from "unist";
 import * as vscode from "vscode";
-/*******************************************************************************
- * Converters
- ******************************************************************************/
 
 export function unistPositionToVscodeRange(
   position: UNIST.Position

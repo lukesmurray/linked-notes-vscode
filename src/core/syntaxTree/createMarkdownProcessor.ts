@@ -12,7 +12,8 @@ import remarkTitleHeading from "../remarkPlugins/remarkTitleHeading";
  * creating syntax trees
  */
 export function createMarkdownProcessor(
-  bibliographicItemAho: AhoCorasick<BibliographicItem>
+  bibliographicItemAho: AhoCorasick<BibliographicItem>,
+  fsPath: string
 ) {
   return unified()
     .use(markdown)
@@ -20,5 +21,5 @@ export function createMarkdownProcessor(
       citationItemAho: bibliographicItemAho,
     })
     .use(remarkWikilink, {})
-    .use(remarkTitleHeading, {});
+    .use(remarkTitleHeading, { fsPath });
 }
