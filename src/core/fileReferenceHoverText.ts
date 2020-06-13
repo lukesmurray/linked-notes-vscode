@@ -2,31 +2,33 @@ import {
   CitationKeyFileReference,
   FileReference,
   WikilinkFileReference,
-} from "./types";
-import { assertNever } from "./typeGuards";
+} from "./common/types";
+import { assertNever } from "./common/typeGuards";
 import * as vscode from "vscode";
 
-export function fileReferenceContentRange(ref: FileReference): vscode.Range {
+export function fileReferenceHoverText(
+  ref: FileReference
+): vscode.MarkdownString {
   switch (ref.type) {
     case "citationKeyFileReference":
-      return citationKeyFileReferenceContentRange(ref);
+      return citationKeyFileReferenceHoverText(ref);
     case "wikilinkFileReference":
-      return wikilinkFileReferenceContentRange(ref);
+      return wikilinkFileReferenceHoverText(ref);
     default:
       assertNever(ref);
   }
 }
 
-function citationKeyFileReferenceContentRange(
+function citationKeyFileReferenceHoverText(
   ref: CitationKeyFileReference
-): vscode.Range {
+): vscode.MarkdownString {
   // TODO(lukemurray): IMPLEMENT THIS METHOD
   throw new Error("NOT IMPLEMENTED");
 }
 
-function wikilinkFileReferenceContentRange(
+function wikilinkFileReferenceHoverText(
   ref: WikilinkFileReference
-): vscode.Range {
+): vscode.MarkdownString {
   // TODO(lukemurray): IMPLEMENT THIS METHOD
   throw new Error("NOT IMPLEMENTED");
 }

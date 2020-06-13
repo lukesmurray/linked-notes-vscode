@@ -2,8 +2,8 @@ import {
   CitationKeyFileReference,
   FileReference,
   WikilinkFileReference,
-} from "./types";
-import { assertNever } from "./typeGuards";
+} from "./common/types";
+import { assertNever } from "./common/typeGuards";
 import * as vscode from "vscode";
 
 export async function fileReferenceCreateFileIfNotExists(

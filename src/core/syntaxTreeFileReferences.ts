@@ -1,13 +1,13 @@
 import * as MDAST from "mdast";
 import { syntaxTreeFileReferenceNodes } from "./syntaxTreeFileReferenceNodes";
-import { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
+import { CiteProcCitationKey } from "./remarkCiteproc";
 import {
   CitationKeyFileReference,
   FileReference,
   WikilinkFileReference,
-} from "./types";
-import { assertNever } from "./typeGuards";
-import { Wikilink } from "../remarkUtils/remarkWikilink";
+} from "./common/types";
+import { assertNever } from "./common/typeGuards";
+import { Wikilink } from "./remarkWikilink";
 
 export function syntaxTreeFileReferences(
   syntaxTree: MDAST.Root

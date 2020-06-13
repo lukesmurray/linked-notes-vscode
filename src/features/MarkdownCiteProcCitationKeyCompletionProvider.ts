@@ -1,10 +1,8 @@
 import * as vscode from "vscode";
-import { selectCitationKeyCompletions } from "./reducers/bibliographicItems";
-import { LinkedNotesStore } from "./store";
-import {
-  getCiteProcCompletionRange,
-  getWikilinkCompletionRange,
-} from "./utils/positionUtils";
+import { selectCitationKeyCompletions } from "../reducers/bibliographicItems";
+import { LinkedNotesStore } from "../store";
+import { getWikilinkCompletionRange } from "../core/getWikilinkCompletionRange";
+import { getCiteProcCompletionRange } from "../core/getCiteProcCompletionRange";
 
 class MarkdownCiteProcCitationKeyCompletionProvider
   implements vscode.CompletionItemProvider {

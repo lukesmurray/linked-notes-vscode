@@ -4,25 +4,24 @@ import {
   createAsyncThunk,
   createEntityAdapter,
   createSlice,
+  createSelector,
 } from "@reduxjs/toolkit";
-import mdastNodeToString from "mdast-util-to-string";
 import { createObjectSelector } from "reselect-map";
 import * as vscode from "vscode";
 import type { RootState } from ".";
-import { getMDASTFromText } from "../remarkUtils/getMDASTFromText";
-import { MDASTTopLevelHeaderSelect } from "../remarkUtils/MDASTSelectors";
-import { syntaxTreeFileReferences } from "../rewrite/syntaxTreeFileReferences";
-import { linkedFileFsPath } from "../rewrite/linkedFileFsPath";
-import { textDocumentFsPath } from "../rewrite/textDocumentFsPath";
+import { getMDASTFromText } from "../core/getMDASTFromText";
+import { linkedFileFsPath } from "../core/linkedFileFsPath";
+import { syntaxTreeFileReferences } from "../core/syntaxTreeFileReferences";
+import { textDocumentFsPath } from "../core/textDocumentFsPath";
 import {
   isCitationKeyFileReference,
   isWikilinkFileReference,
-} from "../rewrite/typeGuards";
-import { LinkedFile, LinkedFileStatus } from "../rewrite/types";
+} from "../core/common/typeGuards";
+import { LinkedFile, LinkedFileStatus } from "../core/common/types";
 import type { AppDispatch, LinkedNotesStore } from "../store";
+import { unistPositionToVscodeRange } from "../core/unistPositionToVscodeRange";
 import { delay, isNotNullOrUndefined } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
-import { unistPositionToVscodeRange } from "../utils/positionUtils";
 
 /**
  * the time in milliseconds that updates to the linked file ast will be debounced.
@@ -193,21 +192,6 @@ export const selectWikilinksByFsPath = createObjectSelector(
   (fileReferences) => fileReferences.filter(isWikilinkFileReference)
 );
 
-export const selectTopLevelHeaderByFsPath = createObjectSelector(
-  selectLinkedFiles,
-  (linkedFile) => {
-    if (linkedFile?.syntaxTree === undefined) {
-      return undefined;
-    }
-    return MDASTTopLevelHeaderSelect(linkedFile.syntaxTree);
-  }
-);
-
-const selectTopLevelHeaderTextByFsPath = createObjectSelector(
-  selectTopLevelHeaderByFsPath,
-  (heading) => (heading === undefined ? undefined : mdastNodeToString(heading))
-);
-
 export const selectDocumentLinksByFsPath = createObjectSelector(
   selectFileReferencesByFsPath,
   (allFileReferences) =>
@@ -218,85 +202,15 @@ export const selectDocumentLinksByFsPath = createObjectSelector(
 );
 
 // TODO(lukemurray): reimplement as file references
-// export const selectWikilinkBackReferencesToFsPath = createSelector(
-//   selectWikilinksByFsPath,
-//   (allLinks) => {
-//     // output of the format Dict<Referenced Doc ID, Reference List>
-//     const output: {
-//       [key: string]: {
-//         srcFsPath: string;
-//         wikilink: Wikilink;
-//       }[];
-//     } = {};
-
-//     for (let srcFsPath of Object.keys(allLinks)) {
-//       for (let wikilink of allLinks[srcFsPath]) {
-//         const wikilinkReferenceDocumentId = getDocumentIdFromWikilink(wikilink);
-//         if (wikilinkReferenceDocumentId !== undefined) {
-//           if (output[wikilinkReferenceDocumentId] === undefined) {
-//             output[wikilinkReferenceDocumentId] = [];
-//           }
-//           output[wikilinkReferenceDocumentId].push({
-//             srcFsPath,
-//             wikilink,
-//           });
-//         }
-//       }
-//     }
-//     return output;
-//   }
-// );
-
-// TODO(lukemurray): reimplement as file references
-// export const selectCitationKeyBackReferencesToCitationKey = createSelector(
-//   selectCitationKeysByFsPath,
-//   (allLinks) => {
-//     // output of the format Dict<Citation Key, Reference List>
-//     const output: {
-//       [key: string]: {
-//         containingDocumentId: string;
-//         citationKey: CiteProcCitationKey;
-//       }[];
-//     } = {};
-
-//     for (let containingDocumentId of Object.keys(allLinks)) {
-//       for (let citationKey of (allLinks as {
-//         [key: string]: CiteProcCitationKey[];
-//       })[containingDocumentId]) {
-//         const citationKeyReferenceCitationKeyId =
-//           citationKey.data.bibliographicItem.id;
-//         if (output[citationKeyReferenceCitationKeyId] === undefined) {
-//           output[citationKeyReferenceCitationKeyId] = [];
-//         }
-//         output[citationKeyReferenceCitationKeyId].push({
-//           containingDocumentId: containingDocumentId,
-//           citationKey,
-//         });
-//       }
-//     }
-//     return output;
-//   }
-// );
-
-// TODO(lukemurray): reimplement as file references
-// export const selectWikilinkCompletions = createSelector(
-//   selectWikilinksByFsPath,
-//   selectTopLevelHeaderTextByFsPath,
-//   (wikilinksByDocumentId, headingTextByDocumentId) => {
-//     return [
-//       ...new Set([
-//         // the wiki link titles
-//         ...Object.values(wikilinksByDocumentId)
-//           .flat()
-//           .map((v) => v.data.title),
-//         // the heading text
-//         ...Object.values(headingTextByDocumentId)
-//           .filter(isNotNullOrUndefined)
-//           .flat(),
-//       ]),
-//     ].sort();
-//   }
-// );
+export const selectWikilinkCompletions = createSelector(
+  selectWikilinksByFsPath,
+  // selectTopLevelHeaderTextByFsPath,
+  (allWikilinks) => {
+    return Object.values(allWikilinks)
+      .flat()
+      .map((w) => w.node.data.title);
+  }
+);
 
 /*******************************************************************************
  * Utils

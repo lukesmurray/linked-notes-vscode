@@ -5,11 +5,11 @@ import {
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
-import { createAhoCorasickFromCSLJSON } from "../remarkUtils/createAhoCorasickFromCSLData";
+import { createAhoCorasickFromCSLJSON } from "../core/createAhoCorasickFromCSLData";
 import { AppDispatch } from "../store";
 import { CslData } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";
-import { createCitationKeyCompletion } from "../remarkUtils/citeProcUtils";
+import { createCitationKeyCompletion } from "../alpha/citeProcUtils";
 
 /*******************************************************************************
  * Thunks

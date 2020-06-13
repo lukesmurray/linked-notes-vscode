@@ -1,7 +1,7 @@
 import MarkdownIt from "markdown-it";
 import markdownItRegex, { MarkdownItRegexOptions } from "markdown-it-regex";
-import { getDocumentUriFromDocumentSlug } from "./utils/uriUtils";
-import { sluggifyDocumentTitle } from "./utils/sluggifyDocumentTitle";
+import { getDocumentUriFromDocumentSlug } from "../utils/uriUtils";
+import { sluggifyDocumentTitle } from "../core/sluggifyDocumentTitle";
 
 /**
  * Add additional functionality to the Markdown Preview in vscode.

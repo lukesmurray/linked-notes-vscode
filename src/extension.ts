@@ -1,14 +1,14 @@
 import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
 import * as vscode from "vscode";
-import ExtendMarkdownIt from "./ExtendMarkdownIt";
-import MarkdownCiteProcCitationKeyCompletionProvider from "./MarkdownCiteProcCitationKeyCompletionProvider";
-import MarkdownDefinitionProvider from "./MarkdownDefinitionProvider";
-import MarkdownDocumentLinkProvider from "./MarkdownDocumentLinkProvider";
-import MarkdownHoverProvider from "./MarkdownHoverProvider";
-import MarkdownReferenceProvider from "./MarkdownReferenceProvider";
-import MarkdownRenameProvider from "./MarkdownRenameProvider";
-import MarkdownWikilinkCompletionProvider from "./MarkdownWikilinkCompletionProvider";
-import NewNoteCommand from "./NewNoteCommand";
+import ExtendMarkdownIt from "./features/ExtendMarkdownIt";
+import MarkdownCiteProcCitationKeyCompletionProvider from "./features/MarkdownCiteProcCitationKeyCompletionProvider";
+import MarkdownDefinitionProvider from "./features/MarkdownDefinitionProvider";
+import MarkdownDocumentLinkProvider from "./features/MarkdownDocumentLinkProvider";
+import MarkdownHoverProvider from "./features/MarkdownHoverProvider";
+import MarkdownReferenceProvider from "./features/MarkdownReferenceProvider";
+import MarkdownRenameProvider from "./features/MarkdownRenameProvider";
+import MarkdownWikilinkCompletionProvider from "./features/MarkdownWikiLinkCompletionProvider";
+import NewNoteCommand from "./features/NewNoteCommand";
 import { updateBibliographicItems } from "./reducers/bibliographicItems";
 import {
   getConfigurationScope,
@@ -20,7 +20,7 @@ import {
   fileRenamed,
   flagLinkedFileForUpdate,
 } from "./reducers/linkedFiles";
-import { uriFsPath } from "./rewrite/uriFsPath";
+import { uriFsPath } from "./core/uriFsPath";
 import store from "./store";
 import {
   BIB_FILE_GLOB_PATTERN,
@@ -30,7 +30,7 @@ import {
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
 } from "./utils/util";
-import WriteDefaultSettingsCommand from "./WriteDefaultSettingsCommand";
+import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
 
 export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************

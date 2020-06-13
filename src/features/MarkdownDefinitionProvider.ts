@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import { waitForLinkedFileToUpdate } from "./reducers/linkedFiles";
-import { fileReferenceCreateFileIfNotExists } from "./rewrite/fileReferenceCreateFileIfNotExists";
-import { positionFileReference } from "./rewrite/positionFileReference";
-import { textDocumentFsPath } from "./rewrite/textDocumentFsPath";
-import { LinkedNotesStore } from "./store";
+import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
+import { fileReferenceCreateFileIfNotExists } from "../core/fileReferenceCreateFileIfNotExists";
+import { positionFileReference } from "../core/positionFileReference";
+import { textDocumentFsPath } from "../core/textDocumentFsPath";
+import { LinkedNotesStore } from "../store";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
   private store: LinkedNotesStore;

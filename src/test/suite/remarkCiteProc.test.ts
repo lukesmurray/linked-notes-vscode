@@ -3,8 +3,8 @@ import markdown from "remark-parse";
 import unified from "unified";
 import vfile from "vfile";
 import reporter from "vfile-reporter";
-import { createAhoCorasickFromCSLJSON } from "../../remarkUtils/createAhoCorasickFromCSLData";
-import remarkCiteproc from "../../remarkUtils/remarkCiteproc";
+import { createAhoCorasickFromCSLJSON } from "../../core/createAhoCorasickFromCSLData";
+import remarkCiteproc from "../../core/remarkCiteproc";
 import { CslData } from "../../types/csl-data";
 
 suite("Reducer Test Suite", () => {

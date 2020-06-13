@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
-import { waitForLinkedFileToUpdate } from "./reducers/linkedFiles";
-import { fileReferenceHoverText } from "./rewrite/fileReferenceHoverText";
-import { positionFileReference } from "./rewrite/positionFileReference";
-import { textDocumentFsPath } from "./rewrite/textDocumentFsPath";
-import { LinkedNotesStore } from "./store";
-import { unistPositionToVscodeRange } from "./utils/positionUtils";
+import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
+import { fileReferenceHoverText } from "../core/fileReferenceHoverText";
+import { positionFileReference } from "../core/positionFileReference";
+import { textDocumentFsPath } from "../core/textDocumentFsPath";
+import { LinkedNotesStore } from "../store";
+import { unistPositionToVscodeRange } from "../core/unistPositionToVscodeRange";
 
 class MarkdownHoverProvider implements vscode.HoverProvider {
   private store: LinkedNotesStore;

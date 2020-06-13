@@ -1,7 +1,7 @@
 import * as MDAST from "mdast";
 import * as UNIST from "unist";
-import { CiteProcCitationKey } from "../remarkUtils/remarkCiteproc";
-import { Wikilink } from "../remarkUtils/remarkWikilink";
+import { CiteProcCitationKey } from "../remarkCiteproc";
+import { Wikilink } from "../remarkWikilink";
 
 /*******************************************************************************
  * File References
