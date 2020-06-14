@@ -6,7 +6,7 @@ import {
   createSlice,
   createSelector,
 } from "@reduxjs/toolkit";
-import { createObjectSelector } from "reselect-map";
+import { createObjectSelector, createArraySelector } from "reselect-map";
 import * as vscode from "vscode";
 import type { RootState } from ".";
 import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
@@ -17,7 +17,11 @@ import {
   isCitationKeyFileReference,
   isWikilinkFileReference,
 } from "../core/common/typeGuards";
-import { LinkedFile, LinkedFileStatus } from "../core/common/types";
+import {
+  LinkedFile,
+  LinkedFileStatus,
+  FileReference,
+} from "../core/common/types";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 import { delay, isNotNullOrUndefined } from "../utils/util";
@@ -64,12 +68,20 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       selectBibliographicItemAho(thunkApi.getState()),
       textDocumentFsPath(textDocument)
     );
-    const fileReferences = syntaxTreeFileReferences(syntaxTree);
-    return {
+    const fileReferences = syntaxTreeFileReferences(
+      syntaxTree,
+      textDocumentFsPath(textDocument),
+      thunkApi
+    );
+    const newLinkedFile: LinkedFile = {
       fsPath,
       syntaxTree,
       fileReferences,
+      // TODO(lukemurray): think about how we would add new note types and where
+      // it would be reasonable to add that information
+      type: "note",
     };
+    return newLinkedFile;
   }
 );
 
@@ -95,7 +107,7 @@ const linkedFilesSlice = createSlice({
       return linkedFileAdapter.upsertOne(state, action.payload);
     });
     builder.addCase(linkedFileChangePending, (state, action) => {
-      return linkedFileAdapter.upsertOne(state, action.payload);
+      return linkedFileAdapter.upsertOne(state, action.payload as LinkedFile);
     });
   },
 });
@@ -180,6 +192,28 @@ export const selectFileReferencesByFsPath = createObjectSelector(
       return [];
     }
     return linkedFile.fileReferences;
+  }
+);
+
+// TODO(lukemurray): we really want this to by targetFsPath => FileReference[]
+// outputs nested dictionary sourceFsPath => targetFsPath => FileReference[]
+export const selectBackLinksByFsPath = createObjectSelector(
+  selectLinkedFiles,
+  (linkedFile) => {
+    if (linkedFile?.fileReferences === undefined) {
+      return {};
+    }
+    // map from targetFsPath to FileReference[]
+    const output: Record<string, FileReference[]> = {};
+    return linkedFile.fileReferences.reduce((prev, curr) => {
+      if (curr._targetFsPath !== undefined) {
+        prev[curr._targetFsPath] =
+          prev[curr._targetFsPath] === undefined
+            ? [curr]
+            : [...prev[curr._targetFsPath], curr];
+      }
+      return prev;
+    }, output);
   }
 );
 

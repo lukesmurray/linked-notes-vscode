@@ -24,10 +24,13 @@ class MarkdownHoverProvider implements vscode.HoverProvider {
     }
     const ref = positionFileReference(position, document, this.store);
     if (ref !== undefined && ref.node.position !== undefined) {
-      return new vscode.Hover(
-        fileReferenceHoverText(ref),
-        unistPositionToVscodeRange(ref.node.position)
-      );
+      const hoverText = await fileReferenceHoverText(ref, this.store);
+      if (hoverText !== undefined) {
+        return new vscode.Hover(
+          hoverText,
+          unistPositionToVscodeRange(ref.node.position)
+        );
+      }
     }
     return undefined;
   }

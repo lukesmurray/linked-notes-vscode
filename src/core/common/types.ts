@@ -22,8 +22,11 @@ interface BaseFileReference {
   node: UNIST.Node;
   // the fsPath of the file this reference is located in
   sourceFsPath: string;
-  // the fsPath of the file this reference is targeting
-  targetFsPath: string;
+  /**
+   * the fsPath of the file this reference is targeting
+   * use fileReferenceFsPath instead.
+   */
+  _targetFsPath?: string;
 }
 
 // implementation of various file references

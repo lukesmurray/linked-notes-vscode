@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import { RootState } from "../reducers";
 import { selectDefaultBibUri } from "../reducers/configuration";
 
+export const DEFAULT_MARKDOWN_EXT = "md";
+
 export const MarkDownDocumentSelector = {
   scheme: "file",
   language: "markdown",

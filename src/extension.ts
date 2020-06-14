@@ -177,10 +177,13 @@ export async function activate(context: vscode.ExtensionContext) {
             },
           })
         );
+        await vscode.workspace.openTextDocument(file.newUri).then((doc) => {
+          flagLinkedFileForUpdate(store, doc);
+        });
       } else if (oldIsMarkdown) {
         store.dispatch(fileDeleted(uriFsPath(file.oldUri)));
       } else if (newIsMarkdown) {
-        vscode.workspace.openTextDocument(file.newUri).then((doc) => {
+        await vscode.workspace.openTextDocument(file.newUri).then((doc) => {
           flagLinkedFileForUpdate(store, doc);
         });
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {

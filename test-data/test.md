@@ -15,3 +15,13 @@ this is a test to see if everythign is working well ok wow this is working prett
 [[+this is a link to a project]]
 
 [this is a link to a project](this-is-a-link-to-a-project.md)
+
+[[test]]
+
+
+[[this is a test tos ee ]]
+
+
+[[@this is a link to a person]]
+
+[@beaudouin-lafonReificationPolymorphismReuse]

@@ -3,7 +3,7 @@ import { selectAll } from "unist-util-select";
 import { isFileReferenceRemarkNode } from "../common/typeGuards";
 import { FileReferenceNodeTypeKeys } from "../common/types";
 
-export function syntaxTreeFileReferenceNodes(syntaxTree: MDAST.Root) {
+export function getFileReferenceNodesFromMDAST(syntaxTree: MDAST.Root) {
   return selectAll(FileReferenceNodeTypeKeys.join(","), syntaxTree).filter(
     isFileReferenceRemarkNode
   );

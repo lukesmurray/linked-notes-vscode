@@ -6,6 +6,7 @@ import { positionFileReference } from "../core/fileReference/positionFileReferen
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import { LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
+import { fileReferenceFsPath } from "../core/fileReference/fileReferenceFsPath";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
   private store: LinkedNotesStore;
@@ -27,16 +28,19 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
     }
     const ref = positionFileReference(position, document, this.store);
     if (ref !== undefined) {
-      const backlinks = fsPathBacklinkFileReferences(ref.targetFsPath);
-      return backlinks
-        .filter((link) => link.node.position !== undefined)
-        .map(
-          (link) =>
-            new vscode.Location(
-              fsPathUri(link.sourceFsPath),
-              unistPositionToVscodeRange(link.node.position!)
-            )
-        );
+      const targetPath = fileReferenceFsPath(ref, this.store);
+      if (targetPath !== undefined) {
+        const backlinks = fsPathBacklinkFileReferences(targetPath, this.store);
+        return backlinks
+          .filter((link) => link.node.position !== undefined)
+          .map(
+            (link) =>
+              new vscode.Location(
+                fsPathUri(link.sourceFsPath),
+                unistPositionToVscodeRange(link.node.position!)
+              )
+          );
+      }
     }
     return undefined;
   }

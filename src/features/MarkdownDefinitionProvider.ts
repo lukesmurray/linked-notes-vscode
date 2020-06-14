@@ -22,7 +22,7 @@ class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
     }
     const ref = positionFileReference(position, document, this.store);
     if (ref !== undefined) {
-      const uri = await fileReferenceCreateFileIfNotExists(ref);
+      const uri = await fileReferenceCreateFileIfNotExists(ref, this.store);
       if (uri !== undefined) {
         return new vscode.Location(uri, new vscode.Position(0, 0));
       }

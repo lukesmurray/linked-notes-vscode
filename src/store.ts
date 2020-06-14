@@ -1,4 +1,8 @@
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import {
+  configureStore,
+  getDefaultMiddleware,
+  SerializableStateInvariantMiddlewareOptions,
+} from "@reduxjs/toolkit";
 import rootReducer, { RootState } from "./reducers";
 
 const store = configureStore({
@@ -8,5 +12,9 @@ const store = configureStore({
 
 export type AppDispatch = typeof store.dispatch;
 export type LinkedNotesStore = typeof store;
+export type PartialLinkedNoteStore = Pick<
+  LinkedNotesStore,
+  "getState" | "dispatch"
+>;
 
 export default store;

@@ -8,7 +8,7 @@ import { RootState } from ".";
 import { AppDispatch } from "../store";
 import { CslData } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";
-import { createCitationKeyCompletion } from "../alpha/citeProcUtils";
+import { getCitationKeyCompletionItem } from "../core/citeProc/citeProcUtils";
 import AhoCorasick from "../utils/ahoCorasick";
 
 /*******************************************************************************
@@ -61,7 +61,7 @@ export const selectCitationKeyCompletions = createSelector(
   selectBibliographicItems,
   (bibliographicItems) => {
     return bibliographicItems
-      .map(createCitationKeyCompletion)
+      .map(getCitationKeyCompletionItem)
       .flat() as vscode.CompletionItem[];
   }
 );

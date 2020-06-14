@@ -9,15 +9,17 @@ import * as vscode from "vscode";
 import path from "path";
 import { sluggifyDocumentTitle } from "../common/sluggifyDocumentTitle";
 import { fileReferenceTitle } from "./fileReferenceTitle";
-import { LinkedNotesStore } from "../../store";
+import { PartialLinkedNoteStore } from "../../store";
 import { selectDefaultReferencesFolder } from "../../reducers/configuration";
-
-const MARKDOWN_EXT = "md";
+import { DEFAULT_MARKDOWN_EXT } from "../../utils/util";
 
 export function fileReferenceFsPath(
   ref: FileReference,
-  store: LinkedNotesStore
+  store: PartialLinkedNoteStore
 ): string | undefined {
+  if (ref._targetFsPath !== undefined) {
+    return ref._targetFsPath;
+  }
   switch (ref.type) {
     case "citationKeyFileReference":
       return citationKeyFileReferenceFsPath(ref, store);
@@ -32,7 +34,7 @@ export function fileReferenceFsPath(
 
 function citationKeyFileReferenceFsPath(
   ref: CitationKeyFileReference,
-  store: LinkedNotesStore
+  store: PartialLinkedNoteStore
 ): string | undefined {
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
@@ -43,8 +45,8 @@ function citationKeyFileReferenceFsPath(
   if (referencePathRoot === null) {
     return;
   }
-  const baseName = sluggifyDocumentTitle(title) + `.${MARKDOWN_EXT}`;
-  return vscode.Uri.file(path.join(workspaceRoot, referencePathRoot, baseName))
+  const basename = titleToBasename(title);
+  return vscode.Uri.file(path.join(workspaceRoot, referencePathRoot, basename))
     .fsPath;
 }
 
@@ -56,40 +58,24 @@ function wikilinkFileReferenceFsPath(
   }
   const title = fileReferenceTitle(ref);
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-  const baseName = sluggifyDocumentTitle(title) + `.${MARKDOWN_EXT}`;
-  return vscode.Uri.file(path.join(workspaceRoot, baseName)).fsPath;
+  const basename = titleToBasename(title);
+  return vscode.Uri.file(path.join(workspaceRoot, basename)).fsPath;
 }
 
 function titleFileReferenceFsPath(
   ref: TitleFileReference,
-  store: LinkedNotesStore
+  store: PartialLinkedNoteStore
 ): string | undefined {
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
   }
-  const title = fileReferenceTitle(ref);
-  const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
   const referencePathRoot = selectDefaultReferencesFolder(store.getState());
   if (referencePathRoot === null) {
     return undefined;
   }
-  const baseName = sluggifyDocumentTitle(title) + `.${MARKDOWN_EXT}`;
-  // check that the node is a sub path of the reference path
-  if (
-    isSubPathOf(
-      ref.node.data.fsPath,
-      path.join(workspaceRoot, referencePathRoot)
-    )
-  ) {
-    return vscode.Uri.file(
-      path.join(workspaceRoot, referencePathRoot, baseName)
-    ).fsPath;
-  }
-  return undefined;
+  return ref.node.data.fsPath;
 }
 
-// check if dir is a subpath of parent
-function isSubPathOf(dir: string, parent: string) {
-  const relative = path.relative(parent, dir);
-  return relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+export function titleToBasename(title: string) {
+  return sluggifyDocumentTitle(title) + `.${DEFAULT_MARKDOWN_EXT}`;
 }

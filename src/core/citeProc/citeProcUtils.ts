@@ -1,45 +1,57 @@
 import vscode from "vscode";
-import { BibliographicItem } from "../core/remarkPlugins/remarkCiteproc";
-import { NameVariable } from "../types/csl-data";
+import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
+import { NameVariable } from "../../types/csl-data";
 
-export function createCitationKeyCompletion(
+export function getCitationKeyHoverText(bibliographicItem: BibliographicItem) {
+  return new vscode.MarkdownString(
+    [
+      `${getBibliographicItemTitleString(bibliographicItem)}`,
+      ``,
+      `Authors: ${getBibliographicItemAuthorString(bibliographicItem, ", ")}`,
+    ].join("\n")
+  );
+}
+
+export function getCitationKeyCompletionItem(
   bibliographicItem: BibliographicItem
 ) {
   const completionItem = new vscode.CompletionItem(
     bibliographicItem.id + "",
     vscode.CompletionItemKind.Reference
   );
-  completionItem.filterText = citationKeyCompletionFilterText(
+  completionItem.filterText = getCitationKeyCompletionFilterText(
     bibliographicItem
   );
   completionItem.insertText = `${bibliographicItem.id}`;
-  completionItem.detail = bibliographicItemTitleString(bibliographicItem);
-  completionItem.documentation = citationKeyCompletionDocumentation(
+  completionItem.detail = getBibliographicItemTitleString(bibliographicItem);
+  completionItem.documentation = getCitationKeyCompletionDocumentation(
     bibliographicItem
   );
   return completionItem;
 }
-function citationKeyCompletionDocumentation(
+
+function getCitationKeyCompletionDocumentation(
   bibliographicItem: BibliographicItem
 ) {
   return new vscode.MarkdownString(
-    `Authors: ${bibliographicItemAuthorString(bibliographicItem, ", ")}`
+    `Authors: ${getBibliographicItemAuthorString(bibliographicItem, ", ")}`
   );
 }
-function citationKeyCompletionFilterText(bibliographicItem: BibliographicItem) {
-  return `${bibliographicItem.id} ${
-    bibliographicItem.title
-  } ${bibliographicItemAuthorString(bibliographicItem)}`;
-}
 
-export function bibliographicItemTitleString(
+function getCitationKeyCompletionFilterText(
   bibliographicItem: BibliographicItem
 ) {
+  return `${bibliographicItem.id} ${
+    bibliographicItem.title
+  } ${getBibliographicItemAuthorString(bibliographicItem)}`;
+}
+
+function getBibliographicItemTitleString(bibliographicItem: BibliographicItem) {
   // TODO(lukemurray): review other titles and determine which to use if this is undefined
   return bibliographicItem.title;
 }
 
-export function bibliographicItemAuthorString(
+function getBibliographicItemAuthorString(
   bibliographicItem: BibliographicItem,
   separator: string = " "
 ) {

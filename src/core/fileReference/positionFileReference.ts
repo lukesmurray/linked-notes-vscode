@@ -1,14 +1,15 @@
-import { LinkedNotesStore } from "../../store";
+import { PartialLinkedNoteStore } from "../../store";
 import * as vscode from "vscode";
 import { selectFileReferencesByFsPath } from "../../reducers/linkedFiles";
 import { textDocumentFsPath } from "../fsPath/textDocumentFsPath";
 import * as UNIST from "unist";
+import { FileReference } from "../common/types";
 
 export function positionFileReference(
   position: vscode.Position,
   document: vscode.TextDocument,
-  store: LinkedNotesStore
-) {
+  store: PartialLinkedNoteStore
+): FileReference | undefined {
   const fileReferences = selectFileReferencesByFsPath(store.getState())[
     textDocumentFsPath(document)
   ];

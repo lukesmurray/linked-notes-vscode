@@ -2,11 +2,8 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import * as vscode from "vscode";
 import { RootState } from ".";
 import { AppDispatch } from "../store";
-import {
-  createUriForFileRelativeToWorkspaceRoot,
-  createUriForNestedFileRelativeToWorkspaceRoot,
-} from "../utils/workspaceUtils";
 import { updateBibliographicItems } from "./bibliographicItems";
+import { createUriForFileRelativeToWorkspaceRoot } from "../utils/workspaceUtils";
 
 export interface ExtensionConfiguration {
   defaultBib: string | null;

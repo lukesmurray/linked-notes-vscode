@@ -20,16 +20,13 @@ export function fileReferenceTitle(ref: FileReference): string {
 }
 
 function citationKeyFileReferenceTitle(ref: CitationKeyFileReference): string {
-  // TODO(lukemurray): IMPLEMENT THIS METHOD
-  throw new Error("NOT IMPLEMENTED");
+  return ref.node.data.bibliographicItem.id + "";
 }
 
 function wikilinkFileReferenceTitle(ref: WikilinkFileReference): string {
-  // TODO(lukemurray): IMPLEMENT THIS METHOD
-  throw new Error("NOT IMPLEMENTED");
+  return ref.node.data.title;
 }
 
 function titleFileReferenceTitle(ref: TitleFileReference): string {
-  // TODO(lukemurray): IMPLEMENT THIS METHOD
-  throw new Error("NOT IMPLEMENTED");
+  return ref.node.data.title;
 }
