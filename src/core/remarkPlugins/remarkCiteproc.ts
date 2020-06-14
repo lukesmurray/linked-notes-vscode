@@ -10,8 +10,12 @@ import {
 import { incrementUnistPoint } from "./util/incrementUnistPoint";
 import { BaseFileReferenceNode } from "../common/types";
 import * as MDAST from "mdast";
+import visitParents from "unist-util-visit-parents";
 
 export type BibliographicItem = CslData[number];
+
+const CITE_PROC_CITATION_KEY_ID = "citeProcCitationKey";
+const CITE_PROC_CITATION_ID = "citeProcCitation";
 
 interface RemarkCiteProcOptions {
   citationItemAho: AhoCorasick<BibliographicItem>;
@@ -44,7 +48,7 @@ function remarkCiteProc(
 ): Transformer | void {
   const Parser = this.Parser;
   const tokenizers = Parser.prototype.inlineTokenizers;
-  const methods = Parser.prototype.inlineMethods;
+  const methods = Parser.prototype.inlineMethods as string[];
 
   /*****************************************************************************
    * Citation Tokenizer
@@ -74,8 +78,9 @@ function remarkCiteProc(
       }
       let now = eat.now();
       const add = eat(citationBracketMatch![0]);
+      addCiteProcKeyTokenizer();
       const node = add(<CiteProcCitation>{
-        type: "citeProcCitation",
+        type: CITE_PROC_CITATION_ID,
         data: {
           citation: {
             citationID: "",
@@ -102,18 +107,14 @@ function remarkCiteProc(
           },
         },
         children: [
-          ...this.tokenizeInline(citationBracketMatch![0].slice(0, 1), now),
           ...this.tokenizeInline(
             citationBracketMatch![0].slice(1, -1),
             incrementUnistPoint(now, 1)
           ),
-          ...this.tokenizeInline(
-            citationBracketMatch![0].slice(-1),
-            incrementUnistPoint(now, citationBracketMatch![0].length - 1)
-          ),
         ],
       });
       noteIndex += 1;
+      removeCiteProcKeyTokenizer();
       return node;
     }
     return;
@@ -122,10 +123,14 @@ function remarkCiteProc(
     return value.indexOf("[", fromIndex);
   };
 
-  // add a tokenizer for citeproc
-  tokenizers.citeProc = tokenizeCiteProc;
-  // run the citeproc tokenizer before links
-  methods.splice(methods.indexOf("link"), 0, "citeProc");
+  addCiteProcTokenizer();
+
+  function addCiteProcTokenizer() {
+    tokenizers[CITE_PROC_CITATION_ID] = tokenizeCiteProc;
+    if (methods.indexOf(CITE_PROC_CITATION_ID) === -1) {
+      methods.splice(methods.indexOf("link"), 0, CITE_PROC_CITATION_ID);
+    }
+  }
 
   /*****************************************************************************
    * Citation Key Tokenizer
@@ -150,24 +155,45 @@ function remarkCiteProc(
       if (silent) {
         return true;
       }
+      let now = eat.now();
       const add = eat(citationKeyMatch![0]);
+      removeCiteProcKeyTokenizer();
       const node = add(<CiteProcCitationKey>{
-        type: "citeProcCitationKey",
+        type: CITE_PROC_CITATION_KEY_ID,
         data: {
           bibliographicItem: { ...citationKeyMatches[0].value },
         },
+        children: [...this.tokenizeInline(citationKeyMatch![0], now)],
       });
+      addCiteProcKeyTokenizer();
       return node;
     }
     return;
   }
+
   tokenizeCiteProcKey.locator = (value: string, fromIndex: number) =>
     value.indexOf("@", fromIndex);
 
-  // add a tokenizer for citation keys
-  tokenizers.citeProcCitationKey = tokenizeCiteProcKey;
-  // run the citeproc tokenizer before links
-  methods.splice(methods.indexOf("citeProc"), 0, "citeProcCitationKey");
+  function addCiteProcKeyTokenizer() {
+    tokenizers[CITE_PROC_CITATION_KEY_ID] = tokenizeCiteProcKey;
+    // run the citeproc tokenizer before links
+    if (methods.indexOf(CITE_PROC_CITATION_KEY_ID) === -1) {
+      methods.splice(
+        methods.indexOf(CITE_PROC_CITATION_ID),
+        0,
+        CITE_PROC_CITATION_KEY_ID
+      );
+    }
+  }
+
+  function removeCiteProcKeyTokenizer() {
+    delete tokenizers[CITE_PROC_CITATION_KEY_ID];
+    // run the citeproc tokenizer before links
+    const methodIndex = methods.indexOf(CITE_PROC_CITATION_KEY_ID);
+    if (methodIndex !== -1) {
+      methods.splice(methodIndex, 1);
+    }
+  }
 }
 
 export default remarkCiteProc as Plugin<[RemarkCiteProcOptions]>;
