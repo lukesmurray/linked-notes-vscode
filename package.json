@@ -2,7 +2,7 @@
   "name": "linked-notes-vscode",
   "displayName": "Linked Notes VSCode",
   "description": "Linked Note Taking and Wiki",
-  "version": "0.0.21",
+  "version": "0.0.23",
   "publisher": "lukesmurray",
   "repository": {
     "url": "https://github.com/lukesmurray/linked-notes-vscode.git",
@@ -23,14 +23,14 @@
     "markdown.markdownItPlugins": true,
     "languages": [
       {
-        "id": "markdown-notes",
+        "id": "linked-notes",
         "aliases": [],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "markdown-notes",
+        "language": "linked-notes",
         "scopeName": "text.markdown.notes",
         "path": "./syntaxes/notes.tmLanguage.json",
         "injectTo": [

@@ -18,6 +18,7 @@ import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import {
   isCitationKeyFileReference,
   isWikilinkFileReference,
+  isContextFileReference,
 } from "../core/common/typeGuards";
 import {
   LinkedFile,
@@ -228,6 +229,7 @@ export const selectDocumentLinksByFsPath = createObjectSelector(
   selectFileReferencesByFsPath,
   (allFileReferences) =>
     allFileReferences
+      .filter(isContextFileReference)
       .map((ref) => ref.node.position)
       .filter(isNotNullOrUndefined)
       .map((pos) => new vscode.DocumentLink(unistPositionToVscodeRange(pos)))

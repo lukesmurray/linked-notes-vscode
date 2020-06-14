@@ -75,6 +75,7 @@ export function getDefaultNoteText(title: string): string {
   return `---
 draft: true
 ---
+
 # ${title}
 `;
 }

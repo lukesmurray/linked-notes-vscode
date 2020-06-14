@@ -23,6 +23,7 @@ function NewNoteCommand() {
         newFileUri,
         Buffer.from(getDefaultNoteText(title))
       );
+      await vscode.window.showTextDocument(newFileUri);
     }
   });
 }
