@@ -5,6 +5,8 @@ import {
   createEntityAdapter,
   createSlice,
   createSelector,
+  PayloadAction,
+  EntityId,
 } from "@reduxjs/toolkit";
 import { createObjectSelector, createArraySelector } from "reselect-map";
 import * as vscode from "vscode";
@@ -94,7 +96,7 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
  ******************************************************************************/
 
 const linkedFileAdapter = createEntityAdapter<LinkedFile>({
-  selectId: (entity) => linkedFileFsPath(entity),
+  selectId: (linkedFile) => linkedFileFsPath(linkedFile),
   sortComparer: (a, b) => a.fsPath.localeCompare(b.fsPath),
 });
 
@@ -103,7 +105,6 @@ const linkedFilesSlice = createSlice({
   name: "linkedFiles/files",
   initialState: linkedFileAdapter.getInitialState(),
   reducers: {
-    fileRenamed: linkedFileAdapter.updateOne,
     fileDeleted: linkedFileAdapter.removeOne,
   },
   extraReducers: (builder) => {
@@ -121,7 +122,7 @@ const linkedFilesSlice = createSlice({
  ******************************************************************************/
 
 // export actions
-export const { fileDeleted, fileRenamed } = linkedFilesSlice.actions;
+const { fileDeleted } = linkedFilesSlice.actions;
 
 /*******************************************************************************
  * Status Reducer
@@ -147,14 +148,6 @@ const linkedFilesStatusSlice = createSlice({
       return statusAdapter.upsertOne(state, {
         fsPath: action.payload.fsPath,
         status: "pending changes",
-      });
-    });
-    builder.addCase(fileRenamed, (state, action) => {
-      return statusAdapter.updateOne(state, {
-        id: action.payload.id,
-        changes: {
-          fsPath: action.payload.changes.fsPath,
-        },
       });
     });
     builder.addCase(fileDeleted, (state, action) => {
@@ -270,45 +263,54 @@ export function flagLinkedFileForUpdate(
   store: LinkedNotesStore,
   document: vscode.TextDocument
 ) {
-  const docId = textDocumentFsPath(document);
+  const fsPath = textDocumentFsPath(document);
   // if there is a pending thunk then cancel it
-  const pendingThunk = updateLinkedFileSyntaxTreePromises[docId];
+  const pendingThunk = updateLinkedFileSyntaxTreePromises[fsPath];
   if (pendingThunk !== undefined) {
     pendingThunk.abort();
   }
   // dispatch the new thunk
-  updateLinkedFileSyntaxTreePromises[docId] = store.dispatch(
+  updateLinkedFileSyntaxTreePromises[fsPath] = store.dispatch(
     updateLinkedFileSyntaxTree(document)
   );
 }
 
-export const waitForLinkedFileToUpdate = (
+export function flagLinkedFileForDeletion(
+  store: LinkedNotesStore,
+  fsPath: string
+) {
+  // if there is a pending thunk then cancel it
+  const pendingThunk = updateLinkedFileSyntaxTreePromises[fsPath];
+  if (pendingThunk !== undefined) {
+    pendingThunk.abort();
+  }
+  store.dispatch(fileDeleted(fsPath));
+}
+
+export const waitForLinkedFileToUpdate = async (
   store: LinkedNotesStore,
   fsPath: string,
   token?: vscode.CancellationToken
 ) => {
-  return new Promise<void>(async (resolve, reject) => {
-    while (true) {
-      if (token?.isCancellationRequested) {
-        resolve();
-      }
-      const linkedFileStatus = selectLinkedFileStatusByFsPath(
-        store.getState(),
-        fsPath
-      );
-      if (linkedFileStatus?.status === "up to date") {
-        break;
-      }
-      // TODO(lukemurray): there's a memory leak here if the document is removed from the
-      // store. We probably want to retry or something a specific number of times then
-      // give up
-      await delay(WAIT_FOR_LINKED_FILE_POLL_DELAY);
+  while (true) {
+    if (token?.isCancellationRequested) {
+      return;
     }
-    resolve();
-  });
+    const linkedFileStatus = selectLinkedFileStatusByFsPath(
+      store.getState(),
+      fsPath
+    );
+    if (linkedFileStatus?.status === "up to date") {
+      break;
+    }
+    // TODO(lukemurray): there's a memory leak here if the document is removed from the
+    // store. We probably want to retry or something a specific number of times then
+    // give up
+    await delay(WAIT_FOR_LINKED_FILE_POLL_DELAY);
+  }
+  return;
 };
 
-// TODO(lukemurray): this does not seem to be waiting (backlinks panel is not always correct)
 export const waitForAllLinkedFilesToUpdate = async (
   store: LinkedNotesStore,
   token?: vscode.CancellationToken
@@ -316,9 +318,11 @@ export const waitForAllLinkedFilesToUpdate = async (
   const fsPaths = await findAllMarkdownFilesInWorkspace().then((v) =>
     v.map((v) => v.fsPath)
   );
-  await Promise.all([
-    fsPaths.map(async (fsPath) => {
-      await waitForLinkedFileToUpdate(store, fsPath as string, token);
-    }),
-  ]);
+  const results = await Promise.all(
+    fsPaths.map(
+      async (fsPath) =>
+        await waitForLinkedFileToUpdate(store, fsPath as string, token)
+    )
+  );
+  return;
 };

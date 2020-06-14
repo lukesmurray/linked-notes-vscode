@@ -6,6 +6,7 @@ import remarkCiteproc, {
 } from "../remarkPlugins/remarkCiteproc";
 import remarkWikilink from "../remarkPlugins/remarkWikilink";
 import remarkTitleHeading from "../remarkPlugins/remarkTitleHeading";
+import remarkContext from "../remarkPlugins/remarkContext";
 
 /**
  * Create the unified markdown processor for parsing text documents and
@@ -21,5 +22,6 @@ export function createMarkdownProcessor(
       citationItemAho: bibliographicItemAho,
     })
     .use(remarkWikilink, {})
-    .use(remarkTitleHeading, { fsPath });
+    .use(remarkTitleHeading, { fsPath })
+    .use(remarkContext, {});
 }

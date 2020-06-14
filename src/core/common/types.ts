@@ -52,6 +52,10 @@ export type FileReference =
   | WikilinkFileReference
   | TitleFileReference;
 
+export type ContextFileReference =
+  | CitationKeyFileReference
+  | WikilinkFileReference;
+
 /*******************************************************************************
  * Remark File References
  ******************************************************************************/
@@ -80,6 +84,11 @@ export const FileReferenceTypeToRemarkType: Record<
   wikilinkFileReference: "wikilink",
   titleFileReference: "titleHeading",
 };
+
+export const ContextFileReferenceNodeTypeKeys: FileReferenceNodeType[] = [
+  "citeProcCitationKey",
+  "wikilink",
+];
 
 /*******************************************************************************
  *  Linked Files

@@ -15,6 +15,10 @@ export interface Wikilink extends BaseFileReferenceNode {
      * the title of the page
      */
     title: string;
+    /**
+     * the context of the wikilink
+     */
+    context?: MDAST.BlockContent;
   };
   children: UNIST.Node[];
 }

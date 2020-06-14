@@ -9,6 +9,7 @@ import {
 } from "../../types/remarkParse";
 import { incrementUnistPoint } from "./util/incrementUnistPoint";
 import { BaseFileReferenceNode } from "../common/types";
+import * as MDAST from "mdast";
 
 export type BibliographicItem = CslData[number];
 
@@ -28,6 +29,10 @@ export interface CiteProcCitationKey extends BaseFileReferenceNode {
   type: "citeProcCitationKey";
   data: {
     bibliographicItem: BibliographicItem;
+    /**
+     * the context of the citation key
+     */
+    context?: MDAST.BlockContent;
   };
   children: UNIST.Node[];
 }

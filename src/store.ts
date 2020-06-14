@@ -1,13 +1,9 @@
-import {
-  configureStore,
-  getDefaultMiddleware,
-  SerializableStateInvariantMiddlewareOptions,
-} from "@reduxjs/toolkit";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer, { RootState } from "./reducers";
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [...getDefaultMiddleware<RootState>()],
+  middleware: getDefaultMiddleware<RootState>() /*.concat(logger)*/,
 });
 
 export type AppDispatch = typeof store.dispatch;

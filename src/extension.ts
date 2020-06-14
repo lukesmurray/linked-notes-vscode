@@ -16,9 +16,8 @@ import {
   updateConfiguration,
 } from "./reducers/configuration";
 import {
-  fileDeleted,
-  fileRenamed,
   flagLinkedFileForUpdate,
+  flagLinkedFileForDeletion,
 } from "./reducers/linkedFiles";
 import { uriFsPath } from "./core/fsPath/uriFsPath";
 import store from "./store";
@@ -32,6 +31,10 @@ import {
 } from "./utils/util";
 import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
 import { BacklinksTreeDataProvider } from "./features/BacklinksTreeDataProvider";
+import {
+  GoToFileReference,
+  GO_TO_FILE_REFERENCE_COMMAND,
+} from "./features/GoToFileReferenceCommand";
 
 export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
@@ -60,6 +63,14 @@ export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
    * Features
    ****************************************************************************/
+
+  // go to file reference command
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      GO_TO_FILE_REFERENCE_COMMAND,
+      GoToFileReference
+    )
+  );
 
   // backlinks tree view
   const backLinksTreeDataProvider = new BacklinksTreeDataProvider(store);
@@ -179,19 +190,12 @@ export async function activate(context: vscode.ExtensionContext) {
       const oldIsMarkdown = isMarkdownFile(file.oldUri);
       const newIsMarkdown = isMarkdownFile(file.newUri);
       if (oldIsMarkdown && newIsMarkdown) {
-        store.dispatch(
-          fileRenamed({
-            id: uriFsPath(file.oldUri),
-            changes: {
-              fsPath: uriFsPath(file.newUri),
-            },
-          })
-        );
+        flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
         await vscode.workspace.openTextDocument(file.newUri).then((doc) => {
           flagLinkedFileForUpdate(store, doc);
         });
       } else if (oldIsMarkdown) {
-        store.dispatch(fileDeleted(uriFsPath(file.oldUri)));
+        flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
       } else if (newIsMarkdown) {
         await vscode.workspace.openTextDocument(file.newUri).then((doc) => {
           flagLinkedFileForUpdate(store, doc);
@@ -207,7 +211,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidDeleteFiles((e) => {
     for (let fileUri of e.files) {
       if (isMarkdownFile(fileUri)) {
-        store.dispatch(fileDeleted(uriFsPath(fileUri)));
+        flagLinkedFileForDeletion(store, uriFsPath(fileUri));
       } else if (isDefaultBibFile(fileUri, store.getState())) {
         store.dispatch(updateBibliographicItems());
       }
@@ -239,7 +243,7 @@ export async function activate(context: vscode.ExtensionContext) {
     uri: vscode.Uri
   ): Promise<void> => {
     if (isMarkdownFile(uri)) {
-      store.dispatch(fileDeleted(uriFsPath(uri)));
+      flagLinkedFileForDeletion(store, uriFsPath(uri));
     }
   };
   const markdownFileWatchUpdateHandler = async (
@@ -256,6 +260,12 @@ export async function activate(context: vscode.ExtensionContext) {
   markdownFileWatcher.onDidDelete(markdownFileWatchDeleteHandler);
 
   vscode.window.onDidChangeActiveTextEditor(() => {
+    backLinksTreeDataProvider.refresh();
+  });
+  markdownFileWatcher.onDidChange((e) => {
+    backLinksTreeDataProvider.refresh();
+  });
+  vscode.workspace.onDidChangeTextDocument((e) => {
     backLinksTreeDataProvider.refresh();
   });
 
