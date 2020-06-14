@@ -31,6 +31,7 @@ import {
   MARKDOWN_FILE_GLOB_PATTERN,
 } from "./utils/util";
 import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
+import { BacklinksTreeDataProvider } from "./features/BacklinksTreeDataProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
@@ -59,6 +60,15 @@ export async function activate(context: vscode.ExtensionContext) {
   /*****************************************************************************
    * Features
    ****************************************************************************/
+
+  // backlinks tree view
+  const backLinksTreeDataProvider = new BacklinksTreeDataProvider(store);
+  const treeView = vscode.window.createTreeView(
+    "linked-notes-vscode.backlinksExplorerView",
+    {
+      treeDataProvider: backLinksTreeDataProvider,
+    }
+  );
 
   // wiki link autocomplete
   context.subscriptions.push(
@@ -244,6 +254,10 @@ export async function activate(context: vscode.ExtensionContext) {
   markdownFileWatcher.onDidChange(markdownFileWatchUpdateHandler);
   markdownFileWatcher.onDidCreate(markdownFileWatchUpdateHandler);
   markdownFileWatcher.onDidDelete(markdownFileWatchDeleteHandler);
+
+  vscode.window.onDidChangeActiveTextEditor(() => {
+    backLinksTreeDataProvider.refresh();
+  });
 
   /*****************************************************************************
    * Extend Markdown

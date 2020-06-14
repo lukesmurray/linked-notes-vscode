@@ -20,6 +20,7 @@ type FileReferenceType = typeof FileReferenceKeys[number];
 interface BaseFileReference {
   type: FileReferenceType;
   node: UNIST.Node;
+  // TODO(lukemurray): backlinks reference old source file path.
   // the fsPath of the file this reference is located in
   sourceFsPath: string;
   /**

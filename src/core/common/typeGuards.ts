@@ -6,6 +6,7 @@ import {
   FileReference,
   FileReferenceNode,
   WikilinkFileReference,
+  TitleFileReference,
 } from "./types";
 import { TitleHeading } from "../remarkPlugins/remarkTitleHeading";
 
@@ -47,4 +48,10 @@ export function isCitationKeyFileReference(
   ref: FileReference
 ): ref is CitationKeyFileReference {
   return ref.type === "citationKeyFileReference";
+}
+
+export function isTitleFileReference(
+  ref: FileReference
+): ref is TitleFileReference {
+  return ref.type === "titleFileReference";
 }

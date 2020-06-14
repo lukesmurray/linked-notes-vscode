@@ -10,6 +10,7 @@ import { uriFsPath } from "../core/fsPath/uriFsPath";
 import {
   selectLinkedFileFsPaths,
   waitForLinkedFileToUpdate,
+  waitForAllLinkedFilesToUpdate,
 } from "../reducers/linkedFiles";
 import { LinkedNotesStore } from "../store";
 import { isCitationKeyFileReference } from "../core/common/typeGuards";
@@ -43,16 +44,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     token: vscode.CancellationToken
   ) {
     // wait for all documents to be up to date
-    const allDocumentIds = selectLinkedFileFsPaths(this.store.getState());
-    await Promise.all([
-      allDocumentIds.map(async (documentId) => {
-        await waitForLinkedFileToUpdate(
-          this.store,
-          documentId as string,
-          token
-        );
-      }),
-    ]);
+    await waitForAllLinkedFilesToUpdate(this.store, token);
     if (token.isCancellationRequested) {
       return undefined;
     }

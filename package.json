@@ -70,7 +70,15 @@
           }
         }
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "linked-notes-vscode.backlinksExplorerView",
+          "name": "Backlinks"
+        }
+      ]
+    }
   },
   "icon": "images/linked-notes.png",
   "activationEvents": [

@@ -24,7 +24,11 @@ import {
 } from "../core/common/types";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
-import { delay, isNotNullOrUndefined } from "../utils/util";
+import {
+  delay,
+  isNotNullOrUndefined,
+  findAllMarkdownFilesInWorkspace,
+} from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
 
 /**
@@ -281,11 +285,11 @@ export function flagLinkedFileForUpdate(
 export const waitForLinkedFileToUpdate = (
   store: LinkedNotesStore,
   fsPath: string,
-  token: vscode.CancellationToken
+  token?: vscode.CancellationToken
 ) => {
   return new Promise<void>(async (resolve, reject) => {
     while (true) {
-      if (token.isCancellationRequested) {
+      if (token?.isCancellationRequested) {
         resolve();
       }
       const linkedFileStatus = selectLinkedFileStatusByFsPath(
@@ -302,4 +306,19 @@ export const waitForLinkedFileToUpdate = (
     }
     resolve();
   });
+};
+
+// TODO(lukemurray): this does not seem to be waiting (backlinks panel is not always correct)
+export const waitForAllLinkedFilesToUpdate = async (
+  store: LinkedNotesStore,
+  token?: vscode.CancellationToken
+) => {
+  const fsPaths = await findAllMarkdownFilesInWorkspace().then((v) =>
+    v.map((v) => v.fsPath)
+  );
+  await Promise.all([
+    fsPaths.map(async (fsPath) => {
+      await waitForLinkedFileToUpdate(store, fsPath as string, token);
+    }),
+  ]);
 };
