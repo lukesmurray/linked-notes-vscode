@@ -53,16 +53,21 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     // get the file reference under the caret
     let ref = positionFileReference(position, document, this.store);
     if (ref !== undefined && !isCitationKeyFileReference(ref)) {
-      // get the referenced file
-      const refTargetFsPath = fileReferenceFsPath(ref, this.store);
-      if (refTargetFsPath !== undefined) {
+      const fsPathToRename = fileReferenceFsPath(ref, this.store);
+      if (fsPathToRename !== undefined) {
+        const newUri = vscode.Uri.file(
+          path.resolve(fsPathToRename, "..", titleToBasename(newName))
+        );
+        const oldUri = vscode.Uri.file(fsPathToRename);
+
         // get backlinks to the referenced file
         const backLinks = fsPathBacklinkFileReferences(
-          refTargetFsPath,
+          oldUri.fsPath,
           this.store
         );
         // create a new workspace edit to apply
         const workspaceEdit = new vscode.WorkspaceEdit();
+
         // replace content in each backlink with the new name
         for (let backLink of backLinks) {
           const contentRange = fileReferenceContentRange(backLink);
@@ -75,32 +80,28 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
             newName
           );
         }
-        // rename the file
-        // get the new uri
-        const newUri = vscode.Uri.file(
-          path.resolve(refTargetFsPath, "..", titleToBasename(newName))
-        );
-        // only rename if the file is going to a new place
-        // this can occur if we change the reference name in such a way that
-        // the slugged version normalizes to the same file
-        if (newUri.fsPath !== refTargetFsPath) {
-          // check if the uri already exists
-          // can occur if the user is trying to rename all instances of one reference
-          // to another reference
+
+        // rename the file if the files are different
+        if (newUri.fsPath !== oldUri.fsPath) {
+          // check if the uri already exists can occur if the user is trying to
+          // rename all instances of one reference to another reference
           const existingFsPaths = new Set(
             selectLinkedFileFsPaths(this.store.getState())
           );
-          const newFsPath = uriFsPath(newUri);
-          // throw an error if the user is merging references (not sure how to support)
-          if (existingFsPaths.has(newFsPath)) {
+          // throw an error if the user is merging references
+          // TODO(lukemurray): explore possibility to support. i.e. check if one
+          // file does not exist could occur that a user makes a typo and wants
+          // to rename `hllo world` to `hello world`. If `hllo world` does not
+          // have a backing file then this operation is fine
+          if (existingFsPaths.has(newUri.fsPath)) {
             throw new Error(
               `The reference ${newName} already exist. Support for merging tags is not implemented yet`
             );
           }
           // check that the old document exists
-          if (fs.existsSync(refTargetFsPath)) {
+          if (fs.existsSync(oldUri.fsPath)) {
             // apply the rename
-            workspaceEdit.renameFile(vscode.Uri.file(refTargetFsPath), newUri);
+            workspaceEdit.renameFile(oldUri, newUri);
           }
         }
         // return the edit
