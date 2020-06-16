@@ -1,17 +1,17 @@
 {
   "root": true,
-  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module"
+    "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["you-dont-need-lodash-underscore", "prettier"],
   "rules": {
-    "@typescript-eslint/class-name-casing": "warn",
-    "@typescript-eslint/semi": "warn",
-    "curly": "warn",
-    "eqeqeq": "warn",
-    "no-throw-literal": "warn",
-    "semi": "off"
-  }
+    "prettier/prettier": "error"
+  },
+  "extends": [
+    "plugin:you-dont-need-lodash-underscore/compatible",
+    "standard-with-typescript",
+    "prettier",
+    "prettier/@typescript-eslint",
+    "prettier/standard"
+  ]
 }
