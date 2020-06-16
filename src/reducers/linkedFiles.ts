@@ -237,11 +237,14 @@ export const selectDocumentLinksByFsPath = createObjectSelector(
 
 export const selectWikilinkCompletions = createSelector(
   selectWikilinksByFsPath,
-  // selectTopLevelHeaderTextByFsPath,
   (allWikilinks) => {
-    return Object.values(allWikilinks)
-      .flat()
-      .map((w) => w.node.data.title);
+    return [
+      ...new Set(
+        Object.values(allWikilinks)
+          .flat()
+          .map((w) => w.node.data.title)
+      ),
+    ].sort((a, b) => a.localeCompare(b));
   }
 );
 
