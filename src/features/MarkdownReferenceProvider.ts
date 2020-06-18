@@ -7,20 +7,22 @@ import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import { LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 import { fileReferenceFsPath } from "../core/fileReference/fileReferenceFsPath";
+import { isNotNullOrUndefined } from "../utils/util";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
-  private store: LinkedNotesStore;
+  private readonly store: LinkedNotesStore;
 
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
+
   async provideReferences(
     document: vscode.TextDocument,
     position: vscode.Position,
     // TODO(lukemurray): handle the reference context
     context: vscode.ReferenceContext,
     token: vscode.CancellationToken
-  ) {
+  ): Promise<vscode.Location[] | undefined> {
     const fsPath = textDocumentFsPath(document);
     await waitForLinkedFileToUpdate(this.store, fsPath, token);
     if (token.isCancellationRequested) {
@@ -32,14 +34,16 @@ class MarkdownReferenceProvider implements vscode.ReferenceProvider {
       if (targetPath !== undefined) {
         const backlinks = fsPathBacklinkFileReferences(targetPath, this.store);
         return backlinks
-          .filter((link) => link.node.position !== undefined)
-          .map(
-            (link) =>
-              new vscode.Location(
-                fsPathUri(link.sourceFsPath),
-                unistPositionToVscodeRange(link.node.position!)
-              )
-          );
+          .map((link) => {
+            if (link.node.position === undefined) {
+              return undefined;
+            }
+            return new vscode.Location(
+              fsPathUri(link.sourceFsPath),
+              unistPositionToVscodeRange(link.node.position)
+            );
+          })
+          .filter(isNotNullOrUndefined);
       }
     }
     return undefined;

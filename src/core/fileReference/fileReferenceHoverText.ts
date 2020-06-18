@@ -16,11 +16,11 @@ export async function fileReferenceHoverText(
 ): Promise<vscode.MarkdownString | undefined> {
   switch (ref.type) {
     case "citationKeyFileReference":
-      return citationKeyFileReferenceHoverText(ref);
+      return await citationKeyFileReferenceHoverText(ref);
     case "wikilinkFileReference":
-      return wikilinkFileReferenceHoverText(ref, store);
+      return await wikilinkFileReferenceHoverText(ref, store);
     case "titleFileReference":
-      return titleFileReferenceHoverText(ref);
+      return await titleFileReferenceHoverText(ref);
     default:
       assertNever(ref);
   }
@@ -55,7 +55,7 @@ async function wikilinkFileReferenceHoverText(
         )
       );
     })
-  ).catch((err) => {
+  ).catch(() => {
     // TODO(lukemurray): we only want to catch missing file error, this catches all errors
     // example logged error
     // Error: cannot open file:///Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md. Detail: Unable to read file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md' (Error: Unable to resolve non-existing file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md')

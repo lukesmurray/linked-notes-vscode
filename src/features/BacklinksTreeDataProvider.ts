@@ -14,11 +14,11 @@ import { GO_TO_FILE_REFERENCE_COMMAND } from "./GoToFileReferenceCommand";
 type SupportedTreeItems = BacklinkTreeItem | FileTreeItem;
 export class BacklinksTreeDataProvider
   implements vscode.TreeDataProvider<SupportedTreeItems> {
-  private _onDidChangeTreeData: vscode.EventEmitter<
+  private readonly _onDidChangeTreeData: vscode.EventEmitter<
     SupportedTreeItems | undefined
   > = new vscode.EventEmitter<SupportedTreeItems | undefined>();
 
-  private store: LinkedNotesStore;
+  private readonly store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
@@ -27,7 +27,7 @@ export class BacklinksTreeDataProvider
     SupportedTreeItems | undefined | null
   > = this._onDidChangeTreeData.event;
 
-  public refresh() {
+  public refresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
@@ -37,7 +37,9 @@ export class BacklinksTreeDataProvider
     return element;
   }
 
-  async getChildren(element?: SupportedTreeItems) {
+  async getChildren(
+    element?: SupportedTreeItems
+  ): Promise<SupportedTreeItems[]> {
     await waitForAllLinkedFilesToUpdate(this.store);
     if (element === undefined) {
       // get root

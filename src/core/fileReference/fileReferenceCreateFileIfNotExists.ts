@@ -17,11 +17,11 @@ export async function fileReferenceCreateFileIfNotExists(
 ): Promise<vscode.Uri | undefined> {
   switch (ref.type) {
     case "citationKeyFileReference":
-      return citationKeyFileReferenceCreateFileIfNotExists(ref, store);
+      return await citationKeyFileReferenceCreateFileIfNotExists(ref, store);
     case "wikilinkFileReference":
-      return wikilinkFileReferenceCreateFileIfNotExists(ref, store);
+      return await wikilinkFileReferenceCreateFileIfNotExists(ref, store);
     case "titleFileReference":
-      return titleFileReferenceCreateFileIfNotExists(ref, store);
+      return await titleFileReferenceCreateFileIfNotExists(ref, store);
     default:
       assertNever(ref);
   }

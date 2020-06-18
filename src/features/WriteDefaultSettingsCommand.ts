@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-const WriteDefaultSettingsCommand = () => {
+const WriteDefaultSettingsCommand = (): void => {
   const settings = {
     // save files after a delay automatically
     "files.autoSave": "afterDelay",
@@ -14,13 +14,18 @@ const WriteDefaultSettingsCommand = () => {
     "workbench.editor.enablePreviewFromQuickOpen": false,
   } as const;
   Object.keys(settings).forEach((k) => {
-    vscode.workspace
-      .getConfiguration()
-      .update(
-        k,
-        settings[k as keyof typeof settings],
-        vscode.ConfigurationTarget.Workspace
-      );
+    const key = k;
+    Promise.resolve(
+      vscode.workspace
+        .getConfiguration()
+        .update(
+          k,
+          settings[k as keyof typeof settings],
+          vscode.ConfigurationTarget.Workspace
+        )
+    ).catch((e) => {
+      console.error(`failed to write configuration ${key}`);
+    });
   });
 };
 

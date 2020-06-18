@@ -19,32 +19,31 @@ export const BIB_FILE_EXT = ["json"] as const;
 
 export const BIB_FILE_GLOB_PATTERN = `**/*.{${BIB_FILE_EXT.join(",")}}`;
 
-export function isMarkdownFile(uri: vscode.Uri) {
+export function isMarkdownFile(uri: vscode.Uri): boolean {
   return (
     uri.scheme === "file" &&
     MARKDOWN_FILE_EXT.some((ext) => uri.fsPath.endsWith(ext))
   );
 }
 
-export function isDefaultBibFile(uri: vscode.Uri, state: RootState) {
+export function isDefaultBibFile(uri: vscode.Uri, state: RootState): boolean {
   return (
     uri.scheme === "file" && uri.fsPath === selectDefaultBibUri(state)?.fsPath
   );
 }
 
-export async function findAllMarkdownFilesInWorkspace() {
+export async function findAllMarkdownFilesInWorkspace(): Promise<vscode.Uri[]> {
   return (await vscode.workspace.findFiles(MARKDOWN_FILE_GLOB_PATTERN)).filter(
     (f) => f.scheme === "file"
   );
 }
 
-export const delay = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
+export async function delay(ms: number): Promise<void> {
+  return await new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
 
 // return true if t is not null or undefined
 // very useful in filter functions
-export function isNotNullOrUndefined<T>(
-  t: T | undefined | null | void
-): t is T {
+export function isNotNullOrUndefined<T>(t: T | undefined | null): t is T {
   return t !== undefined && t !== null;
 }

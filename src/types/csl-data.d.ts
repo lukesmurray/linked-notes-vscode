@@ -5,7 +5,7 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type NameVariable = {
+export interface NameVariable {
   family?: string;
   given?: string;
   "dropping-particle"?: string;
@@ -15,23 +15,35 @@ export type NameVariable = {
   "static-ordering"?: string | number | boolean;
   literal?: string;
   "parse-names"?: string | number | boolean;
-};
-export type DateVariable = {
+}
+export interface DateVariable {
   "date-parts"?:
-    | [[string | number] | [string | number, string | number] | [string | number, string | number, string | number]]
     | [
-        [string | number] | [string | number, string | number] | [string | number, string | number, string | number],
-        [string | number] | [string | number, string | number] | [string | number, string | number, string | number]
+        | [string | number]
+        | [string | number, string | number]
+        | [string | number, string | number, string | number]
+      ]
+    | [
+        (
+          | [string | number]
+          | [string | number, string | number]
+          | [string | number, string | number, string | number]
+        ),
+        (
+          | [string | number]
+          | [string | number, string | number]
+          | [string | number, string | number, string | number]
+        )
       ];
   season?: string | number;
   circa?: string | number | boolean;
   literal?: string;
   raw?: string;
-};
+}
 /**
  * JSON schema for CSL input data
  */
-export type CslData = {
+export type CslData = Array<{
   type:
     | "article"
     | "article-journal"
@@ -154,4 +166,4 @@ export type CslData = {
   version?: string;
   volume?: string | number;
   "year-suffix"?: string;
-}[];
+}>;

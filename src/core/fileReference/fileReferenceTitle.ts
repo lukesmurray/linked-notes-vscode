@@ -20,7 +20,7 @@ export function fileReferenceTitle(ref: FileReference): string {
 }
 
 function citationKeyFileReferenceTitle(ref: CitationKeyFileReference): string {
-  return ref.node.data.bibliographicItem.id + "";
+  return `${ref.node.data.bibliographicItem.id}`;
 }
 
 function wikilinkFileReferenceTitle(ref: WikilinkFileReference): string {

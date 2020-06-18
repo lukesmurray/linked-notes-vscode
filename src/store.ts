@@ -3,7 +3,7 @@ import rootReducer, { RootState } from "./reducers";
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware<RootState>() /*.concat(logger)*/,
+  middleware: getDefaultMiddleware<RootState>() /* .concat(logger) */,
 });
 
 export type AppDispatch = typeof store.dispatch;

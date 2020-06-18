@@ -1,7 +1,7 @@
-import { combineReducers, createAction } from "@reduxjs/toolkit";
-import linkedFiles from "./linkedFiles";
-import configuration from "./configuration";
+import { combineReducers } from "@reduxjs/toolkit";
 import bibliographicItems from "./bibliographicItems";
+import configuration from "./configuration";
+import linkedFiles from "./linkedFiles";
 
 const rootReducer = combineReducers({
   linkedFiles,

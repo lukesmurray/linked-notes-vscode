@@ -15,7 +15,7 @@ export interface ExtensionConfiguration {
  ******************************************************************************/
 
 export const updateConfiguration = createAsyncThunk<
-  void,
+  undefined,
   ExtensionConfiguration,
   { dispatch: AppDispatch; state: RootState }
 >(
@@ -24,13 +24,16 @@ export const updateConfiguration = createAsyncThunk<
     const current = selectConfigurationSlice(thunkApi.getState());
     if (current.defaultBib !== next.defaultBib) {
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
-      thunkApi.dispatch(updateBibliographicItems());
+      thunkApi.dispatch(updateBibliographicItems()).catch(() => {
+        console.error("failed to update bibliographic items");
+      });
     }
     if (current.defaultReferencesFolder !== next.defaultReferencesFolder) {
       thunkApi.dispatch(
-        updatedefaultReferencesFolder(next.defaultReferencesFolder)
+        updateDefaultReferencesFolder(next.defaultReferencesFolder)
       );
     }
+    return undefined;
   }
 );
 
@@ -62,7 +65,7 @@ const configurationSlice = createSlice({
 
 const {
   updateDefaultBib,
-  updatedefaultReferencesFolder,
+  updatedefaultReferencesFolder: updateDefaultReferencesFolder,
 } = configurationSlice.actions;
 
 export default configurationSlice.reducer;
@@ -70,19 +73,21 @@ export default configurationSlice.reducer;
 /*******************************************************************************
  * Selectors
  ******************************************************************************/
-export function selectConfigurationSlice(state: RootState) {
+export function selectConfigurationSlice(
+  state: RootState
+): ExtensionConfiguration {
   return state.configuration;
 }
 
-export function selectDefaultBib(state: RootState) {
+export function selectDefaultBib(state: RootState): string | null {
   return selectConfigurationSlice(state).defaultBib;
 }
 
-export function selectDefaultReferencesFolder(state: RootState) {
+export function selectDefaultReferencesFolder(state: RootState): string | null {
   return selectConfigurationSlice(state).defaultReferencesFolder;
 }
 
-export function selectDefaultBibUri(state: RootState) {
+export function selectDefaultBibUri(state: RootState): vscode.Uri | undefined {
   const defaultBib = selectDefaultBib(state);
   if (defaultBib === null) {
     return undefined;

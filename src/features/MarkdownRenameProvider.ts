@@ -9,7 +9,6 @@ import {
 } from "../core/fileReference/fileReferenceFsPath";
 import { positionFileReference } from "../core/fileReference/positionFileReference";
 import { fsPathBacklinkFileReferences } from "../core/fsPath/fsPathBacklinkFileReferences";
-import { uriFsPath } from "../core/fsPath/uriFsPath";
 import {
   selectLinkedFileFsPaths,
   waitForAllLinkedFilesToUpdate,
@@ -17,7 +16,7 @@ import {
 import { LinkedNotesStore } from "../store";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
-  private store: LinkedNotesStore;
+  private readonly store: LinkedNotesStore;
 
   constructor(store: LinkedNotesStore) {
     this.store = store;
@@ -30,7 +29,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
   ): vscode.ProviderResult<
     vscode.Range | { range: vscode.Range; placeholder: string }
   > {
-    let ref = positionFileReference(position, document, this.store);
+    const ref = positionFileReference(position, document, this.store);
     if (ref !== undefined) {
       return fileReferenceContentRange(ref);
     }
@@ -43,7 +42,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     position: vscode.Position,
     newName: string,
     token: vscode.CancellationToken
-  ) {
+  ): Promise<vscode.WorkspaceEdit | undefined> {
     // wait for all documents to be up to date
     await waitForAllLinkedFilesToUpdate(this.store, token);
     if (token.isCancellationRequested) {
@@ -51,7 +50,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     }
 
     // get the file reference under the caret
-    let ref = positionFileReference(position, document, this.store);
+    const ref = positionFileReference(position, document, this.store);
     if (ref !== undefined && !isCitationKeyFileReference(ref)) {
       const fsPathToRename = fileReferenceFsPath(ref, this.store);
       if (fsPathToRename !== undefined) {
@@ -69,7 +68,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
         const workspaceEdit = new vscode.WorkspaceEdit();
 
         // replace content in each backlink with the new name
-        for (let backLink of backLinks) {
+        for (const backLink of backLinks) {
           const contentRange = fileReferenceContentRange(backLink);
           if (contentRange === undefined) {
             continue;

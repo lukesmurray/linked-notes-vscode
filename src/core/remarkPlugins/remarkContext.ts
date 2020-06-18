@@ -4,8 +4,6 @@ import * as UNIST from "unist";
 import visitParents from "unist-util-visit-parents";
 import { ContextFileReferenceNodeTypeKeys } from "../common/types";
 
-interface RemarkContextOptions {}
-
 const blockTypes = [
   "paragraph",
   "heading",
@@ -22,16 +20,13 @@ function isBlockContent(node: UNIST.Node): node is MDAST.BlockContent {
 }
 
 // receive options and configure the processor
-function remarkContext(
-  this: Processor<Settings>,
-  settings: RemarkContextOptions
-): Transformer | void {
+function remarkContext(this: Processor<Settings>): Transformer {
   return (node) => {
     visitParents(node, ContextFileReferenceNodeTypeKeys, (node, ancestors) => {
       for (let i = ancestors.length - 1; i >= 0; i--) {
-        if (isBlockContent(ancestors[i])) {
+        if (isBlockContent(ancestors[i]) && node.data !== undefined) {
           // TODO(lukemurray): come up with more performant way to avoid circular references
-          node.data!.context = JSON.parse(JSON.stringify(ancestors[i]));
+          node.data.context = JSON.parse(JSON.stringify(ancestors[i]));
           return visitParents.SKIP;
         }
       }
@@ -40,4 +35,4 @@ function remarkContext(
   };
 }
 
-export default remarkContext as Plugin<[RemarkContextOptions]>;
+export default remarkContext as Plugin;

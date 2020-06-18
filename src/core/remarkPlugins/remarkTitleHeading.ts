@@ -27,7 +27,7 @@ export interface TitleHeading extends BaseFileReferenceNode {
 function remarkTitleHeading(
   this: Processor<Settings>,
   settings: RemarkTitleHeadingOptions
-): Transformer | void {
+): Transformer {
   return (node) => {
     const topLevelHeading = select(`heading[depth="1"]`, node);
     if (topLevelHeading !== null) {

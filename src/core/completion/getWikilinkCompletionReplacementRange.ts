@@ -18,7 +18,7 @@ const WIKILINK_COMPLETION_REPLACEMENT_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\
 export function getWikilinkCompletionReplacementRange(
   document: vscode.TextDocument,
   position: vscode.Position
-) {
+): vscode.Range | undefined {
   return document.getWordRangeAtPosition(
     position,
     WIKILINK_COMPLETION_REPLACEMENT_RANGE_REGEX

@@ -1,16 +1,15 @@
-import { Plugin, Processor, Settings, Transformer } from "unified";
+import * as MDAST from "mdast";
+import { Plugin, Processor, Settings } from "unified";
 import * as UNIST from "unist";
-import AhoCorasick from "../../utils/ahoCorasick";
 import { CslCitation } from "../../types/csl-citation";
 import { CslData } from "../../types/csl-data";
 import {
-  InlineTokenizerEat,
   IInlineTokenizerReturn,
+  InlineTokenizerEat,
 } from "../../types/remarkParse";
-import { incrementUnistPoint } from "./util/incrementUnistPoint";
+import AhoCorasick from "../../utils/ahoCorasick";
 import { BaseFileReferenceNode } from "../common/types";
-import * as MDAST from "mdast";
-import visitParents from "unist-util-visit-parents";
+import { incrementUnistPoint } from "./util/incrementUnistPoint";
 
 export type BibliographicItem = CslData[number];
 
@@ -45,7 +44,7 @@ export interface CiteProcCitationKey extends BaseFileReferenceNode {
 function remarkCiteProc(
   this: Processor<Settings>,
   settings: RemarkCiteProcOptions
-): Transformer | void {
+): void {
   const Parser = this.Parser;
   const tokenizers = Parser.prototype.inlineTokenizers;
   const methods = Parser.prototype.inlineMethods as string[];
@@ -62,7 +61,7 @@ function remarkCiteProc(
     value: string,
     silent: boolean
   ): IInlineTokenizerReturn {
-    const citationBracketMatch = /^\[[^\[\]]+\]/g.exec(value);
+    const citationBracketMatch = /^\[[^[\]]+\]/g.exec(value);
 
     // TODO(lukemurray): aho will fail on overlap matches `@aho` matches `@ahocorasick`
     // fix is to make sure there is an invalid key character at the end of the match
@@ -72,14 +71,14 @@ function remarkCiteProc(
             citationBracketMatch[0]
           )
         : [];
-    if (citationKeyMatches?.length !== 0) {
+    if (citationKeyMatches?.length !== 0 && citationBracketMatch !== null) {
       if (silent) {
         return true;
       }
-      let now = eat.now();
-      const add = eat(citationBracketMatch![0]);
+      const now = eat.now();
+      const add = eat(citationBracketMatch[0]);
       addCiteProcKeyTokenizer();
-      const node = add(<CiteProcCitation>{
+      const citation: CiteProcCitation = {
         type: CITE_PROC_CITATION_ID,
         data: {
           citation: {
@@ -89,15 +88,6 @@ function remarkCiteProc(
               .map((v) => ({
                 id: v.id,
                 itemData: { ...v },
-                // // TODO(lukemurray): The following properties need to be parsed and set!
-                // // see https://pandoc.org/demo/example19/Extension-citations.html
-                // "author-only": false,
-                // "suppress-author": false,
-                // label: "page",
-                // locator: "33",
-                // prefix: undefined,
-                // suffix: undefined,
-                // uris: []
               })),
             schema:
               "https://resource.citationstyles.org/schema/latest/input/json/csl-citation.json",
@@ -107,17 +97,17 @@ function remarkCiteProc(
           },
         },
         children: [
-          ...this.tokenizeInline(
-            citationBracketMatch![0].slice(1, -1),
+          ...(this.tokenizeInline(
+            citationBracketMatch[0].slice(1, -1),
             incrementUnistPoint(now, 1)
-          ),
+          ) as UNIST.Node[]),
         ],
-      });
+      };
+      const node = add(citation);
       noteIndex += 1;
       removeCiteProcKeyTokenizer();
       return node;
     }
-    return;
   }
   tokenizeCiteProc.locator = (value: string, fromIndex: number) => {
     return value.indexOf("[", fromIndex);
@@ -125,9 +115,9 @@ function remarkCiteProc(
 
   addCiteProcTokenizer();
 
-  function addCiteProcTokenizer() {
+  function addCiteProcTokenizer(): void {
     tokenizers[CITE_PROC_CITATION_ID] = tokenizeCiteProc;
-    if (methods.indexOf(CITE_PROC_CITATION_ID) === -1) {
+    if (!methods.includes(CITE_PROC_CITATION_ID)) {
       methods.splice(methods.indexOf("link"), 0, CITE_PROC_CITATION_ID);
     }
   }
@@ -151,33 +141,33 @@ function remarkCiteProc(
       console.error("duplicate citation key");
     }
 
-    if (citationKeyMatches?.length !== 0) {
+    if (citationKeyMatches?.length !== 0 && citationKeyMatch !== null) {
       if (silent) {
         return true;
       }
-      let now = eat.now();
-      const add = eat(citationKeyMatch![0]);
+      const now = eat.now();
+      const add = eat(citationKeyMatch[0]);
       removeCiteProcKeyTokenizer();
-      const node = add(<CiteProcCitationKey>{
+      const citationKey: CiteProcCitationKey = {
         type: CITE_PROC_CITATION_KEY_ID,
         data: {
           bibliographicItem: { ...citationKeyMatches[0].value },
         },
-        children: [...this.tokenizeInline(citationKeyMatch![0], now)],
-      });
+        children: [...this.tokenizeInline(citationKeyMatch[0], now)],
+      };
+      const node = add(citationKey);
       addCiteProcKeyTokenizer();
       return node;
     }
-    return;
   }
 
   tokenizeCiteProcKey.locator = (value: string, fromIndex: number) =>
     value.indexOf("@", fromIndex);
 
-  function addCiteProcKeyTokenizer() {
+  function addCiteProcKeyTokenizer(): void {
     tokenizers[CITE_PROC_CITATION_KEY_ID] = tokenizeCiteProcKey;
     // run the citeproc tokenizer before links
-    if (methods.indexOf(CITE_PROC_CITATION_KEY_ID) === -1) {
+    if (!methods.includes(CITE_PROC_CITATION_KEY_ID)) {
       methods.splice(
         methods.indexOf(CITE_PROC_CITATION_ID),
         0,
@@ -186,7 +176,8 @@ function remarkCiteProc(
     }
   }
 
-  function removeCiteProcKeyTokenizer() {
+  function removeCiteProcKeyTokenizer(): void {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete tokenizers[CITE_PROC_CITATION_KEY_ID];
     // run the citeproc tokenizer before links
     const methodIndex = methods.indexOf(CITE_PROC_CITATION_KEY_ID);

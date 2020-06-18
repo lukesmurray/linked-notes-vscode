@@ -1,5 +1,5 @@
 import * as MDAST from "mdast";
-import { Plugin, Processor, Settings, Transformer } from "unified";
+import { Plugin, Processor, Settings } from "unified";
 import * as UNIST from "unist";
 import {
   IInlineTokenizerReturn,
@@ -23,13 +23,8 @@ export interface Wikilink extends BaseFileReferenceNode {
   children: UNIST.Node[];
 }
 
-interface RemarkWikilinkOptions {}
-
 // receive options and configure the processor
-function remarkWikilink(
-  this: Processor<Settings>,
-  settings: RemarkWikilinkOptions
-): Transformer | void {
+function remarkWikilink(this: Processor<Settings>): void {
   const Parser = this.Parser;
   const tokenizers = Parser.prototype.inlineTokenizers;
   const methods = Parser.prototype.inlineMethods;
@@ -46,27 +41,27 @@ function remarkWikilink(
   ): IInlineTokenizerReturn {
     const wikilinkMatch = /^\[\[(.+?)\]\]/g.exec(value);
 
-    if (wikilinkMatch) {
+    if (wikilinkMatch !== null) {
       if (silent) {
         return true;
       }
-      let now = eat.now();
-      const add = eat(wikilinkMatch![0]);
-      const node = add(<Wikilink>{
+      const now = eat.now();
+      const add = eat(wikilinkMatch[0]);
+      const wikilink: Wikilink = {
         type: "wikilink",
         data: {
           title: wikilinkMatch[1],
         },
         children: [
           ...this.tokenizeInline(
-            wikilinkMatch![0].slice(2, -2),
+            wikilinkMatch[0].slice(2, -2),
             incrementUnistPoint(now, 2)
           ),
         ],
-      });
+      };
+      const node = add(wikilink);
       return node;
     }
-    return;
   }
   tokenizeWikilink.locator = (value: string, fromIndex: number) => {
     return value.indexOf("[[", fromIndex);
@@ -78,4 +73,4 @@ function remarkWikilink(
   methods.splice(methods.indexOf("link"), 0, "wikilink");
 }
 
-export default remarkWikilink as Plugin<[RemarkWikilinkOptions]>;
+export default remarkWikilink as Plugin;

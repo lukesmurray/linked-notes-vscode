@@ -51,18 +51,16 @@ export default bibliographicItemsSlice.reducer;
 /*******************************************************************************
  * selectors
  ******************************************************************************/
-export const selectBibliographicSlice = (state: RootState) =>
+export const selectBibliographicSlice = (state: RootState): CslData =>
   state.bibliographicItems;
 
-export const selectBibliographicItems = (state: RootState) =>
+export const selectBibliographicItems = (state: RootState): CslData =>
   selectBibliographicSlice(state);
 
 export const selectCitationKeyCompletions = createSelector(
   selectBibliographicItems,
   (bibliographicItems) => {
-    return bibliographicItems
-      .map(getCitationKeyCompletionItem)
-      .flat() as vscode.CompletionItem[];
+    return bibliographicItems.map(getCitationKeyCompletionItem).flat();
   }
 );
 
@@ -74,7 +72,9 @@ export const selectBibliographicItemAho = createSelector(
 /*******************************************************************************
  * util
  ******************************************************************************/
-export function createAhoCorasickFromCSLJSON(items: CslData) {
+export function createAhoCorasickFromCSLJSON(
+  items: CslData
+): AhoCorasick<CslData[number]> {
   // key aho corasick by the citation keys
-  return new AhoCorasick(items.map((v) => ["@" + v.id, v]));
+  return new AhoCorasick(items.map((v) => [`@${v.id}`, v]));
 }

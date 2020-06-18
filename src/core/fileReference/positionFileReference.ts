@@ -19,7 +19,7 @@ export function positionFileReference(
 export function isPositionInsideNode(
   position: vscode.Position,
   node: UNIST.Node
-) {
+): boolean {
   if (node.position === undefined) {
     return false;
   }

@@ -99,6 +99,7 @@
     "compile": "tsc -p ./ --incremental",
     "postinstall": "patch-package",
     "lint": "eslint src --ext ts",
+    "lint-fix": "eslint src --ext ts --fix-dry-run",
     "pretest": "npm run compile && npm run lint",
     "test-unit": "npm run compile && npm run lint && nyc mocha --ui='tdd' ./out/**/*.test.js",
     "test-integration": "npm run compile && npm run lint && node ./out/test/runTest.js",
