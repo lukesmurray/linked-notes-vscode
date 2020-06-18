@@ -7,7 +7,7 @@ import path from "path";
 export function fsPathTitle(
   sourceFsPath: string,
   store: PartialLinkedNoteStore
-) {
+): string {
   const sourceTitleFileReference = selectLinkedFileByFsPath(
     store.getState(),
     sourceFsPath

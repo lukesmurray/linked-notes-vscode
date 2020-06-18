@@ -10,7 +10,9 @@ export function getDocumentUriFromDocumentSlug(
 }
 
 // TODO(lukemurray): remove and replace
-export function createUriForFileRelativeToWorkspaceRoot(fileName: string) {
+export function createUriForFileRelativeToWorkspaceRoot(
+  fileName: string
+): vscode.Uri | undefined {
   if (vscode.workspace.workspaceFolders === undefined) {
     return undefined;
   }

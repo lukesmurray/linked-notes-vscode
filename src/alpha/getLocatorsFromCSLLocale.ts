@@ -1,4 +1,5 @@
 import { DOMParser } from "xmldom";
+import { isNotNullOrUndefined } from "../utils/util";
 
 export interface ICSLLocator {
   locatorName: string;
@@ -6,7 +7,7 @@ export interface ICSLLocator {
   multiple?: string;
 }
 
-export function getLocatorsFromCSLLocale(localeXML: string) {
+export function getLocatorsFromCSLLocale(localeXML: string): ICSLLocator[] {
   // list of valid names for locators
   /// TODO(lukemurray): might want to extract these programmatically from a schema
   const locatorNames = [
@@ -39,15 +40,21 @@ export function getLocatorsFromCSLLocale(localeXML: string) {
     );
   });
   // map locator nodes to ICSLLocator
-  const locators: ICSLLocator[] = locatorNodes.map((locatorNode) => {
-    const singleNode = getFirstChildWithTagName(locatorNode, "single");
-    const multipleNode = getFirstChildWithTagName(locatorNode, "multiple");
-    return {
-      locatorName: locatorNode.getAttribute("name")!,
-      single: singleNode?.textContent ?? undefined,
-      multiple: multipleNode?.textContent ?? undefined,
-    };
-  });
+  const locators: ICSLLocator[] = locatorNodes
+    .map((locatorNode) => {
+      const singleNode = getFirstChildWithTagName(locatorNode, "single");
+      const multipleNode = getFirstChildWithTagName(locatorNode, "multiple");
+      const locatorName = locatorNode.getAttribute("name");
+      if (locatorName === undefined || locatorName === null) {
+        return undefined;
+      }
+      return {
+        locatorName,
+        single: singleNode?.textContent ?? undefined,
+        multiple: multipleNode?.textContent ?? undefined,
+      };
+    })
+    .filter(isNotNullOrUndefined);
   return locators;
 }
 

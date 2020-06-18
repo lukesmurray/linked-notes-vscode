@@ -6,23 +6,23 @@ import { getCiteProcCompletionRange } from "../core/completion/getCiteProcComple
 
 class MarkdownCiteProcCitationKeyCompletionProvider
   implements vscode.CompletionItemProvider {
-  private store: LinkedNotesStore;
+  private readonly store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
+
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
     token: vscode.CancellationToken,
     context: vscode.CompletionContext
-  ) {
-    let citeProcRange = getCiteProcCompletionRange(document, position);
-    let wikilinkRange = getWikilinkCompletionRange(document, position);
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    const citeProcRange = getCiteProcCompletionRange(document, position);
+    const wikilinkRange = getWikilinkCompletionRange(document, position);
     // no citeproc completions in a wikilink
-    if (citeProcRange && !wikilinkRange) {
+    if (citeProcRange !== undefined && wikilinkRange === undefined) {
       return selectCitationKeyCompletions(this.store.getState());
     }
-    return;
   }
 }
 

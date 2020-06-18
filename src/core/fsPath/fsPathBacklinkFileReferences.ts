@@ -8,7 +8,7 @@ export function fsPathBacklinkFileReferences(
 ): FileReference[] {
   const backLinksByFsPath = selectBackLinksByFsPath(store.getState());
   const backlinks: FileReference[] = [];
-  for (let srcFsPath of Object.keys(backLinksByFsPath)) {
+  for (const srcFsPath of Object.keys(backLinksByFsPath)) {
     if (backLinksByFsPath[srcFsPath][targetFsPath] !== undefined) {
       backlinks.push(...backLinksByFsPath[srcFsPath][targetFsPath]);
     }

@@ -6,18 +6,19 @@ import { getWikilinkCompletionReplacementRange } from "../core/completion/getWik
 
 class MarkdownWikilinkCompletionProvider
   implements vscode.CompletionItemProvider {
-  private store: LinkedNotesStore;
+  private readonly store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
+
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
     token: vscode.CancellationToken,
     context: vscode.CompletionContext
-  ) {
-    let range = getWikilinkCompletionRange(document, position);
-    if (range) {
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    const range = getWikilinkCompletionRange(document, position);
+    if (range !== undefined) {
       const completions = selectWikilinkCompletions(this.store.getState());
       return completions.map((match) => {
         const completion = new vscode.CompletionItem(
@@ -41,7 +42,6 @@ class MarkdownWikilinkCompletionProvider
         return completion;
       });
     }
-    return;
   }
 }
 

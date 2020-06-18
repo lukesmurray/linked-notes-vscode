@@ -20,7 +20,7 @@ suite("Reducer Test Suite", () => {
     const AST = processor.parse(createSimpleContents());
     // run transformers on the ast
     processor.run(AST, (err, transformedAST, file) => {
-      if (err) {
+      if (err !== null) {
         done(err);
       }
       // make sure there are no issues
@@ -33,7 +33,7 @@ suite("Reducer Test Suite", () => {
     const processor = createCiteProcProcessor();
     const AST = processor.parse(createSimpleContents());
     processor.run(AST, (err, transformedAST, file) => {
-      if (err) {
+      if (err !== null) {
         done(err);
       }
       // make sure there are no issues
@@ -46,7 +46,7 @@ suite("Reducer Test Suite", () => {
     const processor = createCiteProcProcessor();
     const AST = processor.parse(createContentsWithCitation());
     processor.run(AST, (err, transformedAST, file) => {
-      if (err) {
+      if (err !== null) {
         done(err);
       }
       // make sure there are no issues
@@ -56,17 +56,17 @@ suite("Reducer Test Suite", () => {
   });
 });
 
-function createCiteProcProcessor() {
+function createCiteProcProcessor(): unified.Processor<unified.Settings> {
   return createSimpleProcessor().use(remarkCiteproc, {
     citationItemAho: createAhoCorasickFromCSLJSON(exampleCSL),
   });
 }
 
-function createSimpleProcessor() {
+function createSimpleProcessor(): unified.Processor<unified.Settings> {
   return unified().use(markdown);
 }
 
-function createSimpleContents() {
+function createSimpleContents(): vfile.VFile {
   return vfile(`
 # Hello World
 
@@ -74,7 +74,7 @@ This is some markdown
 `);
 }
 
-function createContentsWithCitation() {
+function createContentsWithCitation(): vfile.VFile {
   return vfile(`
 # Hello World
 

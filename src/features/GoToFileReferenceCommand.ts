@@ -5,12 +5,14 @@ import { fileReferenceContentRange } from "../core/fileReference/fileReferenceCo
 export const GO_TO_FILE_REFERENCE_COMMAND =
   "linked-notes-vscode.goToFileReference";
 
-export async function GoToFileReference(reference: FileReference) {
+export async function GoToFileReference(
+  reference: FileReference
+): Promise<void> {
   await vscode.workspace
     .openTextDocument(vscode.Uri.file(reference.sourceFsPath))
-    .then((doc) => {
+    .then((doc) =>
       vscode.window.showTextDocument(doc, {
         selection: fileReferenceContentRange(reference),
-      });
-    });
+      })
+    );
 }

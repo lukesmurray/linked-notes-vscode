@@ -34,17 +34,17 @@ declare module "citeproc" {
       citationID?: CitationId;
     }
 
-    class Engine {
+    export class Engine {
       constructor(sys: SysInterface, style: string);
 
-      updateItems(idList: (string | number)[]): void;
+      updateItems(idList: Array<string | number>): void;
 
-      updateUncitedItems(idList: (string | number)[]): void;
+      updateUncitedItems(idList: Array<string | number>): void;
 
       processCitationCluster(
         citations: CitationCluster,
-        citationsPre: [CitationId, NoteIndex][],
-        citationsPost: [CitationId, NoteIndex][]
+        citationsPre: Array<[CitationId, NoteIndex]>,
+        citationsPost: Array<[CitationId, NoteIndex]>
       ): void;
 
       makeBibliography(): [

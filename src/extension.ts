@@ -35,18 +35,25 @@ import {
   GoToFileReference,
   GO_TO_FILE_REFERENCE_COMMAND,
 } from "./features/GoToFileReferenceCommand";
+import MarkdownIt from "markdown-it";
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(
+  context: vscode.ExtensionContext
+): Promise<{
+  extendMarkdownIt: (md: MarkdownIt) => MarkdownIt;
+}> {
   /*****************************************************************************
    * Initialize
    ****************************************************************************/
 
   // read the user configuration
-  store.dispatch(updateConfiguration(readConfiguration()));
+  store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
+    console.error("failed to update configuration");
+  });
 
   // set the language
   vscode.languages.setLanguageConfiguration("markdown", {
-    wordPattern: /([\+\#\.\/\\\-\w]+)/,
+    wordPattern: /([+#./\\\-\w]+)/,
   });
 
   // initialize the workspace
@@ -74,12 +81,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // backlinks tree view
   const backLinksTreeDataProvider = new BacklinksTreeDataProvider(store);
-  const treeView = vscode.window.createTreeView(
-    "linked-notes-vscode.backlinksExplorerView",
-    {
-      treeDataProvider: backLinksTreeDataProvider,
-    }
-  );
+  vscode.window.createTreeView("linked-notes-vscode.backlinksExplorerView", {
+    treeDataProvider: backLinksTreeDataProvider,
+  });
 
   // wiki link autocomplete
   context.subscriptions.push(
@@ -162,7 +166,9 @@ export async function activate(context: vscode.ExtensionContext) {
   // register a configuration change listener
   vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration(getConfigurationScope())) {
-      store.dispatch(updateConfiguration(readConfiguration()));
+      store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
+        console.error("failed to update configuration");
+      });
     }
   });
 
@@ -178,7 +184,9 @@ export async function activate(context: vscode.ExtensionContext) {
     if (isMarkdownFile(e.document.uri)) {
       flagLinkedFileForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
-      store.dispatch(updateBibliographicItems());
+      store.dispatch(updateBibliographicItems()).catch(() => {
+        console.error("failed to update bibliographic items");
+      });
     }
   });
 
@@ -186,7 +194,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // various cases depending on if we're renaming from markdown to markdown,
     // non markdown to markdown, or markdown to non markdown
     // this extension manages markdown files
-    for (let file of e.files) {
+    for (const file of e.files) {
       const oldIsMarkdown = isMarkdownFile(file.oldUri);
       const newIsMarkdown = isMarkdownFile(file.newUri);
       if (oldIsMarkdown && newIsMarkdown) {
@@ -201,19 +209,25 @@ export async function activate(context: vscode.ExtensionContext) {
           flagLinkedFileForUpdate(store, doc);
         });
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
-        store.dispatch(updateBibliographicItems());
+        store.dispatch(updateBibliographicItems()).catch(() => {
+          console.error("failed to update bibliographic items");
+        });
       } else if (isDefaultBibFile(file.newUri, store.getState())) {
-        store.dispatch(updateBibliographicItems());
+        store.dispatch(updateBibliographicItems()).catch(() => {
+          console.error("failed to update bibliographic items");
+        });
       }
     }
   });
 
   vscode.workspace.onDidDeleteFiles((e) => {
-    for (let fileUri of e.files) {
+    for (const fileUri of e.files) {
       if (isMarkdownFile(fileUri)) {
         flagLinkedFileForDeletion(store, uriFsPath(fileUri));
       } else if (isDefaultBibFile(fileUri, store.getState())) {
-        store.dispatch(updateBibliographicItems());
+        store.dispatch(updateBibliographicItems()).catch(() => {
+          console.error("failed to update bibliographic items");
+        });
       }
     }
   });
@@ -228,7 +242,9 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   const bibFileWatcherHandler = (uri: vscode.Uri): void => {
     if (isDefaultBibFile(uri, store.getState())) {
-      store.dispatch(updateBibliographicItems());
+      store.dispatch(updateBibliographicItems()).catch(() => {
+        console.error("failed to update bibliographic items");
+      });
     }
   };
   bibFileWatcher.onDidChange(bibFileWatcherHandler);
@@ -273,6 +289,6 @@ export async function activate(context: vscode.ExtensionContext) {
    * Extend Markdown
    ****************************************************************************/
   return {
-    extendMarkdownIt: ExtendMarkdownIt,
+    extendMarkdownIt: ExtendMarkdownIt(store),
   };
 }

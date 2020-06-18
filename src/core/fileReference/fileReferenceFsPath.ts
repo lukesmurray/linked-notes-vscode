@@ -76,6 +76,6 @@ function titleFileReferenceFsPath(
   return ref.node.data.fsPath;
 }
 
-export function titleToBasename(title: string) {
+export function titleToBasename(title: string): string {
   return sluggifyDocumentTitle(title) + `.${DEFAULT_MARKDOWN_EXT}`;
 }

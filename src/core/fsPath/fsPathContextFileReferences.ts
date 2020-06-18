@@ -6,7 +6,7 @@ import { PartialLinkedNoteStore } from "../../store";
 export function fsPathBackLinkContextFileReferences(
   fsPath: string,
   store: PartialLinkedNoteStore
-) {
+): ContextFileReference[] {
   return fsPathBacklinkFileReferences(fsPath, store).filter((v) =>
     isContextFileReference(v)
   ) as ContextFileReference[];

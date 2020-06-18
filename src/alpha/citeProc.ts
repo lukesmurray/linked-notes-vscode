@@ -3,6 +3,7 @@ import keyBy from "lodash/keyBy";
 import memoizeOne from "memoize-one";
 import { CslData } from "../types/csl-data";
 import { CiteProcCitation } from "../core/remarkPlugins/remarkCiteproc";
+import { isNotNullOrUndefined } from "../utils/util";
 
 /**
  * from https://github.com/citation-style-language/styles
@@ -16,12 +17,12 @@ const defaultStyle = "chicago-fullnote-bibliography-16th-edition";
  */
 const defaultLocale = "en-US";
 
-export const getCitations = async (
+export async function getCitations(
   citations: CiteProcCitation[],
   items: CslData,
   style: string = defaultStyle,
   preferredLocale: string = defaultLocale
-) => {
+): Promise<void> {
   // normalize items
   const itemsById = keyBy(items, (item) => item.id);
 
@@ -35,7 +36,7 @@ export const getCitations = async (
   );
 
   // create the engine
-  let citeproc = new CSL.Engine(
+  const citeproc = new CSL.Engine(
     {
       retrieveItem: (id) => itemsById[id],
       retrieveLocale: (locale) => {
@@ -44,14 +45,15 @@ export const getCitations = async (
     },
     styleString
   );
-  let citationsPre: any[] = [];
-  let citationsPost: any[] = [];
+  const citationsPre: any[] = [];
+  const citationsPost: any[] = [];
   for (let i = 0; i < citations.length; i++) {
     citeproc.processCitationCluster(
       {
-        citationItems: citations[i].data.citation.citationItems!.map(
-          (v) => v.itemData!
-        ),
+        citationItems:
+          citations[i].data.citation.citationItems
+            ?.map((v) => v.itemData)
+            .filter(isNotNullOrUndefined) ?? [],
         properties: {
           nodeIndex: citations[i].data.citation.properties?.noteIndex,
         },
@@ -67,26 +69,24 @@ export const getCitations = async (
   const bibliography = citeproc.makeBibliography();
   console.log("making bibliography");
   console.log(bibliography);
-};
+}
 
 const getLocaleStringsByLocale = memoizeOne(
   async (styleText: string, preferredLocale: string) => {
     const locales = CSL.getLocaleNames(styleText, preferredLocale);
     const localeTexts = await Promise.all(
-      locales.map((locale) =>
-        fetch(
-          `https://raw.githubusercontent.com/citation-style-language/locales/master/locales-${locale}.xml`
-        ).then((res) => res.text())
+      locales.map(
+        async (locale) =>
+          await fetch(
+            `https://raw.githubusercontent.com/citation-style-language/locales/master/locales-${locale}.xml`
+          ).then(async (res) => await res.text())
       )
     );
-    const localeTextsByLocale = locales.reduce(
-      (prev, curr, idx) => {
-        return { ...prev, [curr]: localeTexts[idx] };
-      },
-      {} as {
-        [locale: string]: string;
-      }
-    );
+    const localeTextsByLocale = locales.reduce<{
+      [locale: string]: string;
+    }>((prev, curr, idx) => {
+      return { ...prev, [curr]: localeTexts[idx] };
+    }, {});
     return localeTextsByLocale;
   }
 );
@@ -94,6 +94,6 @@ const getLocaleStringsByLocale = memoizeOne(
 const getStyleString = memoizeOne(async (style: string) => {
   const text = await fetch(
     `https://raw.githubusercontent.com/citation-style-language/styles/master/${style}.csl`
-  ).then((res) => res.text());
+  ).then(async (res) => await res.text());
   return text;
 });

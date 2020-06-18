@@ -6,15 +6,16 @@ import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import { LinkedNotesStore } from "../store";
 
 class MarkdownDefinitionProvider implements vscode.DefinitionProvider {
-  private store: LinkedNotesStore;
+  private readonly store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
     this.store = store;
   }
+
   public async provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
     token: vscode.CancellationToken
-  ) {
+  ): Promise<vscode.Location | undefined> {
     const fsPath = textDocumentFsPath(document);
     await waitForLinkedFileToUpdate(this.store, fsPath, token);
     if (token.isCancellationRequested) {

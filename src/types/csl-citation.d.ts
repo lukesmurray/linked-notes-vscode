@@ -11,7 +11,7 @@
 export interface CslCitation {
   schema: "https://resource.citationstyles.org/schema/latest/input/json/csl-citation.json";
   citationID: string | number;
-  citationItems?: {
+  citationItems?: Array<{
     id: string | number;
     itemData?: {
       type:
@@ -64,7 +64,7 @@ export interface CslCitation {
       language?: string;
       journalAbbreviation?: string;
       shortTitle?: string;
-      author?: {
+      author?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -74,8 +74,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      "collection-editor"?: {
+      }>;
+      "collection-editor"?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -85,8 +85,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      composer?: {
+      }>;
+      composer?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -96,8 +96,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      "container-author"?: {
+      }>;
+      "container-author"?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -107,8 +107,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      director?: {
+      }>;
+      director?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -118,8 +118,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      editor?: {
+      }>;
+      editor?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -129,8 +129,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      "editorial-director"?: {
+      }>;
+      "editorial-director"?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -140,8 +140,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      interviewer?: {
+      }>;
+      interviewer?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -151,8 +151,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      illustrator?: {
+      }>;
+      illustrator?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -162,8 +162,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      "original-author"?: {
+      }>;
+      "original-author"?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -173,8 +173,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      recipient?: {
+      }>;
+      recipient?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -184,8 +184,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      "reviewed-author"?: {
+      }>;
+      "reviewed-author"?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -195,8 +195,8 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
-      translator?: {
+      }>;
+      translator?: Array<{
         family?: string;
         given?: string;
         "dropping-particle"?: string;
@@ -206,44 +206,44 @@ export interface CslCitation {
         "static-ordering"?: string | number | boolean;
         literal?: string;
         "parse-names"?: string | number | boolean;
-      }[];
+      }>;
       accessed?: {
-        "date-parts"?: (string | number)[][];
+        "date-parts"?: Array<Array<string | number>>;
         season?: string | number;
         circa?: string | number | boolean;
         literal?: string;
         raw?: string;
       };
       container?: {
-        "date-parts"?: (string | number)[][];
+        "date-parts"?: Array<Array<string | number>>;
         season?: string | number;
         circa?: string | number | boolean;
         literal?: string;
         raw?: string;
       };
       "event-date"?: {
-        "date-parts"?: (string | number)[][];
+        "date-parts"?: Array<Array<string | number>>;
         season?: string | number;
         circa?: string | number | boolean;
         literal?: string;
         raw?: string;
       };
       issued?: {
-        "date-parts"?: (string | number)[][];
+        "date-parts"?: Array<Array<string | number>>;
         season?: string | number;
         circa?: string | number | boolean;
         literal?: string;
         raw?: string;
       };
       "original-date"?: {
-        "date-parts"?: (string | number)[][];
+        "date-parts"?: Array<Array<string | number>>;
         season?: string | number;
         circa?: string | number | boolean;
         literal?: string;
         raw?: string;
       };
       submitted?: {
-        "date-parts"?: (string | number)[][];
+        "date-parts"?: Array<Array<string | number>>;
         season?: string | number;
         circa?: string | number | boolean;
         literal?: string;
@@ -336,7 +336,7 @@ export interface CslCitation {
     "suppress-author"?: string | number | boolean;
     "author-only"?: string | number | boolean;
     uris?: string[];
-  }[];
+  }>;
   properties?: {
     noteIndex?: number;
   };

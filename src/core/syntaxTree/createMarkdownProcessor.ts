@@ -15,7 +15,7 @@ import remarkContext from "../remarkPlugins/remarkContext";
 export function createMarkdownProcessor(
   bibliographicItemAho: AhoCorasick<BibliographicItem>,
   fsPath: string
-) {
+): unified.Processor<unified.Settings> {
   return unified()
     .use(markdown)
     .use(remarkCiteproc, {

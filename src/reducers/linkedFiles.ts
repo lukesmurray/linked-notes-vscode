@@ -3,34 +3,33 @@ import {
   createAction,
   createAsyncThunk,
   createEntityAdapter,
-  createSlice,
   createSelector,
-  PayloadAction,
-  EntityId,
+  createSlice,
+  EntityState,
 } from "@reduxjs/toolkit";
-import { createObjectSelector, createArraySelector } from "reselect-map";
+import { createObjectSelector } from "reselect-map";
 import * as vscode from "vscode";
 import type { RootState } from ".";
-import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
-import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
-import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
-import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import {
   isCitationKeyFileReference,
-  isWikilinkFileReference,
   isContextFileReference,
+  isWikilinkFileReference,
 } from "../core/common/typeGuards";
 import {
+  FileReference,
   LinkedFile,
   LinkedFileStatus,
-  FileReference,
 } from "../core/common/types";
-import type { AppDispatch, LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
+import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
+import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
+import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
+import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
+import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
   delay,
-  isNotNullOrUndefined,
   findAllMarkdownFilesInWorkspace,
+  isNotNullOrUndefined,
 } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
 
@@ -167,11 +166,13 @@ export default combineReducers({
  * Selectors
  ******************************************************************************/
 
-export const selectLinkedFilesSlice = (state: RootState) =>
-  state.linkedFiles.files;
+export const selectLinkedFilesSlice = (
+  state: RootState
+): EntityState<LinkedFile> => state.linkedFiles.files;
 
-export const selectLinkedFilesStatusSlice = (state: RootState) =>
-  state.linkedFiles.status;
+export const selectLinkedFilesStatusSlice = (
+  state: RootState
+): EntityState<LinkedFileStatus> => state.linkedFiles.status;
 
 export const {
   selectById: selectLinkedFileByFsPath,
@@ -267,7 +268,7 @@ const updateLinkedFileSyntaxTreePromises: Record<
 export function flagLinkedFileForUpdate(
   store: LinkedNotesStore,
   document: vscode.TextDocument
-) {
+): void {
   const fsPath = textDocumentFsPath(document);
   // if there is a pending thunk then cancel it
   const pendingThunk = updateLinkedFileSyntaxTreePromises[fsPath];
@@ -283,7 +284,7 @@ export function flagLinkedFileForUpdate(
 export function flagLinkedFileForDeletion(
   store: LinkedNotesStore,
   fsPath: string
-) {
+): void {
   // if there is a pending thunk then cancel it
   const pendingThunk = updateLinkedFileSyntaxTreePromises[fsPath];
   if (pendingThunk !== undefined) {
@@ -296,9 +297,9 @@ export const waitForLinkedFileToUpdate = async (
   store: LinkedNotesStore,
   fsPath: string,
   token?: vscode.CancellationToken
-) => {
+): Promise<void> => {
   while (true) {
-    if (token?.isCancellationRequested) {
+    if (token?.isCancellationRequested === true) {
       return;
     }
     const linkedFileStatus = selectLinkedFileStatusByFsPath(
@@ -313,21 +314,18 @@ export const waitForLinkedFileToUpdate = async (
     // give up
     await delay(WAIT_FOR_LINKED_FILE_POLL_DELAY);
   }
-  return;
 };
 
 export const waitForAllLinkedFilesToUpdate = async (
   store: LinkedNotesStore,
   token?: vscode.CancellationToken
-) => {
+): Promise<void> => {
   const fsPaths = await findAllMarkdownFilesInWorkspace().then((v) =>
     v.map((v) => v.fsPath)
   );
-  const results = await Promise.all(
+  await Promise.all(
     fsPaths.map(
-      async (fsPath) =>
-        await waitForLinkedFileToUpdate(store, fsPath as string, token)
+      async (fsPath) => await waitForLinkedFileToUpdate(store, fsPath, token)
     )
   );
-  return;
 };
