@@ -3,12 +3,20 @@
   "parserOptions": {
     "project": "./tsconfig.json"
   },
-  "plugins": ["you-dont-need-lodash-underscore", "prettier"],
+
+  "plugins": [
+    // try to avoid using lodash
+    "you-dont-need-lodash-underscore",
+    // run prettier as an eslint rule
+    "prettier"
+  ],
   "rules": {
+    // make prettier issues eslint errors
     "prettier/prettier": "error"
   },
   "extends": [
     "plugin:you-dont-need-lodash-underscore/compatible",
+    // standard js typescript
     "standard-with-typescript",
     "prettier",
     "prettier/@typescript-eslint",
