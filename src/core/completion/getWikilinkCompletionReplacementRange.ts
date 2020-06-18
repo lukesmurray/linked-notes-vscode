@@ -13,7 +13,7 @@ import * as vscode from "vscode";
  * [[two closing brackets]]
  */
 
-const WIKILINK_COMPLETION_REPLACEMENT_RANGE_REGEX = /(?<=(?:\s|^)(\[\[))([^\]\r\n]*(?:\]){0,2})/g;
+const WIKILINK_COMPLETION_REPLACEMENT_RANGE_REGEX = /(?<=(?:\s|^|\()(\[\[))([^\]\r\n]*(?:\]){0,2})/g;
 
 export function getWikilinkCompletionReplacementRange(
   document: vscode.TextDocument,
