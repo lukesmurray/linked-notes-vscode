@@ -289,6 +289,6 @@ export async function activate(
    * Extend Markdown
    ****************************************************************************/
   return {
-    extendMarkdownIt: ExtendMarkdownIt,
+    extendMarkdownIt: ExtendMarkdownIt(store),
   };
 }
