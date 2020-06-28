@@ -1,11 +1,13 @@
-//@ts-check
+// @ts-check
 
 "use strict";
 
 const path = require("path");
 
-/**@type {import('webpack').Configuration}*/
-const config = {
+/**
+ * @type {import('webpack').Configuration}
+ */
+const configTemplate = {
   target: "node", // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
 
   entry: "./src/extension.ts", // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
@@ -16,7 +18,6 @@ const config = {
     libraryTarget: "commonjs2",
     devtoolModuleFilenameTemplate: "../[resource-path]",
   },
-  devtool: "source-map",
   externals: {
     vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
   },
@@ -38,4 +39,19 @@ const config = {
     ],
   },
 };
-module.exports = config;
+
+/**
+ * @type {import('webpack').ConfigurationFactory}
+ */
+const exportFunction = (env, args) => {
+  /**
+   * @type {import('webpack').Configuration}
+   */
+  const config = JSON.parse(JSON.stringify(configTemplate));
+  if (args.mode === "development") {
+    config.devtool = "eval-source-map";
+  }
+  return configTemplate;
+};
+
+module.exports = exportFunction;

@@ -81,7 +81,6 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
     );
     const newLinkedFile: LinkedFile = {
       fsPath,
-      syntaxTree,
       fileReferences,
       // TODO(lukemurray): think about how we would add new note types and where
       // it would be reasonable to add that information

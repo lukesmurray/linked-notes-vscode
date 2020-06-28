@@ -10,6 +10,8 @@ import { CslData } from "../types/csl-data";
 import { selectDefaultBibUri } from "./configuration";
 import { getCitationKeyCompletionItem } from "../core/citeProc/citeProcUtils";
 import AhoCorasick from "../utils/ahoCorasick";
+import { BibliographicId } from "../core/remarkPlugins/remarkCiteproc";
+import keyBy from "lodash/keyBy";
 
 /*******************************************************************************
  * Thunks
@@ -69,12 +71,17 @@ export const selectBibliographicItemAho = createSelector(
   (items) => createAhoCorasickFromCSLJSON(items)
 );
 
+export const selectBibliographicItemsById = createSelector(
+  selectBibliographicItems,
+  (items) => keyBy(items, "id")
+);
+
 /*******************************************************************************
  * util
  ******************************************************************************/
 export function createAhoCorasickFromCSLJSON(
   items: CslData
-): AhoCorasick<CslData[number]> {
+): AhoCorasick<BibliographicId> {
   // key aho corasick by the citation keys
-  return new AhoCorasick(items.map((v) => [`@${v.id}`, v]));
+  return new AhoCorasick(items.map((v) => [`@${v.id}`, v.id]));
 }

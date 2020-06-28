@@ -9,6 +9,7 @@ import * as vscode from "vscode";
 import { getCitationKeyHoverText } from "../citeProc/citeProcUtils";
 import { fileReferenceFsPath } from "./fileReferenceFsPath";
 import { PartialLinkedNoteStore } from "../../store";
+import { bibliographicItemBibliographicId } from "../citeProc/bibliographicItemBibliographicId";
 
 export async function fileReferenceHoverText(
   ref: FileReference,
@@ -16,7 +17,7 @@ export async function fileReferenceHoverText(
 ): Promise<vscode.MarkdownString | undefined> {
   switch (ref.type) {
     case "citationKeyFileReference":
-      return await citationKeyFileReferenceHoverText(ref);
+      return await citationKeyFileReferenceHoverText(ref, store);
     case "wikilinkFileReference":
       return await wikilinkFileReferenceHoverText(ref, store);
     case "titleFileReference":
@@ -27,9 +28,17 @@ export async function fileReferenceHoverText(
 }
 
 async function citationKeyFileReferenceHoverText(
-  ref: CitationKeyFileReference
+  ref: CitationKeyFileReference,
+  store: PartialLinkedNoteStore
 ): Promise<vscode.MarkdownString | undefined> {
-  return getCitationKeyHoverText(ref.node.data.bibliographicItem);
+  const bibliographicItem = bibliographicItemBibliographicId(
+    store,
+    ref.node.data.bibliographicId
+  );
+  if (bibliographicItem === undefined) {
+    return undefined;
+  }
+  return getCitationKeyHoverText(bibliographicItem);
 }
 
 async function wikilinkFileReferenceHoverText(

@@ -52,6 +52,8 @@ export async function getCitations(
       {
         citationItems:
           citations[i].data.citation.citationItems
+            // TODO(lukemurray): ignoring a bug here cause this citeproc code is unused
+            // @ts-expect-error
             ?.map((v) => v.itemData)
             .filter(isNotNullOrUndefined) ?? [],
         properties: {

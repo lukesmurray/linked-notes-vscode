@@ -12,18 +12,23 @@ import { BaseFileReferenceNode } from "../common/types";
 import { incrementUnistPoint } from "./util/incrementUnistPoint";
 
 export type BibliographicItem = CslData[number];
+export type BibliographicId = BibliographicItem["id"];
 
 const CITE_PROC_CITATION_KEY_ID = "citeProcCitationKey";
 const CITE_PROC_CITATION_ID = "citeProcCitation";
 
+export type CslCitationLite = Omit<CslCitation, "citationItems"> & {
+  citationItems: BibliographicId[];
+};
+
 interface RemarkCiteProcOptions {
-  citationItemAho: AhoCorasick<BibliographicItem>;
+  citationItemAho: AhoCorasick<BibliographicId>;
 }
 
 export interface CiteProcCitation extends UNIST.Node {
   type: "citeProcCitation";
   data: {
-    citation: CslCitation;
+    citation: CslCitationLite;
   };
   children: UNIST.Node[];
 }
@@ -31,7 +36,7 @@ export interface CiteProcCitation extends UNIST.Node {
 export interface CiteProcCitationKey extends BaseFileReferenceNode {
   type: "citeProcCitationKey";
   data: {
-    bibliographicItem: BibliographicItem;
+    bibliographicId: BibliographicId;
     /**
      * the context of the citation key
      */
@@ -83,12 +88,7 @@ function remarkCiteProc(
         data: {
           citation: {
             citationID: "",
-            citationItems: citationKeyMatches
-              .map((v) => v.value)
-              .map((v) => ({
-                id: v.id,
-                itemData: { ...v },
-              })),
+            citationItems: citationKeyMatches.map((v) => v.value),
             schema:
               "https://resource.citationstyles.org/schema/latest/input/json/csl-citation.json",
             properties: {
@@ -151,7 +151,7 @@ function remarkCiteProc(
       const citationKey: CiteProcCitationKey = {
         type: CITE_PROC_CITATION_KEY_ID,
         data: {
-          bibliographicItem: { ...citationKeyMatches[0].value },
+          bibliographicId: citationKeyMatches[0].value,
         },
         children: [...this.tokenizeInline(citationKeyMatch[0], now)],
       };

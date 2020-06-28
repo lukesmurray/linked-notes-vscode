@@ -1,14 +1,14 @@
 import * as MDAST from "mdast";
 import AhoCorasick from "../../utils/ahoCorasick";
+import { BibliographicId } from "../remarkPlugins/remarkCiteproc";
 import { createMarkdownProcessor } from "./createMarkdownProcessor";
-import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
 
 /**
  * Get a syntax tree from a string asynchronously
  */
 export async function getMDASTFromText(
   text: string,
-  bibliographicItemAho: AhoCorasick<BibliographicItem>,
+  bibliographicItemAho: AhoCorasick<BibliographicId>,
   fsPath: string
 ): Promise<MDAST.Root> {
   const processor = createMarkdownProcessor(bibliographicItemAho, fsPath);

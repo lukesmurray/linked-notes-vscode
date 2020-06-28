@@ -1,8 +1,7 @@
-import * as MDAST from "mdast";
 import * as UNIST from "unist";
 import { CiteProcCitationKey } from "../remarkPlugins/remarkCiteproc";
-import { Wikilink } from "../remarkPlugins/remarkWikilink";
 import { TitleHeading } from "../remarkPlugins/remarkTitleHeading";
+import { Wikilink } from "../remarkPlugins/remarkWikilink";
 
 /*******************************************************************************
  * File References
@@ -103,7 +102,6 @@ export interface LinkedFileIdentifiable {
 }
 
 export interface BaseLinkedFile extends LinkedFileIdentifiable {
-  syntaxTree?: MDAST.Root;
   fileReferences?: FileReference[];
   type: LinkedFileType;
 }
