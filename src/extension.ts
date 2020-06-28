@@ -1,6 +1,11 @@
 import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
 import * as vscode from "vscode";
-import ExtendMarkdownIt from "./features/ExtendMarkdownIt";
+import { uriFsPath } from "./core/fsPath/uriFsPath";
+import { BacklinksTreeDataProvider } from "./features/BacklinksTreeDataProvider";
+import {
+  GoToFileReference,
+  GO_TO_FILE_REFERENCE_COMMAND,
+} from "./features/GoToFileReferenceCommand";
 import MarkdownCiteProcCitationKeyCompletionProvider from "./features/MarkdownCiteProcCitationKeyCompletionProvider";
 import MarkdownDefinitionProvider from "./features/MarkdownDefinitionProvider";
 import MarkdownDocumentLinkProvider from "./features/MarkdownDocumentLinkProvider";
@@ -9,6 +14,7 @@ import MarkdownReferenceProvider from "./features/MarkdownReferenceProvider";
 import MarkdownRenameProvider from "./features/MarkdownRenameProvider";
 import MarkdownWikilinkCompletionProvider from "./features/MarkdownWikiLinkCompletionProvider";
 import NewNoteCommand from "./features/NewNoteCommand";
+import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
 import { updateBibliographicItems } from "./reducers/bibliographicItems";
 import {
   getConfigurationScope,
@@ -16,10 +22,9 @@ import {
   updateConfiguration,
 } from "./reducers/configuration";
 import {
-  flagLinkedFileForUpdate,
   flagLinkedFileForDeletion,
+  flagLinkedFileForUpdate,
 } from "./reducers/linkedFiles";
-import { uriFsPath } from "./core/fsPath/uriFsPath";
 import store from "./store";
 import {
   BIB_FILE_GLOB_PATTERN,
@@ -29,19 +34,10 @@ import {
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
 } from "./utils/util";
-import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
-import { BacklinksTreeDataProvider } from "./features/BacklinksTreeDataProvider";
-import {
-  GoToFileReference,
-  GO_TO_FILE_REFERENCE_COMMAND,
-} from "./features/GoToFileReferenceCommand";
-import MarkdownIt from "markdown-it";
 
 export async function activate(
   context: vscode.ExtensionContext
-): Promise<{
-  extendMarkdownIt: (md: MarkdownIt) => MarkdownIt;
-}> {
+): Promise<void> {
   /*****************************************************************************
    * Initialize
    ****************************************************************************/
@@ -284,11 +280,4 @@ export async function activate(
   vscode.workspace.onDidChangeTextDocument((e) => {
     backLinksTreeDataProvider.refresh();
   });
-
-  /*****************************************************************************
-   * Extend Markdown
-   ****************************************************************************/
-  return {
-    extendMarkdownIt: ExtendMarkdownIt(store),
-  };
 }

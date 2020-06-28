@@ -20,6 +20,7 @@ export function syntaxTreeFileReferences(
 ): FileReference[] {
   const fileReferenceNodes = getFileReferenceNodesFromMDAST(syntaxTree);
   return fileReferenceNodes.map((node) => {
+    node = JSON.parse(JSON.stringify(node));
     switch (node.type) {
       case "citeProcCitationKey":
         return createCiteProcCitationKeyFileReference(node, fsPath, store);
