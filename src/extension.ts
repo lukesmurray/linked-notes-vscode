@@ -58,10 +58,11 @@ export async function activate(
   // initialize the workspace
   await findAllMarkdownFilesInWorkspace().then(async (fileUris) => {
     return await Promise.all(
-      fileUris.map((uri) =>
-        vscode.workspace
-          .openTextDocument(uri)
-          .then((doc) => flagLinkedFileForUpdate(store, doc))
+      fileUris.map(
+        async (uri) =>
+          await vscode.workspace
+            .openTextDocument(uri)
+            .then((doc) => flagLinkedFileForUpdate(store, doc))
       )
     );
   });
