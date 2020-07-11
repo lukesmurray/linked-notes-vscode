@@ -205,10 +205,11 @@ export const selectBackLinksByFsPath = createObjectSelector(
     const output: Record<string, FileReference[]> = {};
     return linkedFile.fileReferences.reduce((prev, curr) => {
       if (curr._targetFsPath !== undefined) {
-        prev[curr._targetFsPath] =
-          prev[curr._targetFsPath] === undefined
-            ? [curr]
-            : [...prev[curr._targetFsPath], curr];
+        if (prev[curr._targetFsPath] === undefined) {
+          prev[curr._targetFsPath] = [curr];
+        } else {
+          prev[curr._targetFsPath].push(curr);
+        }
       }
       return prev;
     }, output);
@@ -264,10 +265,11 @@ const updateLinkedFileSyntaxTreePromises: Record<
 > = {};
 
 // flag a document for update
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function flagLinkedFileForUpdate(
   store: LinkedNotesStore,
   document: vscode.TextDocument
-): void {
+) {
   const fsPath = textDocumentFsPath(document);
   // if there is a pending thunk then cancel it
   const pendingThunk = updateLinkedFileSyntaxTreePromises[fsPath];
@@ -278,6 +280,7 @@ export function flagLinkedFileForUpdate(
   updateLinkedFileSyntaxTreePromises[fsPath] = store.dispatch(
     updateLinkedFileSyntaxTree(document)
   );
+  return updateLinkedFileSyntaxTreePromises[fsPath];
 }
 
 export function flagLinkedFileForDeletion(

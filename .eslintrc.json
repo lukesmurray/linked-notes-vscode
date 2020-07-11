@@ -12,7 +12,8 @@
   ],
   "rules": {
     // make prettier issues eslint errors
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "no-void": ["error", { "allowAsStatement": true }]
   },
   "extends": [
     "plugin:you-dont-need-lodash-underscore/compatible",

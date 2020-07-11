@@ -34,6 +34,8 @@ import {
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
 } from "./utils/util";
+import { getLogger } from "./logger/getLogger";
+import { performance } from "perf_hooks";
 
 export async function activate(
   context: vscode.ExtensionContext
@@ -52,16 +54,22 @@ export async function activate(
     wordPattern: /([+#./\\\-\w]+)/,
   });
 
+  const parsingStart = performance.now();
   // initialize the workspace
   await findAllMarkdownFilesInWorkspace().then(async (fileUris) => {
-    return await Promise.all([
+    return await Promise.all(
       fileUris.map((uri) =>
         vscode.workspace
           .openTextDocument(uri)
           .then((doc) => flagLinkedFileForUpdate(store, doc))
-      ),
-    ]);
+      )
+    );
   });
+
+  const parsingEnd = performance.now();
+  getLogger().info(
+    `parsed all markdown files. ${(parsingEnd - parsingStart) / 1000} seconds`
+  );
 
   /*****************************************************************************
    * Features
@@ -171,14 +179,14 @@ export async function activate(
   // listen for when documents are opened in the workspace
   vscode.workspace.onDidOpenTextDocument(async (e) => {
     if (isMarkdownFile(e.uri)) {
-      flagLinkedFileForUpdate(store, e);
+      void flagLinkedFileForUpdate(store, e);
     }
   });
 
   // listen for when documents are changed in the workspace
   vscode.workspace.onDidChangeTextDocument((e) => {
     if (isMarkdownFile(e.document.uri)) {
-      flagLinkedFileForUpdate(store, e.document);
+      void flagLinkedFileForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
         console.error("failed to update bibliographic items");
@@ -195,15 +203,15 @@ export async function activate(
       const newIsMarkdown = isMarkdownFile(file.newUri);
       if (oldIsMarkdown && newIsMarkdown) {
         flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
-        await vscode.workspace.openTextDocument(file.newUri).then((doc) => {
-          flagLinkedFileForUpdate(store, doc);
-        });
+        await vscode.workspace
+          .openTextDocument(file.newUri)
+          .then((doc) => flagLinkedFileForUpdate(store, doc));
       } else if (oldIsMarkdown) {
         flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
       } else if (newIsMarkdown) {
-        await vscode.workspace.openTextDocument(file.newUri).then((doc) => {
-          flagLinkedFileForUpdate(store, doc);
-        });
+        await vscode.workspace
+          .openTextDocument(file.newUri)
+          .then((doc) => flagLinkedFileForUpdate(store, doc));
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
         store.dispatch(updateBibliographicItems()).catch(() => {
           console.error("failed to update bibliographic items");
@@ -262,9 +270,9 @@ export async function activate(
     uri: vscode.Uri
   ): Promise<void> => {
     if (isMarkdownFile(uri)) {
-      await vscode.workspace.openTextDocument(uri).then((doc) => {
-        flagLinkedFileForUpdate(store, doc);
-      });
+      await vscode.workspace
+        .openTextDocument(uri)
+        .then((doc) => flagLinkedFileForUpdate(store, doc));
     }
   };
   markdownFileWatcher.onDidChange(markdownFileWatchUpdateHandler);
