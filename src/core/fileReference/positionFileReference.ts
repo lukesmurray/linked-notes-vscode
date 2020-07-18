@@ -1,10 +1,17 @@
-import { PartialLinkedNoteStore } from "../../store";
+import * as UNIST from "unist";
 import * as vscode from "vscode";
 import { selectFileReferencesByFsPath } from "../../reducers/linkedFiles";
-import { textDocumentFsPath } from "../fsPath/textDocumentFsPath";
-import * as UNIST from "unist";
+import { PartialLinkedNoteStore } from "../../store";
 import { FileReference } from "../common/types";
+import { textDocumentFsPath } from "../fsPath/textDocumentFsPath";
+import { getLogger } from "../logger/getLogger";
 
+/**
+ * Given a position in a text document return the file reference at that position if one exists, otherwise undefined.
+ * @param position a position in a vscode text document
+ * @param document a vscode text document
+ * @param store the linked notes store
+ */
 export function positionFileReference(
   position: vscode.Position,
   document: vscode.TextDocument,
@@ -31,7 +38,9 @@ export function isPositionInsideNode(
   const nodeEndCharacter = node.position.end.column - 1;
 
   if (nodeStartCharacter === undefined || nodeEndCharacter === undefined) {
-    throw new Error("start or end character is undefined");
+    const message = "start or end character is undefined";
+    getLogger().error(message);
+    throw new Error(message);
   }
 
   // if outside the lines then no overlap

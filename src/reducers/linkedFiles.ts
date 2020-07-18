@@ -14,6 +14,7 @@ import { getCache } from "../core/cache/cache";
 import {
   isCitationKeyFileReference,
   isContextFileReference,
+  isTitleFileReference,
   isWikilinkFileReference,
 } from "../core/common/typeGuards";
 import {
@@ -25,6 +26,7 @@ import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscode
 import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
 import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
+import { getLogger } from "../core/logger/getLogger";
 import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
@@ -33,6 +35,8 @@ import {
   isNotNullOrUndefined,
 } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
+import { fileDeleted } from "./fileDeleted";
+import { linkTitleToFsPath } from "./fileManager";
 
 /**
  * the time in milliseconds that updates to the linked file ast will be debounced.
@@ -94,11 +98,29 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       // it would be reasonable to add that information
       type: "note",
     };
+
+    const titleFileReferenceList =
+      newLinkedFile.fileReferences?.filter(isTitleFileReference) ?? [];
+    console.log(titleFileReferenceList);
+    if (titleFileReferenceList.length !== 1) {
+      const message = `document missing title or contains two titles ${fsPath}`;
+      getLogger().error(message);
+      throw new Error(message);
+    }
+
+    thunkApi.dispatch(
+      linkTitleToFsPath({
+        fsPath,
+        title: titleFileReferenceList[0].node.data.title,
+      })
+    );
+
     // add the file to the cache
     await getCache().setCachedLinkedFileFromDocument(
       textDocument,
       newLinkedFile
     );
+
     return newLinkedFile;
   }
 );
@@ -116,9 +138,7 @@ const linkedFileAdapter = createEntityAdapter<LinkedFile>({
 const linkedFilesSlice = createSlice({
   name: "linkedFiles/files",
   initialState: linkedFileAdapter.getInitialState(),
-  reducers: {
-    fileDeleted: linkedFileAdapter.removeOne,
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(updateLinkedFileSyntaxTree.fulfilled, (state, action) => {
       linkedFileAdapter.upsertOne(state, Object.freeze(action.payload));
@@ -129,15 +149,11 @@ const linkedFilesSlice = createSlice({
         Object.freeze(action.payload as LinkedFile)
       );
     });
+    builder.addCase(fileDeleted, (state, action) => {
+      linkedFileAdapter.removeOne(state, action.payload);
+    });
   },
 });
-
-/*******************************************************************************
- * Document Reducer Actions
- ******************************************************************************/
-
-// export actions
-const { fileDeleted } = linkedFilesSlice.actions;
 
 /*******************************************************************************
  * Status Reducer

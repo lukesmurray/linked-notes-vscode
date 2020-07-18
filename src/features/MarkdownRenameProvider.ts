@@ -9,6 +9,7 @@ import {
 } from "../core/fileReference/fileReferenceFsPath";
 import { positionFileReference } from "../core/fileReference/positionFileReference";
 import { fsPathBacklinkFileReferences } from "../core/fsPath/fsPathBacklinkFileReferences";
+import { getLogger } from "../core/logger/getLogger";
 import {
   selectLinkedFileFsPaths,
   waitForAllLinkedFilesToUpdate,
@@ -34,7 +35,9 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
       return fileReferenceContentRange(ref);
     }
 
-    throw new Error("You cannot rename this element.");
+    const message = "You cannot rename this element.";
+    getLogger().error(message);
+    throw new Error(message);
   }
 
   async provideRenameEdits(

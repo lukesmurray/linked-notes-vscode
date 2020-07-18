@@ -1,10 +1,10 @@
+import { assertNever } from "../common/typeGuards";
 import {
   CitationKeyFileReference,
   FileReference,
-  WikilinkFileReference,
   TitleFileReference,
+  WikilinkFileReference,
 } from "../common/types";
-import { assertNever } from "../common/typeGuards";
 
 export function fileReferenceTitle(ref: FileReference): string {
   switch (ref.type) {
