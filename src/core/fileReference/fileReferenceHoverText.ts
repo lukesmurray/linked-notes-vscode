@@ -68,7 +68,9 @@ async function wikilinkFileReferenceHoverText(
     // TODO(lukemurray): we only want to catch missing file error, this catches all errors
     // example logged error
     // Error: cannot open file:///Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md. Detail: Unable to read file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md' (Error: Unable to resolve non-existing file '/Users/lukemurray/Documents/repos/github/lukesmurray/linked-notes-vscode/test-data/this-defintiely-does-not-this-document-does-not-exist.md')
-    return undefined;
+    return new vscode.MarkdownString(
+      "Missing file. Follow the link to create the file automatically."
+    );
   });
 }
 
