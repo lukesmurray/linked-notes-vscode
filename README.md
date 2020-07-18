@@ -2,7 +2,7 @@
 
 ![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/lukesmurray.linked-notes-vscode)
 
-Linked Notes VSCode is a prototype note taking system for writing notes which take advantage of bidirectional linking. There are two types of bidirectional links currently supported `[[Wikilinks]]`s and `[@citations]`.
+Linked Notes VSCode is an extension for taking markdown notes with support for pandoc citeproc citations and bidirectional wikilinks. Some features which make linked notes nice are the ability to rename links, hover information for links and citations, and autocomplete for links and citations.
 
 ## Quick Start
 
@@ -12,7 +12,7 @@ Linked Notes VSCode is a prototype note taking system for writing notes which ta
 4. Try typing a wikilink in the new note. For example `[[goodbye world]]`
 5. Right click on the wikilink `[[goodbye world]]` and select [Go to definition](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_go-to-definition). A new file will be created with the title `goodbye world` and the name `goodbye-world.md`.
 6. In the `goodbye world` note try creating a reference to the `hello world` note with a wikilink `[[hello world]]`.
-7. Now the `goodbye world` and `hello world` notes contain references to each other. You can see these references in the backlinks panel in the explorer, follow either reference using go to definition, or view [all references](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_find-all-references-view) to either wikilink.
+7. Now the `goodbye world` and `hello world` notes contain references to each other. You can see these references in the backlinks panel in the explorer, follow either reference using go to definition, or view [all references](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_find-all-references-view) to either wikilink. Additionally you can hover on links to see a preview of the materialized page.
 
 ## Features
 
@@ -28,13 +28,13 @@ Use the Command `Linked Notes: Write Default Workspace Config`
 
 Use the setting `linked-notes-vscode.defaultBib`. The value is a path to a CSL JSON file and is relative to the workspace root. `library.json` would resolve to `${workspaceRoot}/library.json`.
 
-The recommended method for getting a CSL JSON file is to use the [better bib text extension](https://retorque.re/zotero-better-bibtex/) for Zotero. Set up an [automatic export](https://retorque.re/zotero-better-bibtex/exporting/auto/)to the file specified by `linked-notes-vscode.defaultBib`. Select the `keep updated` option so that future citations are automatically picked up.
+The recommended method for getting a CSL JSON file is to use the [better bib text extension](https://retorque.re/zotero-better-bibtex/) for Zotero. Set up an [automatic export](https://retorque.re/zotero-better-bibtex/exporting/auto/) to the file specified by `linked-notes-vscode.defaultBib`. Select the `keep updated` option so that future citations are automatically picked up.
 
 ### Citations In Markdown
 
 The extension supports a subset of [markdown pandoc citeproc citation format](https://pandoc.org/MANUAL.html#citations). Specifically any citation key identified by an `@` sign followed by a `citationKey` can be used in single brackets. For example `[@ahoCorasick page 55]`. Pandoc citeproc also support citation keys in text followed by locators for example `@ahoCorasick [page 55]` but that style is not supported by this extension.
 
-> Citations go inside square brackets and are separated by semicolons. Each citation must have a key, composed of ‘@’ + the citation identifier from the database, and may optionally have a prefix, a locator, and a suffix. The citation key must begin with a letter, digit, or _, and may contain alphanumerics, _, and internal punctuation characters (:.#\$%&-+?<>~/). Here are some examples:
+> Citations go inside square brackets and are separated by semicolons. Each citation must have a key, composed of ‘@’ + the citation identifier from the database, and may optionally have a prefix, a locator, and a suffix. The citation key must begin with a letter, digit, or _, and may contain alphanumerics,_, and internal punctuation characters (:.#\$%&-+?<>~/). Here are some examples:
 >
 > ```
 > Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
@@ -42,18 +42,53 @@ The extension supports a subset of [markdown pandoc citeproc citation format](ht
 > Blah blah [@smith04; @doe99].
 > ```
 
-### Special Title Behavior
+### Default Snippet
 
-The title of a note is determined by the first header with depth 1. All note created by this extension are given a title. The title has special semantics. It is used for providing autocomplete and it can be renamed. The renaming provide similar behavior to [roam](https://roamresearch.com/) where references can be renamed. If you rename a title all references to the note will be renamed, and the file will be renamed using a new slug.
+Create a `markdown` snippet called `linked_notes_default`. The snippet will eb used to create new notes. There is one magic variable `LINKED_NOTES_TITLE` which can be used to insert a title in the new note. The default snippet is.
 
-### Go to Definition for Wikilinks and Citations
+```jsonc
+{
+  "linked_notes_default": {
+    "description": "",
+    "prefix": "linked_notes_default",
+    "body": [
+      "---",
+      "description: TODO fill in a description",
+      "tags: ",
+      "created: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
+      "# notes, draft, in progress, finished",
+      "status: notes",
+      "# “certain”, “highly, likely”, “likely”, “possible”, “unlikely”, “highly, unlikely”, “remote”, “impossible”",
+      "confidence: certain",
+      "---",
+      "",
+      "# LINKED_NOTES_TITLE",
+      "",
+      ""
+    ]
+  }
+}
+```
+
+### Title Behavior
+
+Every system comes with some set of expectations. In this system the notes are expected to have a title which is the first level 1 header in the document.
+
+```markdown
+# this is the title
+```
+
+Titles are used to refer to documents. So for example if I wanted to reference the document in the previous codeblock I would reference it using `[[this is the title]]`. If you want to rename a document you can right click and select rename on either a wikilink referencing a document, or on the title of the document. You can also use the default vscode rename keyboard shortcut.
+
+Because titles are so important every note is expected to have a title.
+
+### Go to Definition for Wikilinks
 
 Will open the associated file if it exists or create a new file if the associated file does not exist.
 
 - The wikilink file is created at the workspace root. The filename is determined by slugging the text in the wikilink. The title is the text in the wikilink.
-- The citation file is created in the file specified by `linked-notes-vscode.defaultReferencesFolder`. The title is the citation key and the filename is the slugged citation key.
 
-### Reference Provider for Wikilinks and Citations
+### Reference Provider for Wikilinks and Citations and Titles
 
 - See all references to a file. Show all references on the title of a note to see references to the current note, or look in the backlinks panel.
 
@@ -76,8 +111,6 @@ Will open the associated file if it exists or create a new file if the associate
 <dl>
 <dt>linked-notes-vscode.defaultBib</dt>
 <dd>The CSL JSON file containing citation reference. Used for identifying citation keys.</dd>
-<dt>linked-notes-vscode.defaultReferencesFolder</dt>
-<dd>The folder where notes associated with citation keys will go. Defaults to `references`.</dd>
 </dl>
 
 ## Commands

@@ -2,7 +2,7 @@
   "name": "linked-notes-vscode",
   "displayName": "Linked Notes VSCode",
   "description": "Linked Note Taking and Wiki",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "publisher": "lukesmurray",
   "repository": {
     "url": "https://github.com/lukesmurray/linked-notes-vscode.git",
@@ -59,14 +59,6 @@
             ],
             "default": null,
             "description": "Specifies the file path to the default CSL JSON used for citations. Relative to the workspace root."
-          },
-          "linked-notes-vscode.defaultReferencesFolder": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "default": "references",
-            "description": "Specifies the file path to the default file created for citation reference files. Relative to the workspace root."
           }
         }
       }
@@ -79,6 +71,12 @@
         }
       ]
     },
+    "snippets": [
+      {
+        "language": "markdown",
+        "path": "./snippets/markdown.json"
+      }
+    ],
     "viewsWelcome": [
       {
         "view": "linked-notes-vscode.backlinksExplorerView",
@@ -149,6 +147,7 @@
     "markdown-it-regex": "^0.2.0",
     "mdast-util-to-string": "^1.1.0",
     "memoize-one": "^5.1.1",
+    "remark-frontmatter": "^2.0.0",
     "remark-parse": "^8.0.2",
     "reselect-map": "^1.0.5",
     "to-vfile": "^6.1.0",

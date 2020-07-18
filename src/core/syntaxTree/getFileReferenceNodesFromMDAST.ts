@@ -1,7 +1,7 @@
 import * as MDAST from "mdast";
 import { selectAll } from "unist-util-select";
 import { isFileReferenceRemarkNode } from "../common/typeGuards";
-import { FileReferenceNodeTypeKeys, FileReferenceNode } from "../common/types";
+import { FileReferenceNode, FileReferenceNodeTypeKeys } from "../common/types";
 
 export function getFileReferenceNodesFromMDAST(
   syntaxTree: MDAST.Root

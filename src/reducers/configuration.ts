@@ -8,7 +8,6 @@ import { updateBibliographicItems } from "./bibliographicItems";
 
 export interface ExtensionConfiguration {
   defaultBib: string | null;
-  defaultReferencesFolder: string | null;
 }
 
 /*******************************************************************************
@@ -29,11 +28,6 @@ export const updateConfiguration = createAsyncThunk<
         getLogger().error("failed to update bibliographic items");
       });
     }
-    if (current.defaultReferencesFolder !== next.defaultReferencesFolder) {
-      thunkApi.dispatch(
-        updateDefaultReferencesFolder(next.defaultReferencesFolder)
-      );
-    }
     return undefined;
   }
 );
@@ -43,7 +37,6 @@ export const updateConfiguration = createAsyncThunk<
  ******************************************************************************/
 const initialConfigurationState: ExtensionConfiguration = {
   defaultBib: null,
-  defaultReferencesFolder: null,
 };
 const configurationSlice = createSlice({
   name: "configuration",
@@ -53,10 +46,6 @@ const configurationSlice = createSlice({
       state,
       action: PayloadAction<ExtensionConfiguration["defaultBib"]>
     ) => ({ ...state, defaultBib: action.payload }),
-    updatedefaultReferencesFolder: (
-      state,
-      action: PayloadAction<ExtensionConfiguration["defaultReferencesFolder"]>
-    ) => ({ ...state, defaultReferencesFolder: action.payload }),
   },
 });
 
@@ -64,10 +53,7 @@ const configurationSlice = createSlice({
  * Actions
  ******************************************************************************/
 
-const {
-  updateDefaultBib,
-  updatedefaultReferencesFolder: updateDefaultReferencesFolder,
-} = configurationSlice.actions;
+const { updateDefaultBib } = configurationSlice.actions;
 
 export default configurationSlice.reducer;
 
@@ -82,10 +68,6 @@ export function selectConfigurationSlice(
 
 export function selectDefaultBib(state: RootState): string | null {
   return selectConfigurationSlice(state).defaultBib;
-}
-
-export function selectDefaultReferencesFolder(state: RootState): string | null {
-  return selectConfigurationSlice(state).defaultReferencesFolder;
 }
 
 export function selectDefaultBibUri(state: RootState): vscode.Uri | undefined {
@@ -106,9 +88,6 @@ export function readConfiguration(): ExtensionConfiguration {
     defaultBib: config.get(
       "defaultBib"
     ) as ExtensionConfiguration["defaultBib"],
-    defaultReferencesFolder: config.get(
-      "defaultReferencesFolder"
-    ) as ExtensionConfiguration["defaultReferencesFolder"],
   };
 }
 

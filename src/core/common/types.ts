@@ -105,6 +105,7 @@ export interface LinkedFileIdentifiable {
 export interface BaseLinkedFile extends LinkedFileIdentifiable {
   fileReferences?: FileReference[];
   type: LinkedFileType;
+  frontMatterNode?: UNIST.Node;
 }
 
 interface NoteLinkedFile extends BaseLinkedFile {

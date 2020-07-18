@@ -1,3 +1,4 @@
+import remarkFrontmatter from "remark-frontmatter";
 import markdown from "remark-parse";
 import unified from "unified";
 import AhoCorasick from "../../utils/ahoCorasick";
@@ -18,6 +19,7 @@ export function createMarkdownProcessor(
 ): unified.Processor<unified.Settings> {
   return unified()
     .use(markdown)
+    .use(remarkFrontmatter, ["yaml", "toml"])
     .use(remarkCiteproc, {
       citationItemAho: bibliographicItemAho,
     })

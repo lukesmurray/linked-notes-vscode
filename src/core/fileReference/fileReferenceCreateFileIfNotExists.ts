@@ -26,10 +26,44 @@ async function fileReferenceCreateFileIfNotExistsHelper(
   if (existingFileUri === undefined) {
     const title = fileReferenceTitle(ref, store);
     const newFileUri = vscode.Uri.file(fsPath);
-    await vscode.workspace.fs.writeFile(
-      newFileUri,
-      Buffer.from(getDefaultNoteText(title))
-    );
+
+    // create the file
+    // with the linked_notes_default snippet
+    // replace the $LINKED_NOTES_TITLE with the generated title
+    await vscode.workspace.fs
+      .writeFile(newFileUri, Buffer.from(""))
+      .then(() =>
+        vscode.window.showTextDocument(newFileUri, {
+          preserveFocus: false,
+          preview: false,
+        })
+      )
+      .then(() =>
+        vscode.commands
+          .executeCommand(
+            "editor.action.insertSnippet",
+            ...[{ langId: "markdown", name: "linked_notes_default" }]
+          )
+          .then(() =>
+            vscode.workspace.openTextDocument(newFileUri).then((doc) => {
+              const titlePlaceholder = "LINKED_NOTES_TITLE";
+              const titlePlaceHolderStart = doc
+                .getText()
+                .indexOf(titlePlaceholder);
+              if (titlePlaceHolderStart !== -1) {
+                const range = new vscode.Range(
+                  doc.positionAt(titlePlaceHolderStart),
+                  doc.positionAt(
+                    titlePlaceHolderStart + titlePlaceholder.length
+                  )
+                );
+                const edit = new vscode.WorkspaceEdit();
+                edit.replace(newFileUri, range, title);
+                return vscode.workspace.applyEdit(edit);
+              }
+            })
+          )
+      );
     existingFileUri = newFileUri;
   }
   return existingFileUri;

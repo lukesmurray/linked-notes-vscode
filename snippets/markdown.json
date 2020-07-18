@@ -1,0 +1,21 @@
+{
+  "linked_notes_default": {
+    "description": "",
+    "prefix": "linked_notes_default",
+    "body": [
+      "---",
+      "description: TODO fill in a description",
+      "tags: ",
+      "created: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
+      "# notes, draft, in progress, finished",
+      "status: notes",
+      "# “certain”, “highly, likely”, “likely”, “possible”, “unlikely”, “highly, unlikely”, “remote”, “impossible”",
+      "confidence: certain",
+      "---",
+      "",
+      "# LINKED_NOTES_TITLE",
+      "",
+      ""
+    ]
+  }
+}

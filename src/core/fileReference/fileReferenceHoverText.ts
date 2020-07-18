@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { selectLinkedFileByFsPath } from "../../reducers/linkedFiles";
 import { PartialLinkedNoteStore } from "../../store";
 import { bibliographicItemBibliographicId } from "../citeProc/bibliographicItemBibliographicId";
 import { getCitationKeyHoverText } from "../citeProc/citeProcUtils";
@@ -9,6 +10,7 @@ import {
   TitleFileReference,
   WikilinkFileReference,
 } from "../common/types";
+import { unistPositionToVscodeRange } from "../common/unistPositionToVscodeRange";
 import { fileReferenceFsPath } from "./fileReferenceFsPath";
 
 export async function fileReferenceHoverText(
@@ -53,12 +55,23 @@ async function wikilinkFileReferenceHoverText(
   // TODO(lukemurray): we may want to look at other thenables and catch errors using this same method
   return await Promise.resolve(
     vscode.workspace.openTextDocument(targetUri).then((doc) => {
+      const targetLinkedFile = selectLinkedFileByFsPath(
+        store.getState(),
+        targetUri.fsPath
+      );
+      let frontMatterEnd = new vscode.Position(0, 0);
+      if (targetLinkedFile?.frontMatterNode?.position !== undefined) {
+        frontMatterEnd = unistPositionToVscodeRange(
+          targetLinkedFile.frontMatterNode.position
+        ).end;
+      }
+
       const numLinesToPreview = 50;
       // TODO(lukemurray): skip front matter in preview
       return new vscode.MarkdownString(
         doc.getText(
           new vscode.Range(
-            new vscode.Position(0, 0),
+            frontMatterEnd,
             new vscode.Position(numLinesToPreview, 0)
           )
         )

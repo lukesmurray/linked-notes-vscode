@@ -20,6 +20,7 @@ import { LinkedFile, LinkedFileStatus } from "../core/common/types";
 import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
 import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
+import { getFrontMatterNodeFromMDAST } from "../core/syntaxTree/getFrontMatterNodeFromMDAST";
 import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import { delay, findAllMarkdownFilesInWorkspace } from "../utils/util";
@@ -81,12 +82,15 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       textDocumentFsPath(textDocument),
       thunkApi
     );
+
+    const frontMatterNode = getFrontMatterNodeFromMDAST(syntaxTree);
     const newLinkedFile: LinkedFile = {
       fsPath,
       fileReferences,
       // TODO(lukemurray): think about how we would add new note types and where
       // it would be reasonable to add that information
       type: "note",
+      frontMatterNode,
     };
 
     updateFileManagerWithLinkedNote(newLinkedFile, fsPath, thunkApi);
