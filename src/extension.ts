@@ -60,18 +60,35 @@ export async function activate(
 
   const parsingStart = performance.now();
   // initialize the workspace
-  await findAllMarkdownFilesInWorkspace().then(async (fileUris) => {
-    return await Promise.all(
-      fileUris.map(
-        async (uri) =>
-          await Promise.resolve(
-            vscode.workspace
-              .openTextDocument(uri)
-              .then((doc) => flagLinkedFileForUpdate(store, doc))
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      cancellable: false,
+      title: "Linked Notes Loading Files",
+    },
+    async (progress) => {
+      return await findAllMarkdownFilesInWorkspace().then(async (fileUris) => {
+        const totalFileCount = fileUris.length;
+        let parsedCount = 0;
+        return await Promise.all(
+          fileUris.map(
+            async (uri) =>
+              await Promise.resolve(
+                vscode.workspace
+                  .openTextDocument(uri)
+                  .then((doc) => flagLinkedFileForUpdate(store, doc))
+                  .then(() => {
+                    progress.report({
+                      message: `indexed ${parsedCount++}/${totalFileCount} files`,
+                      increment: 1 / totalFileCount,
+                    });
+                  })
+              )
           )
-      )
-    );
-  });
+        );
+      });
+    }
+  );
 
   const parsingEnd = performance.now();
   getLogger().info(
