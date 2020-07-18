@@ -1,6 +1,9 @@
 import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
+import { performance } from "perf_hooks";
 import * as vscode from "vscode";
+import { createCache } from "./core/cache/cache";
 import { uriFsPath } from "./core/fsPath/uriFsPath";
+import { getLogger } from "./core/logger/getLogger";
 import { BacklinksTreeDataProvider } from "./features/BacklinksTreeDataProvider";
 import {
   GoToFileReference,
@@ -34,8 +37,6 @@ import {
   MarkDownDocumentSelector,
   MARKDOWN_FILE_GLOB_PATTERN,
 } from "./utils/util";
-import { getLogger } from "./logger/getLogger";
-import { performance } from "perf_hooks";
 
 export async function activate(
   context: vscode.ExtensionContext
@@ -44,9 +45,12 @@ export async function activate(
    * Initialize
    ****************************************************************************/
 
+  // create the cache
+  createCache(context.workspaceState);
+
   // read the user configuration
-  store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
-    console.error("failed to update configuration");
+  await store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
+    getLogger().error("failed to update configuration");
   });
 
   // set the language
@@ -60,9 +64,11 @@ export async function activate(
     return await Promise.all(
       fileUris.map(
         async (uri) =>
-          await vscode.workspace
-            .openTextDocument(uri)
-            .then((doc) => flagLinkedFileForUpdate(store, doc))
+          await Promise.resolve(
+            vscode.workspace
+              .openTextDocument(uri)
+              .then((doc) => flagLinkedFileForUpdate(store, doc))
+          )
       )
     );
   });
@@ -172,7 +178,7 @@ export async function activate(
   vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration(getConfigurationScope())) {
       store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
-        console.error("failed to update configuration");
+        getLogger().error("failed to update configuration");
       });
     }
   });
@@ -190,7 +196,7 @@ export async function activate(
       void flagLinkedFileForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
-        console.error("failed to update bibliographic items");
+        getLogger().error("failed to update bibliographic items");
       });
     }
   });
@@ -203,23 +209,23 @@ export async function activate(
       const oldIsMarkdown = isMarkdownFile(file.oldUri);
       const newIsMarkdown = isMarkdownFile(file.newUri);
       if (oldIsMarkdown && newIsMarkdown) {
-        flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
+        await flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
         await vscode.workspace
           .openTextDocument(file.newUri)
           .then((doc) => flagLinkedFileForUpdate(store, doc));
       } else if (oldIsMarkdown) {
-        flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
+        await flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
       } else if (newIsMarkdown) {
         await vscode.workspace
           .openTextDocument(file.newUri)
           .then((doc) => flagLinkedFileForUpdate(store, doc));
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
         store.dispatch(updateBibliographicItems()).catch(() => {
-          console.error("failed to update bibliographic items");
+          getLogger().error("failed to update bibliographic items");
         });
       } else if (isDefaultBibFile(file.newUri, store.getState())) {
         store.dispatch(updateBibliographicItems()).catch(() => {
-          console.error("failed to update bibliographic items");
+          getLogger().error("failed to update bibliographic items");
         });
       }
     }
@@ -228,10 +234,12 @@ export async function activate(
   vscode.workspace.onDidDeleteFiles((e) => {
     for (const fileUri of e.files) {
       if (isMarkdownFile(fileUri)) {
-        flagLinkedFileForDeletion(store, uriFsPath(fileUri));
+        flagLinkedFileForDeletion(store, uriFsPath(fileUri)).catch(() => {
+          getLogger().error("failed to delete file");
+        });
       } else if (isDefaultBibFile(fileUri, store.getState())) {
         store.dispatch(updateBibliographicItems()).catch(() => {
-          console.error("failed to update bibliographic items");
+          getLogger().error("failed to update bibliographic items");
         });
       }
     }
@@ -248,7 +256,7 @@ export async function activate(
   const bibFileWatcherHandler = (uri: vscode.Uri): void => {
     if (isDefaultBibFile(uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
-        console.error("failed to update bibliographic items");
+        getLogger().error("failed to update bibliographic items");
       });
     }
   };
@@ -264,7 +272,7 @@ export async function activate(
     uri: vscode.Uri
   ): Promise<void> => {
     if (isMarkdownFile(uri)) {
-      flagLinkedFileForDeletion(store, uriFsPath(uri));
+      await flagLinkedFileForDeletion(store, uriFsPath(uri));
     }
   };
   const markdownFileWatchUpdateHandler = async (

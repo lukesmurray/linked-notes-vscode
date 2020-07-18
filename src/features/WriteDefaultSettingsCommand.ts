@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getLogger } from "../core/logger/getLogger";
 const WriteDefaultSettingsCommand = (): void => {
   const settings = {
     // save files after a delay automatically
@@ -24,7 +25,7 @@ const WriteDefaultSettingsCommand = (): void => {
           vscode.ConfigurationTarget.Workspace
         )
     ).catch((e) => {
-      console.error(`failed to write configuration ${key}`);
+      getLogger().error(`failed to write configuration ${key}`);
     });
   });
 };

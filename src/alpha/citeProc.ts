@@ -1,8 +1,8 @@
 import CSL from "citeproc";
 import keyBy from "lodash/keyBy";
 import memoizeOne from "memoize-one";
-import { CslData } from "../types/csl-data";
 import { CiteProcCitation } from "../core/remarkPlugins/remarkCiteproc";
+import { CslData } from "../types/csl-data";
 import { isNotNullOrUndefined } from "../utils/util";
 
 /**

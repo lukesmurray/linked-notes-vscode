@@ -10,6 +10,7 @@ import {
 import { createObjectSelector } from "reselect-map";
 import * as vscode from "vscode";
 import type { RootState } from ".";
+import { getCache } from "../core/cache/cache";
 import {
   isCitationKeyFileReference,
   isContextFileReference,
@@ -69,6 +70,13 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
     if (thunkApi.signal.aborted) {
       throw new Error("the update has been cancelled");
     }
+    const cachedLinkedFile = getCache().getCachedLinkedFileFromDocument(
+      textDocument
+    );
+    if (cachedLinkedFile !== undefined) {
+      return cachedLinkedFile;
+    }
+
     const syntaxTree = await getMDASTFromText(
       textDocument.getText(),
       selectBibliographicItemAho(thunkApi.getState()),
@@ -86,6 +94,11 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       // it would be reasonable to add that information
       type: "note",
     };
+    // add the file to the cache
+    await getCache().setCachedLinkedFileFromDocument(
+      textDocument,
+      newLinkedFile
+    );
     return newLinkedFile;
   }
 );
@@ -283,15 +296,16 @@ export function flagLinkedFileForUpdate(
   return updateLinkedFileSyntaxTreePromises[fsPath];
 }
 
-export function flagLinkedFileForDeletion(
+export async function flagLinkedFileForDeletion(
   store: LinkedNotesStore,
   fsPath: string
-): void {
+): Promise<void> {
   // if there is a pending thunk then cancel it
   const pendingThunk = updateLinkedFileSyntaxTreePromises[fsPath];
   if (pendingThunk !== undefined) {
     pendingThunk.abort();
   }
+  await getCache().deleteCachedLinkedFileForFsPath(fsPath);
   store.dispatch(fileDeleted(fsPath));
 }
 

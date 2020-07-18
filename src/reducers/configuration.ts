@@ -1,9 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import * as vscode from "vscode";
 import { RootState } from ".";
+import { getLogger } from "../core/logger/getLogger";
 import { AppDispatch } from "../store";
-import { updateBibliographicItems } from "./bibliographicItems";
 import { createUriForFileRelativeToWorkspaceRoot } from "../utils/workspaceUtils";
+import { updateBibliographicItems } from "./bibliographicItems";
 
 export interface ExtensionConfiguration {
   defaultBib: string | null;
@@ -25,7 +26,7 @@ export const updateConfiguration = createAsyncThunk<
     if (current.defaultBib !== next.defaultBib) {
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
       thunkApi.dispatch(updateBibliographicItems()).catch(() => {
-        console.error("failed to update bibliographic items");
+        getLogger().error("failed to update bibliographic items");
       });
     }
     if (current.defaultReferencesFolder !== next.defaultReferencesFolder) {

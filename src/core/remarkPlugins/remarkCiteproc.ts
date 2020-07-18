@@ -9,6 +9,7 @@ import {
 } from "../../types/remarkParse";
 import AhoCorasick from "../../utils/ahoCorasick";
 import { BaseFileReferenceNode } from "../common/types";
+import { getLogger } from "../logger/getLogger";
 import { incrementUnistPoint } from "./util/incrementUnistPoint";
 
 export type BibliographicItem = CslData[number];
@@ -138,7 +139,7 @@ function remarkCiteProc(
         : [];
 
     if (citationKeyMatches?.length > 1) {
-      console.error("duplicate citation key");
+      getLogger().error("duplicate citation key");
     }
 
     if (citationKeyMatches?.length !== 0 && citationKeyMatch !== null) {

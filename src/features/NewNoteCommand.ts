@@ -1,7 +1,8 @@
-import * as vscode from "vscode";
-import { titleToBasename } from "../core/fileReference/fileReferenceFsPath";
 import path from "path";
+import * as vscode from "vscode";
 import { getDefaultNoteText } from "../core/fileReference/fileReferenceCreateFileIfNotExists";
+import { titleToBasename } from "../core/fileReference/fileReferenceFsPath";
+import { getLogger } from "../core/logger/getLogger";
 
 function NewNoteCommand(): void {
   const titlePromise = vscode.window.showInputBox({
@@ -28,7 +29,7 @@ function NewNoteCommand(): void {
       }
     })
     .catch((e) => {
-      console.error(`Failed to create new note`);
+      getLogger().error(`Failed to create new note`);
     });
 }
 
