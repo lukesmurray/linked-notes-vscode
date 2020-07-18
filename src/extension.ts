@@ -186,9 +186,13 @@ export async function activate(
     // various cases depending on if we're renaming from markdown to markdown,
     // non markdown to markdown, or markdown to non markdown
     // this extension manages markdown files
+    let reIndex = false;
     for (const file of e.files) {
       const oldIsMarkdown = isMarkdownFile(file.oldUri);
       const newIsMarkdown = isMarkdownFile(file.newUri);
+      if (oldIsMarkdown || newIsMarkdown) {
+        reIndex = true;
+      }
       if (oldIsMarkdown && newIsMarkdown) {
         await flagLinkedFileForDeletion(store, uriFsPath(file.oldUri));
         await vscode.workspace
@@ -208,21 +212,31 @@ export async function activate(
         store.dispatch(updateBibliographicItems()).catch(() => {
           getLogger().error("failed to update bibliographic items");
         });
+        reIndex = true;
       }
+    }
+    if (reIndex) {
+      await indexMarkdownFiles();
     }
   });
 
-  vscode.workspace.onDidDeleteFiles((e) => {
+  vscode.workspace.onDidDeleteFiles(async (e) => {
+    let reIndex = false;
     for (const fileUri of e.files) {
       if (isMarkdownFile(fileUri)) {
+        reIndex = true;
         flagLinkedFileForDeletion(store, uriFsPath(fileUri)).catch(() => {
           getLogger().error("failed to delete file");
         });
       } else if (isDefaultBibFile(fileUri, store.getState())) {
+        reIndex = true;
         store.dispatch(updateBibliographicItems()).catch(() => {
           getLogger().error("failed to update bibliographic items");
         });
       }
+    }
+    if (reIndex) {
+      await indexMarkdownFiles();
     }
   });
 
@@ -234,12 +248,13 @@ export async function activate(
   const bibFileWatcher = vscode.workspace.createFileSystemWatcher(
     BIB_FILE_GLOB_PATTERN
   );
-  const bibFileWatcherHandler = (uri: vscode.Uri): void => {
+  const bibFileWatcherHandler = async (uri: vscode.Uri): Promise<void> => {
     if (isDefaultBibFile(uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
         getLogger().error("failed to update bibliographic items");
       });
     }
+    await indexMarkdownFiles();
   };
   bibFileWatcher.onDidChange(bibFileWatcherHandler);
   bibFileWatcher.onDidCreate(bibFileWatcherHandler);
@@ -266,8 +281,14 @@ export async function activate(
     }
   };
   markdownFileWatcher.onDidChange(markdownFileWatchUpdateHandler);
-  markdownFileWatcher.onDidCreate(markdownFileWatchUpdateHandler);
-  markdownFileWatcher.onDidDelete(markdownFileWatchDeleteHandler);
+  markdownFileWatcher.onDidCreate(async (uri) => {
+    await markdownFileWatchUpdateHandler(uri);
+    await indexMarkdownFiles();
+  });
+  markdownFileWatcher.onDidDelete(async (uri) => {
+    await markdownFileWatchDeleteHandler(uri);
+    await indexMarkdownFiles();
+  });
 
   vscode.window.onDidChangeActiveTextEditor(() => {
     backLinksTreeDataProvider.refresh();
