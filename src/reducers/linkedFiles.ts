@@ -22,7 +22,6 @@ import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscode
 import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
 import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
-import { getLogger } from "../core/logger/getLogger";
 import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import {
@@ -32,7 +31,7 @@ import {
 } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
 import { fileDeleted } from "./fileDeleted";
-import { linkTitleToFsPath } from "./fileManager";
+import { updateFileManagerWithLinkedNote } from "./updateFileManagerWithLinkedNote";
 
 /**
  * the time in milliseconds that updates to the linked file ast will be debounced.
@@ -74,6 +73,7 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       textDocument
     );
     if (cachedLinkedFile !== undefined) {
+      updateFileManagerWithLinkedNote(cachedLinkedFile, fsPath, thunkApi);
       return cachedLinkedFile;
     }
 
@@ -95,20 +95,7 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       type: "note",
     };
 
-    const titleFileReferenceList =
-      newLinkedFile.fileReferences?.filter(isTitleFileReference) ?? [];
-    if (titleFileReferenceList.length !== 1) {
-      const message = `document missing title or contains two titles ${fsPath}`;
-      getLogger().error(message);
-      throw new Error(message);
-    }
-
-    thunkApi.dispatch(
-      linkTitleToFsPath({
-        fsPath,
-        title: titleFileReferenceList[0].node.data.title,
-      })
-    );
+    updateFileManagerWithLinkedNote(newLinkedFile, fsPath, thunkApi);
 
     // add the file to the cache
     await getCache().setCachedLinkedFileFromDocument(
@@ -230,6 +217,11 @@ export const selectWikilinksByFsPath = createObjectSelector(
   (fileReferences) => fileReferences.filter(isWikilinkFileReference)
 );
 
+export const selectTitlesByFsPath = createObjectSelector(
+  selectFileReferencesByFsPath,
+  (fileReferences) => fileReferences.filter(isTitleFileReference)
+);
+
 export const selectDocumentLinksByFsPath = createObjectSelector(
   selectFileReferencesByFsPath,
   (allFileReferences) =>
@@ -242,13 +234,17 @@ export const selectDocumentLinksByFsPath = createObjectSelector(
 
 export const selectWikilinkCompletions = createSelector(
   selectWikilinksByFsPath,
-  (allWikilinks) => {
+  selectTitlesByFsPath,
+  (allWikilinks, allTitles) => {
     return [
-      ...new Set(
-        Object.values(allWikilinks)
+      ...new Set([
+        ...Object.values(allWikilinks)
           .flat()
-          .map((w) => w.node.data.title)
-      ),
+          .map((w) => w.node.data.title),
+        ...Object.values(allTitles)
+          .flat()
+          .map((t) => t.node.data.title),
+      ]),
     ].sort((a, b) => a.localeCompare(b));
   }
 );
@@ -313,11 +309,9 @@ export const waitForLinkedFileToUpdate = async (
       store.getState(),
       fsPath
     );
-    console.log("----------- linked file status", linkedFileStatus);
     if (linkedFileStatus?.status === "up to date") {
       break;
     }
-    console.log("----------- succeeded", linkedFileStatus);
     // TODO(lukemurray): there's a memory leak here if the document is removed from the
     // store. We probably want to retry or something a specific number of times then
     // give up

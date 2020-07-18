@@ -1,15 +1,15 @@
+import * as vscode from "vscode";
+import { PartialLinkedNoteStore } from "../../store";
+import { bibliographicItemBibliographicId } from "../citeProc/bibliographicItemBibliographicId";
+import { getCitationKeyHoverText } from "../citeProc/citeProcUtils";
+import { assertNever } from "../common/typeGuards";
 import {
   CitationKeyFileReference,
   FileReference,
-  WikilinkFileReference,
   TitleFileReference,
+  WikilinkFileReference,
 } from "../common/types";
-import { assertNever } from "../common/typeGuards";
-import * as vscode from "vscode";
-import { getCitationKeyHoverText } from "../citeProc/citeProcUtils";
 import { fileReferenceFsPath } from "./fileReferenceFsPath";
-import { PartialLinkedNoteStore } from "../../store";
-import { bibliographicItemBibliographicId } from "../citeProc/bibliographicItemBibliographicId";
 
 export async function fileReferenceHoverText(
   ref: FileReference,
