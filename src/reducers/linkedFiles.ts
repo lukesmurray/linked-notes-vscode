@@ -121,10 +121,13 @@ const linkedFilesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(updateLinkedFileSyntaxTree.fulfilled, (state, action) => {
-      return linkedFileAdapter.upsertOne(state, action.payload);
+      linkedFileAdapter.upsertOne(state, Object.freeze(action.payload));
     });
     builder.addCase(linkedFileChangePending, (state, action) => {
-      return linkedFileAdapter.upsertOne(state, action.payload as LinkedFile);
+      linkedFileAdapter.upsertOne(
+        state,
+        Object.freeze(action.payload as LinkedFile)
+      );
     });
   },
 });
@@ -151,19 +154,19 @@ const linkedFilesStatusSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(updateLinkedFileSyntaxTree.fulfilled, (state, action) => {
-      return statusAdapter.upsertOne(state, {
+      statusAdapter.upsertOne(state, {
         fsPath: action.payload.fsPath,
         status: "up to date",
       });
     });
     builder.addCase(linkedFileChangePending, (state, action) => {
-      return statusAdapter.upsertOne(state, {
+      statusAdapter.upsertOne(state, {
         fsPath: action.payload.fsPath,
         status: "pending changes",
       });
     });
     builder.addCase(fileDeleted, (state, action) => {
-      return statusAdapter.removeOne(state, action.payload);
+      statusAdapter.removeOne(state, action.payload);
     });
   },
 });
