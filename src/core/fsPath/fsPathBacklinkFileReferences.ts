@@ -1,4 +1,4 @@
-import { selectBackLinksByFsPath } from "../../reducers/linkedFiles";
+import { selectBackLinksByFsPath } from "../../reducers/selectBackLinksByFsPath";
 import { PartialLinkedNoteStore } from "../../store";
 import { FileReference } from "../common/types";
 

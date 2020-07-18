@@ -8,12 +8,9 @@ import { fileReferenceTitle } from "./fileReferenceTitle";
 export function fileReferenceFsPath(
   ref: FileReference,
   store: PartialLinkedNoteStore
-): string | undefined {
-  if (ref._targetFsPath !== undefined) {
-    return ref._targetFsPath;
-  }
+): string {
   return getFSPathForTitle(store.getState())(
-    fileReferenceTitle(ref),
+    fileReferenceTitle(ref, store),
     ref.sourceFsPath
   ).fsPath;
 }

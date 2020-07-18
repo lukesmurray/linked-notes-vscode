@@ -1,8 +1,8 @@
-import { PartialLinkedNoteStore } from "../../store";
+import path from "path";
 import { selectLinkedFileByFsPath } from "../../reducers/linkedFiles";
+import { PartialLinkedNoteStore } from "../../store";
 import { isTitleFileReference } from "../common/typeGuards";
 import { fileReferenceTitle } from "../fileReference/fileReferenceTitle";
-import path from "path";
 
 export function fsPathTitle(
   sourceFsPath: string,
@@ -14,7 +14,7 @@ export function fsPathTitle(
   )?.fileReferences?.find(isTitleFileReference);
   const title =
     sourceTitleFileReference !== undefined
-      ? fileReferenceTitle(sourceTitleFileReference)
+      ? fileReferenceTitle(sourceTitleFileReference, store)
       : path.parse(sourceFsPath).name;
   return title;
 }

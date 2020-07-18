@@ -17,11 +17,7 @@ import {
   isTitleFileReference,
   isWikilinkFileReference,
 } from "../core/common/typeGuards";
-import {
-  FileReference,
-  LinkedFile,
-  LinkedFileStatus,
-} from "../core/common/types";
+import { LinkedFile, LinkedFileStatus } from "../core/common/types";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
 import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
@@ -101,7 +97,6 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
 
     const titleFileReferenceList =
       newLinkedFile.fileReferences?.filter(isTitleFileReference) ?? [];
-    console.log(titleFileReferenceList);
     if (titleFileReferenceList.length !== 1) {
       const message = `document missing title or contains two titles ${fsPath}`;
       getLogger().error(message);
@@ -225,29 +220,6 @@ export const selectFileReferencesByFsPath = createObjectSelector(
   }
 );
 
-// TODO(lukemurray): we really want this to by targetFsPath => FileReference[]
-// outputs nested dictionary sourceFsPath => targetFsPath => FileReference[]
-export const selectBackLinksByFsPath = createObjectSelector(
-  selectLinkedFiles,
-  (linkedFile) => {
-    if (linkedFile?.fileReferences === undefined) {
-      return {};
-    }
-    // map from targetFsPath to FileReference[]
-    const output: Record<string, FileReference[]> = {};
-    return linkedFile.fileReferences.reduce((prev, curr) => {
-      if (curr._targetFsPath !== undefined) {
-        if (prev[curr._targetFsPath] === undefined) {
-          prev[curr._targetFsPath] = [curr];
-        } else {
-          prev[curr._targetFsPath].push(curr);
-        }
-      }
-      return prev;
-    }, output);
-  }
-);
-
 export const selectCitationKeysByFsPath = createObjectSelector(
   selectFileReferencesByFsPath,
   (fileReferences) => fileReferences.filter(isCitationKeyFileReference)
@@ -341,9 +313,11 @@ export const waitForLinkedFileToUpdate = async (
       store.getState(),
       fsPath
     );
+    console.log("----------- linked file status", linkedFileStatus);
     if (linkedFileStatus?.status === "up to date") {
       break;
     }
+    console.log("----------- succeeded", linkedFileStatus);
     // TODO(lukemurray): there's a memory leak here if the document is removed from the
     // store. We probably want to retry or something a specific number of times then
     // give up

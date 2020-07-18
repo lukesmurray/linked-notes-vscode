@@ -1,6 +1,6 @@
 import vscode from "vscode";
-import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
 import { NameVariable } from "../../types/csl-data";
+import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
 
 export function getCitationKeyHoverText(
   bibliographicItem: BibliographicItem
@@ -48,11 +48,18 @@ function getCitationKeyCompletionFilterText(
   } ${getBibliographicItemAuthorString(bibliographicItem)}`;
 }
 
-function getBibliographicItemTitleString(
+export function getBibliographicItemTitleString(
   bibliographicItem: BibliographicItem
 ): string {
   // TODO(lukemurray): review other titles and determine which to use if this is undefined
-  return bibliographicItem.title ?? "No Title";
+  return (
+    bibliographicItem.title ??
+    bibliographicItem["original-title"] ??
+    bibliographicItem.shortTitle ??
+    bibliographicItem["title-short"] ??
+    bibliographicItem["reviewed-title"] ??
+    `No Title - ${bibliographicItem.id}`
+  );
 }
 
 function getBibliographicItemAuthorString(

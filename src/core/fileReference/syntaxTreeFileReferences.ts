@@ -1,17 +1,16 @@
 import * as MDAST from "mdast";
-import { getFileReferenceNodesFromMDAST } from "../syntaxTree/getFileReferenceNodesFromMDAST";
-import { CiteProcCitationKey } from "../remarkPlugins/remarkCiteproc";
+import { PartialLinkedNoteStore } from "../../store";
+import { assertNever } from "../common/typeGuards";
 import {
   CitationKeyFileReference,
   FileReference,
-  WikilinkFileReference,
   TitleFileReference,
+  WikilinkFileReference,
 } from "../common/types";
-import { assertNever } from "../common/typeGuards";
-import { Wikilink } from "../remarkPlugins/remarkWikilink";
+import { CiteProcCitationKey } from "../remarkPlugins/remarkCiteproc";
 import { TitleHeading } from "../remarkPlugins/remarkTitleHeading";
-import { fileReferenceFsPath } from "./fileReferenceFsPath";
-import { PartialLinkedNoteStore } from "../../store";
+import { Wikilink } from "../remarkPlugins/remarkWikilink";
+import { getFileReferenceNodesFromMDAST } from "../syntaxTree/getFileReferenceNodesFromMDAST";
 
 export function syntaxTreeFileReferences(
   syntaxTree: MDAST.Root,
@@ -44,7 +43,6 @@ function createCiteProcCitationKeyFileReference(
     sourceFsPath: fsPath,
     type: "citationKeyFileReference",
   };
-  ref._targetFsPath = fileReferenceFsPath(ref, store);
   return ref;
 }
 
@@ -58,7 +56,6 @@ function createWikilinkFileReference(
     sourceFsPath: fsPath,
     type: "wikilinkFileReference",
   };
-  ref._targetFsPath = fileReferenceFsPath(ref, store);
   return ref;
 }
 
@@ -72,6 +69,5 @@ function createTitleFileReference(
     sourceFsPath: fsPath,
     type: "titleFileReference",
   };
-  ref._targetFsPath = fileReferenceFsPath(ref, store);
   return ref;
 }

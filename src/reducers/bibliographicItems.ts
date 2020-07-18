@@ -1,17 +1,17 @@
 import {
   createAsyncThunk,
+  createEntityAdapter,
   createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
 import vscode from "vscode";
 import { RootState } from ".";
+import { getCitationKeyCompletionItem } from "../core/citeProc/citeProcUtils";
+import { BibliographicId } from "../core/remarkPlugins/remarkCiteproc";
 import { AppDispatch } from "../store";
 import { CslData } from "../types/csl-data";
-import { selectDefaultBibUri } from "./configuration";
-import { getCitationKeyCompletionItem } from "../core/citeProc/citeProcUtils";
 import AhoCorasick from "../utils/ahoCorasick";
-import { BibliographicId } from "../core/remarkPlugins/remarkCiteproc";
-import keyBy from "lodash/keyBy";
+import { selectDefaultBibUri } from "./configuration";
 
 /*******************************************************************************
  * Thunks
@@ -37,13 +37,20 @@ export const updateBibliographicItems = createAsyncThunk<
 /*******************************************************************************
  * Reducers
  ******************************************************************************/
+
+const bibliographicItemAdapter = createEntityAdapter<CslData[number]>({
+  selectId: (item) => item.id,
+  sortComparer: (a, b) =>
+    a.id.toLocaleString().localeCompare(b.id.toLocaleString()),
+});
+
 const bibliographicItemsSlice = createSlice({
   name: "bibliographicItems",
-  initialState: [] as CslData,
+  initialState: bibliographicItemAdapter.getInitialState(),
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(updateBibliographicItems.fulfilled, (state, action) => {
-      return [...action.payload];
+      bibliographicItemAdapter.upsertMany(state, action.payload);
     });
   },
 });
@@ -53,11 +60,14 @@ export default bibliographicItemsSlice.reducer;
 /*******************************************************************************
  * selectors
  ******************************************************************************/
-export const selectBibliographicSlice = (state: RootState): CslData =>
-  state.bibliographicItems;
+export const selectBibliographicSlice = (
+  state: RootState
+): RootState["bibliographicItems"] => state.bibliographicItems;
 
-export const selectBibliographicItems = (state: RootState): CslData =>
-  selectBibliographicSlice(state);
+export const {
+  selectAll: selectBibliographicItems,
+  selectEntities: selectBibliographicItemsById,
+} = bibliographicItemAdapter.getSelectors(selectBibliographicSlice);
 
 export const selectCitationKeyCompletions = createSelector(
   selectBibliographicItems,
@@ -69,11 +79,6 @@ export const selectCitationKeyCompletions = createSelector(
 export const selectBibliographicItemAho = createSelector(
   selectBibliographicItems,
   (items) => createAhoCorasickFromCSLJSON(items)
-);
-
-export const selectBibliographicItemsById = createSelector(
-  selectBibliographicItems,
-  (items) => keyBy(items, "id")
 );
 
 /*******************************************************************************
