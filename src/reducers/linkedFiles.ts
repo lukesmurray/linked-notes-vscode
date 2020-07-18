@@ -13,22 +13,16 @@ import type { RootState } from ".";
 import { getCache } from "../core/cache/cache";
 import {
   isCitationKeyFileReference,
-  isContextFileReference,
   isTitleFileReference,
   isWikilinkFileReference,
 } from "../core/common/typeGuards";
 import { LinkedFile, LinkedFileStatus } from "../core/common/types";
-import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileReferences";
 import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
 import type { AppDispatch, LinkedNotesStore } from "../store";
-import {
-  delay,
-  findAllMarkdownFilesInWorkspace,
-  isNotNullOrUndefined,
-} from "../utils/util";
+import { delay, findAllMarkdownFilesInWorkspace } from "../utils/util";
 import { selectBibliographicItemAho } from "./bibliographicItems";
 import { fileDeleted } from "./fileDeleted";
 import { updateFileManagerWithLinkedNote } from "./updateFileManagerWithLinkedNote";
@@ -220,16 +214,6 @@ export const selectWikilinksByFsPath = createObjectSelector(
 export const selectTitlesByFsPath = createObjectSelector(
   selectFileReferencesByFsPath,
   (fileReferences) => fileReferences.filter(isTitleFileReference)
-);
-
-export const selectDocumentLinksByFsPath = createObjectSelector(
-  selectFileReferencesByFsPath,
-  (allFileReferences) =>
-    allFileReferences
-      .filter(isContextFileReference)
-      .map((ref) => ref.node.position)
-      .filter(isNotNullOrUndefined)
-      .map((pos) => new vscode.DocumentLink(unistPositionToVscodeRange(pos)))
 );
 
 export const selectWikilinkCompletions = createSelector(

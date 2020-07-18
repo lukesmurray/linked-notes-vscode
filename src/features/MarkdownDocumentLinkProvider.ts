@@ -1,10 +1,12 @@
 import * as vscode from "vscode";
-import {
-  waitForLinkedFileToUpdate,
-  selectDocumentLinksByFsPath,
-} from "../reducers/linkedFiles";
-import { LinkedNotesStore } from "../store";
+import { fileReferenceCreateFileIfNotExists } from "../core/fileReference/fileReferenceCreateFileIfNotExists";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
+import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
+import {
+  FileReferenceDocumentLink,
+  selectDocumentLinksByFsPath,
+} from "../reducers/selectDocumentLinksByFsPath";
+import { LinkedNotesStore } from "../store";
 class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   private readonly store: LinkedNotesStore;
   constructor(store: LinkedNotesStore) {
@@ -14,7 +16,7 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
   async provideDocumentLinks(
     document: vscode.TextDocument,
     token: vscode.CancellationToken
-  ): Promise<vscode.DocumentLink[] | undefined> {
+  ): Promise<FileReferenceDocumentLink[] | undefined> {
     const documentId = textDocumentFsPath(document);
     await waitForLinkedFileToUpdate(this.store, documentId, token);
     if (token.isCancellationRequested) {
@@ -24,6 +26,15 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
       documentId
     ];
     return documentLinks;
+  }
+
+  async resolveDocumentLink(
+    link: FileReferenceDocumentLink,
+    token: vscode.CancellationToken
+  ): Promise<FileReferenceDocumentLink> {
+    const uri = await fileReferenceCreateFileIfNotExists(link._ref, this.store);
+    link.target = uri;
+    return link;
   }
 }
 
