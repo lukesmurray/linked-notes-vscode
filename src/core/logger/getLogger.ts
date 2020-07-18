@@ -29,6 +29,7 @@ class Logger {
   }
 
   warning(message: string): void {
+    void vscode.window.showWarningMessage(message);
     this.log(message, "warning");
   }
 
@@ -37,6 +38,7 @@ class Logger {
   }
 
   error(message: string): void {
+    void vscode.window.showErrorMessage(message);
     this.log(message, "error");
   }
 

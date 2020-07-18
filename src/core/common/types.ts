@@ -50,6 +50,12 @@ export type ContextFileReference =
   | CitationKeyFileReference
   | WikilinkFileReference;
 
+export type MaterializableFileReference = WikilinkFileReference;
+
+export type RenameableFileReference =
+  | WikilinkFileReference
+  | TitleFileReference;
+
 /*******************************************************************************
  * Remark File References
  ******************************************************************************/

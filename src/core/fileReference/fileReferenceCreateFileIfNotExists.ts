@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { PartialLinkedNoteStore } from "../../store";
 import { findAllMarkdownFilesInWorkspace } from "../../utils/util";
 import { FileReference } from "../common/types";
-import { fileReferenceFsPath } from "./fileReferenceFsPath";
+import { materializeFileReferenceFsPath } from "./fileReferenceFsPath";
 import { fileReferenceTitle } from "./fileReferenceTitle";
 
 export async function fileReferenceCreateFileIfNotExists(
@@ -16,7 +16,7 @@ async function fileReferenceCreateFileIfNotExistsHelper(
   ref: FileReference,
   store: PartialLinkedNoteStore
 ): Promise<vscode.Uri | undefined> {
-  const fsPath = fileReferenceFsPath(ref, store);
+  const fsPath = materializeFileReferenceFsPath(ref, store);
   if (fsPath === undefined) {
     return undefined;
   }

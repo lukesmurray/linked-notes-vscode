@@ -8,6 +8,8 @@ import {
   ContextFileReference,
   FileReference,
   FileReferenceNode,
+  MaterializableFileReference,
+  RenameableFileReference,
   TitleFileReference,
   WikilinkFileReference,
 } from "./types";
@@ -65,4 +67,16 @@ export function isContextFileReference(
   ref: FileReference
 ): ref is ContextFileReference {
   return isCitationKeyFileReference(ref) || isWikilinkFileReference(ref);
+}
+
+export function isMaterializableFileReference(
+  ref: FileReference
+): ref is MaterializableFileReference {
+  return isWikilinkFileReference(ref);
+}
+
+export function isRenameableFileReference(
+  ref: FileReference
+): ref is RenameableFileReference {
+  return isWikilinkFileReference(ref) || isTitleFileReference(ref);
 }

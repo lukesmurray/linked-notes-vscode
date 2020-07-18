@@ -6,6 +6,8 @@
     "CSLJSON",
     "Corasick",
     "ICSL",
+    "Materializable",
+    "Renameable",
     "WIKILINK",
     "abortcontroller",
     "ahocorasick",

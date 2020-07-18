@@ -1,5 +1,4 @@
 import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
-import { performance } from "perf_hooks";
 import * as vscode from "vscode";
 import { createCache } from "./core/cache/cache";
 import { uriFsPath } from "./core/fsPath/uriFsPath";
@@ -18,6 +17,7 @@ import MarkdownRenameProvider from "./features/MarkdownRenameProvider";
 import MarkdownWikilinkCompletionProvider from "./features/MarkdownWikiLinkCompletionProvider";
 import NewNoteCommand from "./features/NewNoteCommand";
 import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
+import { indexMarkdownFiles } from "./indexMarkdownFiles";
 import { updateBibliographicItems } from "./reducers/bibliographicItems";
 import {
   getConfigurationScope,
@@ -31,7 +31,6 @@ import {
 import store from "./store";
 import {
   BIB_FILE_GLOB_PATTERN,
-  findAllMarkdownFilesInWorkspace,
   isDefaultBibFile,
   isMarkdownFile,
   MarkDownDocumentSelector,
@@ -58,42 +57,7 @@ export async function activate(
     wordPattern: /([+#./\\\-\w]+)/,
   });
 
-  const parsingStart = performance.now();
-  // initialize the workspace
-  await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      cancellable: false,
-      title: "Linked Notes Loading Files",
-    },
-    async (progress) => {
-      return await findAllMarkdownFilesInWorkspace().then(async (fileUris) => {
-        const totalFileCount = fileUris.length;
-        let parsedCount = 0;
-        return await Promise.all(
-          fileUris.map(
-            async (uri) =>
-              await Promise.resolve(
-                vscode.workspace
-                  .openTextDocument(uri)
-                  .then((doc) => flagLinkedFileForUpdate(store, doc))
-                  .then(() => {
-                    progress.report({
-                      message: `indexed ${parsedCount++}/${totalFileCount} files`,
-                      increment: 1 / totalFileCount,
-                    });
-                  })
-              )
-          )
-        );
-      });
-    }
-  );
-
-  const parsingEnd = performance.now();
-  getLogger().info(
-    `parsed all markdown files. ${(parsingEnd - parsingStart) / 1000} seconds`
-  );
+  await indexMarkdownFiles();
 
   /*****************************************************************************
    * Features

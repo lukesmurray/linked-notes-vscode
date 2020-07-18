@@ -67,21 +67,26 @@ const { selectById: selectFsPathByTitle } = fsPathAdapter.getSelectors(
 );
 
 export const getFSPathForTitle = (state: RootState) => (
-  title: string,
-  calleeFsPath: string
-) => {
+  title: string
+): string => {
   const fileManagerObject = selectFsPathByTitle(state, title);
   if (fileManagerObject !== undefined) {
-    return {
-      fsPath: fileManagerObject?.fsPath,
-      fake: false,
-    };
+    return fileManagerObject.fsPath;
   }
 
-  return {
-    fsPath: path.resolve(calleeFsPath, "..", titleToBasename(title)),
-    fake: true,
-  };
+  return titleToBasename(title);
+};
+
+export const materializeFSPathForTitle = (state: RootState) => (
+  title: string,
+  calleeFsPath: string
+): string => {
+  const fileManagerObject = selectFsPathByTitle(state, title);
+  if (fileManagerObject !== undefined) {
+    return fileManagerObject.fsPath;
+  }
+
+  return path.resolve(calleeFsPath, "..", titleToBasename(title));
 };
 
 /*******************************************************************************

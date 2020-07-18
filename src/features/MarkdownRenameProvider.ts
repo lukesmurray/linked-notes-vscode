@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import * as vscode from "vscode";
-import { isCitationKeyFileReference } from "../core/common/typeGuards";
+import { isRenameableFileReference } from "../core/common/typeGuards";
 import { fileReferenceContentRange } from "../core/fileReference/fileReferenceContentRange";
 import {
   fileReferenceFsPath,
@@ -54,7 +54,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
 
     // get the file reference under the caret
     const ref = positionFileReference(position, document, this.store);
-    if (ref !== undefined && !isCitationKeyFileReference(ref)) {
+    if (ref !== undefined && isRenameableFileReference(ref)) {
       const fsPathToRename = fileReferenceFsPath(ref, this.store);
       if (fsPathToRename !== undefined) {
         const newUri = vscode.Uri.file(

@@ -1,6 +1,5 @@
 import { selectBibliographicItemsById } from "../../reducers/bibliographicItems";
 import { PartialLinkedNoteStore } from "../../store";
-import { getBibliographicItemTitleString } from "../citeProc/citeProcUtils";
 import { assertNever } from "../common/typeGuards";
 import {
   CitationKeyFileReference,
@@ -30,6 +29,7 @@ function citationKeyFileReferenceTitle(
   ref: CitationKeyFileReference,
   store: PartialLinkedNoteStore
 ): string {
+  const citationKeyTitleGuid = "82D3F130-9AF7-486C-BAFF-0BA9B95C8A3A";
   const bibliographicItem = selectBibliographicItemsById(store.getState())[
     ref.node.data.bibliographicId
   ];
@@ -38,7 +38,7 @@ function citationKeyFileReferenceTitle(
     getLogger().error(message);
     throw new Error(message);
   }
-  return `${getBibliographicItemTitleString(bibliographicItem)}`;
+  return `${citationKeyTitleGuid}${bibliographicItem.id}`;
 }
 
 function wikilinkFileReferenceTitle(ref: WikilinkFileReference): string {

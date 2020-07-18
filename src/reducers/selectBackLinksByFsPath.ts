@@ -17,12 +17,10 @@ export const selectBackLinksByFsPath = createObjectSelector(
     return linkedFile.fileReferences.reduce((prev, curr) => {
       // TODO(lukemurray): not pure but not sure what else to do
       const currTargetFsPath = fileReferenceFsPath(curr, store);
-      if (currTargetFsPath !== undefined) {
-        if (prev[currTargetFsPath] === undefined) {
-          prev[currTargetFsPath] = [curr];
-        } else {
-          prev[currTargetFsPath].push(curr);
-        }
+      if (prev[currTargetFsPath] === undefined) {
+        prev[currTargetFsPath] = [curr];
+      } else {
+        prev[currTargetFsPath].push(curr);
       }
       return prev;
     }, output);

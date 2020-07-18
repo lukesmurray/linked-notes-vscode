@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
-import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
-import { fsPathBacklinkFileReferences } from "../core/fsPath/fsPathBacklinkFileReferences";
-import { fsPathUri } from "../core/fsPath/fsPathUri";
-import { positionFileReference } from "../core/fileReference/positionFileReference";
-import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
-import { LinkedNotesStore } from "../store";
 import { unistPositionToVscodeRange } from "../core/common/unistPositionToVscodeRange";
 import { fileReferenceFsPath } from "../core/fileReference/fileReferenceFsPath";
+import { positionFileReference } from "../core/fileReference/positionFileReference";
+import { fsPathBacklinkFileReferences } from "../core/fsPath/fsPathBacklinkFileReferences";
+import { fsPathUri } from "../core/fsPath/fsPathUri";
+import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
+import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
+import { LinkedNotesStore } from "../store";
 import { isNotNullOrUndefined } from "../utils/util";
 
 class MarkdownReferenceProvider implements vscode.ReferenceProvider {
