@@ -278,35 +278,35 @@ export async function activate(
   bibFileWatcher.onDidCreate(bibFileWatcherHandler);
   bibFileWatcher.onDidDelete(bibFileWatcherHandler);
 
-  // watch markdown files
+  // // watch markdown files
   const markdownFileWatcher = vscode.workspace.createFileSystemWatcher(
     MARKDOWN_FILE_GLOB_PATTERN
   );
-  const markdownFileWatchDeleteHandler = async (
-    uri: vscode.Uri
-  ): Promise<void> => {
-    if (isMarkdownFile(uri)) {
-      await flagLinkedFileForDeletion(store, uriFsPath(uri));
-    }
-  };
-  const markdownFileWatchUpdateHandler = async (
-    uri: vscode.Uri
-  ): Promise<void> => {
-    if (isMarkdownFile(uri)) {
-      await vscode.workspace
-        .openTextDocument(uri)
-        .then((doc) => flagLinkedFileForUpdate(store, doc));
-    }
-  };
-  markdownFileWatcher.onDidChange(markdownFileWatchUpdateHandler);
-  markdownFileWatcher.onDidCreate(async (uri) => {
-    await markdownFileWatchUpdateHandler(uri);
-    await indexMarkdownFiles();
-  });
-  markdownFileWatcher.onDidDelete(async (uri) => {
-    await markdownFileWatchDeleteHandler(uri);
-    await indexMarkdownFiles();
-  });
+  // const markdownFileWatchDeleteHandler = async (
+  //   uri: vscode.Uri
+  // ): Promise<void> => {
+  //   if (isMarkdownFile(uri)) {
+  //     await flagLinkedFileForDeletion(store, uriFsPath(uri));
+  //   }
+  // };
+  // const markdownFileWatchUpdateHandler = async (
+  //   uri: vscode.Uri
+  // ): Promise<void> => {
+  //   if (isMarkdownFile(uri)) {
+  //     await vscode.workspace
+  //       .openTextDocument(uri)
+  //       .then((doc) => flagLinkedFileForUpdate(store, doc));
+  //   }
+  // };
+  // markdownFileWatcher.onDidChange(markdownFileWatchUpdateHandler);
+  // markdownFileWatcher.onDidCreate(async (uri) => {
+  //   await markdownFileWatchUpdateHandler(uri);
+  //   await indexMarkdownFiles();
+  // });
+  // markdownFileWatcher.onDidDelete(async (uri) => {
+  //   await markdownFileWatchDeleteHandler(uri);
+  //   await indexMarkdownFiles();
+  // });
 
   vscode.window.onDidChangeActiveTextEditor(() => {
     backLinksTreeDataProvider.refresh();
