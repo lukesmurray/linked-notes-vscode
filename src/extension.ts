@@ -16,6 +16,10 @@ import MarkdownReferenceProvider from "./features/MarkdownReferenceProvider";
 import MarkdownRenameProvider from "./features/MarkdownRenameProvider";
 import MarkdownWikilinkCompletionProvider from "./features/MarkdownWikiLinkCompletionProvider";
 import NewNoteCommand from "./features/NewNoteCommand";
+import {
+  ConvertLinksToWikilinks,
+  ConvertWikilinksToLinks,
+} from "./features/ToggleLinks";
 import WriteDefaultSettingsCommand from "./features/WriteDefaultSettingsCommand";
 import { indexMarkdownFiles } from "./indexMarkdownFiles";
 import { updateBibliographicItems } from "./reducers/bibliographicItems";
@@ -49,7 +53,7 @@ export async function activate(
 
   // read the user configuration
   await store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
-    getLogger().error("failed to update configuration");
+    void getLogger().error("failed to update configuration");
   });
 
   // set the language
@@ -151,6 +155,20 @@ export async function activate(
     )
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "linked-notes-vscode.wikilinkToLink",
+      ConvertWikilinksToLinks(store)
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "linked-notes-vscode.linkToWikilink",
+      ConvertLinksToWikilinks(store)
+    )
+  );
+
   /*****************************************************************************
    * Workspace Document and Configuration Change Handlers
    ****************************************************************************/
@@ -159,7 +177,7 @@ export async function activate(
   vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration(getConfigurationScope())) {
       store.dispatch(updateConfiguration(readConfiguration())).catch(() => {
-        getLogger().error("failed to update configuration");
+        void getLogger().error("failed to update configuration");
       });
     }
   });
@@ -177,7 +195,7 @@ export async function activate(
       void flagLinkedFileForUpdate(store, e.document);
     } else if (isDefaultBibFile(e.document.uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
-        getLogger().error("failed to update bibliographic items");
+        void getLogger().error("failed to update bibliographic items");
       });
     }
   });
@@ -206,11 +224,11 @@ export async function activate(
           .then((doc) => flagLinkedFileForUpdate(store, doc));
       } else if (isDefaultBibFile(file.oldUri, store.getState())) {
         store.dispatch(updateBibliographicItems()).catch(() => {
-          getLogger().error("failed to update bibliographic items");
+          void getLogger().error("failed to update bibliographic items");
         });
       } else if (isDefaultBibFile(file.newUri, store.getState())) {
         store.dispatch(updateBibliographicItems()).catch(() => {
-          getLogger().error("failed to update bibliographic items");
+          void getLogger().error("failed to update bibliographic items");
         });
         reIndex = true;
       }
@@ -226,12 +244,12 @@ export async function activate(
       if (isMarkdownFile(fileUri)) {
         reIndex = true;
         flagLinkedFileForDeletion(store, uriFsPath(fileUri)).catch(() => {
-          getLogger().error("failed to delete file");
+          void getLogger().error("failed to delete file");
         });
       } else if (isDefaultBibFile(fileUri, store.getState())) {
         reIndex = true;
         store.dispatch(updateBibliographicItems()).catch(() => {
-          getLogger().error("failed to update bibliographic items");
+          void getLogger().error("failed to update bibliographic items");
         });
       }
     }
@@ -251,7 +269,7 @@ export async function activate(
   const bibFileWatcherHandler = async (uri: vscode.Uri): Promise<void> => {
     if (isDefaultBibFile(uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
-        getLogger().error("failed to update bibliographic items");
+        void getLogger().error("failed to update bibliographic items");
       });
     }
     await indexMarkdownFiles();

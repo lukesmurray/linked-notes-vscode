@@ -1,6 +1,6 @@
 import path from "path";
 import * as vscode from "vscode";
-import { getDefaultNoteText } from "../core/fileReference/fileReferenceCreateFileIfNotExists";
+import { writeDefaultNoteText } from "../core/fileReference/fileReferenceCreateFileIfNotExists";
 import { titleToBasename } from "../core/fileReference/fileReferenceFsPath";
 import { getLogger } from "../core/logger/getLogger";
 
@@ -21,15 +21,14 @@ function NewNoteCommand(): void {
         const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
         const basename = titleToBasename(title);
         const newFileUri = vscode.Uri.file(path.join(workspaceRoot, basename));
-        await vscode.workspace.fs.writeFile(
-          newFileUri,
-          Buffer.from(getDefaultNoteText(title))
-        );
+        await vscode.workspace.fs
+          .writeFile(newFileUri, Buffer.from(""))
+          .then(() => writeDefaultNoteText(newFileUri, title));
         await vscode.window.showTextDocument(newFileUri);
       }
     })
     .catch((e) => {
-      getLogger().error(`Failed to create new note`);
+      void getLogger().error(`Failed to create new note`);
     });
 }
 

@@ -1,3 +1,4 @@
+import * as MDAST from "mdast";
 import * as UNIST from "unist";
 import { CiteProcCitationKey } from "../remarkPlugins/remarkCiteproc";
 import { TitleHeading } from "../remarkPlugins/remarkTitleHeading";
@@ -106,6 +107,7 @@ export interface BaseLinkedFile extends LinkedFileIdentifiable {
   fileReferences?: FileReference[];
   type: LinkedFileType;
   frontMatterNode?: UNIST.Node;
+  linkNodes?: MDAST.Link[];
 }
 
 interface NoteLinkedFile extends BaseLinkedFile {

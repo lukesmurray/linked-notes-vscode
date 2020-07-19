@@ -39,7 +39,7 @@ function remarkWikilink(this: Processor<Settings>): void {
     value: string,
     silent: boolean
   ): IInlineTokenizerReturn {
-    const wikilinkMatch = /^\[\[(.+?)\]\]/g.exec(value);
+    const wikilinkMatch = /^\[\[([^[\]]+?)\]\]/g.exec(value);
 
     if (wikilinkMatch !== null) {
       if (silent) {
@@ -70,7 +70,7 @@ function remarkWikilink(this: Processor<Settings>): void {
   // add a tokenizer for wikilink
   tokenizers.wikilink = tokenizeWikilink;
   // run the wikilink tokenizer before links
-  methods.splice(methods.indexOf("link"), 0, "wikilink");
+  methods.splice((methods.indexOf("link") as number) + 1, 0, "wikilink");
 }
 
 export default remarkWikilink as Plugin;

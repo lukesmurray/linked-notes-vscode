@@ -28,18 +28,18 @@ class Logger {
     this.log(message, "info");
   }
 
-  warning(message: string): void {
-    void vscode.window.showWarningMessage(message);
+  warning(message: string, ...items: string[]): Thenable<string | undefined> {
     this.log(message, "warning");
+    return vscode.window.showWarningMessage(message, ...items);
   }
 
   success(message: string): void {
     this.log(message, "success");
   }
 
-  error(message: string): void {
-    void vscode.window.showErrorMessage(message);
+  error(message: string, ...items: string[]): Thenable<string | undefined> {
     this.log(message, "error");
+    return vscode.window.showErrorMessage(message, ...items);
   }
 
   private log(message: string, level: LogLevels): void {

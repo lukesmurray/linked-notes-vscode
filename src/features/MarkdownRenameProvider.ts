@@ -9,6 +9,7 @@ import {
 } from "../core/fileReference/fileReferenceFsPath";
 import { positionFileReference } from "../core/fileReference/positionFileReference";
 import { fsPathBacklinkFileReferences } from "../core/fsPath/fsPathBacklinkFileReferences";
+import { fsPathUri } from "../core/fsPath/fsPathUri";
 import { getLogger } from "../core/logger/getLogger";
 import {
   selectLinkedFileFsPaths,
@@ -36,7 +37,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
     }
 
     const message = "You cannot rename this element.";
-    getLogger().error(message);
+    void getLogger().error(message);
     throw new Error(message);
   }
 
@@ -77,7 +78,7 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
             continue;
           }
           workspaceEdit.replace(
-            vscode.Uri.file(backLink.sourceFsPath),
+            fsPathUri(backLink.sourceFsPath),
             contentRange,
             newName
           );

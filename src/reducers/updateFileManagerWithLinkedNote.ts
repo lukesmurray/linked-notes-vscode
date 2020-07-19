@@ -1,20 +1,44 @@
+import * as vscode from "vscode";
 import { isTitleFileReference } from "../core/common/typeGuards";
 import { LinkedFile } from "../core/common/types";
+import { fsPathUri } from "../core/fsPath/fsPathUri";
 import { getLogger } from "../core/logger/getLogger";
 import { AppDispatch } from "../store";
 import { linkTitleToFsPath } from "./fileManager";
 
-export function updateFileManagerWithLinkedNote(
+export async function updateFileManagerWithLinkedNote(
   newLinkedFile: LinkedFile,
   fsPath: string,
   thunkApi: { dispatch: AppDispatch }
-): void {
+): Promise<void> {
   const titleFileReferenceList =
     newLinkedFile.fileReferences?.filter(isTitleFileReference) ?? [];
-  if (titleFileReferenceList.length !== 1) {
-    const message = `document missing title or contains two titles ${fsPath}`;
-    getLogger().error(message);
-    throw new Error(message);
+
+  let errorMessage = "";
+  if (titleFileReferenceList.length > 1) {
+    errorMessage = `document has multiple titles ${fsPath}`;
+  } else if (titleFileReferenceList.length === 0) {
+    errorMessage = `document missing title ${fsPath}`;
+  }
+
+  // if there is an issue with a title display the issue and let the user open the document to solve it
+  if (errorMessage.length !== 0) {
+    const openDocButton = "open document";
+    await getLogger()
+      .error(errorMessage, openDocButton)
+      .then((value) => {
+        if (value === openDocButton) {
+          return vscode.workspace
+            .openTextDocument(fsPathUri(fsPath))
+            .then((doc) =>
+              vscode.window.showTextDocument(doc, {
+                preserveFocus: false,
+                preview: false,
+              })
+            );
+        }
+      });
+    throw new Error(errorMessage);
   }
 
   thunkApi.dispatch(

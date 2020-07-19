@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { fileReferenceCreateFileIfNotExists } from "../core/fileReference/fileReferenceCreateFileIfNotExists";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
-import { waitForLinkedFileToUpdate } from "../reducers/linkedFiles";
 import {
   FileReferenceDocumentLink,
   selectDocumentLinksByFsPath,
@@ -18,7 +17,7 @@ class MarkdownDocumentLinkProvider implements vscode.DocumentLinkProvider {
     token: vscode.CancellationToken
   ): Promise<FileReferenceDocumentLink[] | undefined> {
     const documentId = textDocumentFsPath(document);
-    await waitForLinkedFileToUpdate(this.store, documentId, token);
+    // await waitForLinkedFileToUpdate(this.store, documentId, token);
     if (token.isCancellationRequested) {
       return;
     }

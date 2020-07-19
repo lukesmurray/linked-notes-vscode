@@ -2,7 +2,7 @@
   "name": "linked-notes-vscode",
   "displayName": "Linked Notes VSCode",
   "description": "Linked Note Taking and Wiki",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "publisher": "lukesmurray",
   "repository": {
     "url": "https://github.com/lukesmurray/linked-notes-vscode.git",
@@ -46,6 +46,14 @@
       {
         "command": "linked-notes-vscode.newNote",
         "title": "Linked Notes: Create New Note"
+      },
+      {
+        "command": "linked-notes-vscode.wikilinkToLink",
+        "title": "Linked Notes: Convert Wikilinks to Links"
+      },
+      {
+        "command": "linked-notes-vscode.linkToWikilink",
+        "title": "Linked Notes: Convert Links to Wikilinks"
       }
     ],
     "configuration": [

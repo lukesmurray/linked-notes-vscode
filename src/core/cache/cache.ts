@@ -5,7 +5,7 @@ import { getLogger } from "../logger/getLogger";
 
 // TODO(lukemurray): there is still a memory leak if a document is deleted while the application is closed
 
-const hashKey = `61D7838-4B3E-423B-944F-93AB15A2FFDC` as const;
+const hashKey = `D7C8E248-D15E-4556-B089-EC5FC83C8548` as const;
 
 class Cache {
   private readonly memento: vscode.Memento;
@@ -152,7 +152,7 @@ function createCache(memento: vscode.Memento): void {
 function getCache(): Cache {
   if (_cache === undefined) {
     const message = "cache requested before the cache is defined.";
-    getLogger().error(message);
+    void getLogger().error(message);
     throw new Error(message);
   }
   return _cache;

@@ -1,4 +1,5 @@
 import {
+  getCurrentFSPathForTitle,
   getFSPathForTitle,
   materializeFSPathForTitle,
 } from "../../reducers/fileManager";
@@ -17,13 +18,22 @@ export function fileReferenceFsPath(
   return getFSPathForTitle(store.getState())(fileReferenceTitle(ref, store));
 }
 
+export function currentFileReferenceFsPath(
+  ref: FileReference,
+  store: PartialLinkedNoteStore
+): string | undefined {
+  return getCurrentFSPathForTitle(store.getState())(
+    fileReferenceTitle(ref, store)
+  );
+}
+
 export function materializeFileReferenceFsPath(
   ref: FileReference,
   store: PartialLinkedNoteStore
 ): string | undefined {
   if (!isMaterializableFileReference(ref)) {
     const message = "Cannot materialize that type of reference.";
-    getLogger().warning(message);
+    void getLogger().warning(message);
     return undefined;
   }
   return materializeFSPathForTitle(store.getState())(

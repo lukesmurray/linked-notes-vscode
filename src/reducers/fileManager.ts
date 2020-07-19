@@ -4,8 +4,11 @@ import {
   PayloadAction,
 } from "@reduxjs/toolkit";
 import path from "path";
+import * as vscode from "vscode";
 import { RootState } from ".";
 import { titleToBasename } from "../core/fileReference/fileReferenceFsPath";
+import { fsPathUri } from "../core/fsPath/fsPathUri";
+import { getLogger } from "../core/logger/getLogger";
 import { fileDeleted } from "./fileDeleted";
 
 interface FileManagerObject {
@@ -30,9 +33,10 @@ const fileManagerSlice = createSlice({
         existingObject !== undefined &&
         existingObject.fsPath !== action.payload.fsPath
       ) {
-        throw new Error(
-          `multiple documents share the same title ${existingObject.fsPath} and ${action.payload.fsPath}`
-        );
+        const fsPath1 = existingObject.fsPath;
+        const fsPath2 = action.payload.fsPath;
+        const title = action.payload.title;
+        throwTitleCollisionError(title, fsPath1, fsPath2);
       }
       fsPathAdapter.upsertOne(state, action.payload);
     },
@@ -77,6 +81,17 @@ export const getFSPathForTitle = (state: RootState) => (
   return titleToBasename(title);
 };
 
+export const getCurrentFSPathForTitle = (state: RootState) => (
+  title: string
+): string | undefined => {
+  const fileManagerObject = selectFsPathByTitle(state, title);
+  if (fileManagerObject !== undefined) {
+    return fileManagerObject.fsPath;
+  }
+
+  return undefined;
+};
+
 export const materializeFSPathForTitle = (state: RootState) => (
   title: string,
   calleeFsPath: string
@@ -94,3 +109,36 @@ export const materializeFSPathForTitle = (state: RootState) => (
  ******************************************************************************/
 
 export default fileManagerSlice.reducer;
+
+function throwTitleCollisionError(
+  title: string,
+  fsPath1: string,
+  fsPath2: string
+): never {
+  const errorMessage = `Multiple documents have the same title ${title}. ${fsPath1} and ${fsPath2}`;
+  const openBothButton = "Open Side by Side";
+  void getLogger()
+    .error(errorMessage, openBothButton)
+    .then((pressedButton) => {
+      if (pressedButton === openBothButton) {
+        return Promise.all([
+          vscode.workspace.openTextDocument(fsPathUri(fsPath1)),
+          vscode.workspace.openTextDocument(fsPathUri(fsPath2)),
+        ]).then(([doc1, doc2]) =>
+          vscode.window
+            .showTextDocument(doc1, {
+              preserveFocus: false,
+              preview: false,
+            })
+            .then(() =>
+              vscode.window.showTextDocument(doc2, {
+                preserveFocus: false,
+                preview: false,
+                viewColumn: vscode.ViewColumn.Beside,
+              })
+            )
+        );
+      }
+    });
+  throw new Error(errorMessage);
+}

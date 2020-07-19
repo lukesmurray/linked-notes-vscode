@@ -21,6 +21,7 @@ import { syntaxTreeFileReferences } from "../core/fileReference/syntaxTreeFileRe
 import { linkedFileFsPath } from "../core/fsPath/linkedFileFsPath";
 import { textDocumentFsPath } from "../core/fsPath/textDocumentFsPath";
 import { getFrontMatterNodeFromMDAST } from "../core/syntaxTree/getFrontMatterNodeFromMDAST";
+import { getLinkNodesFromMDAST } from "../core/syntaxTree/getLinkNodesFromMDAST";
 import { getMDASTFromText } from "../core/syntaxTree/getMDASTFromText";
 import type { AppDispatch, LinkedNotesStore } from "../store";
 import { delay, findAllMarkdownFilesInWorkspace } from "../utils/util";
@@ -68,7 +69,7 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       textDocument
     );
     if (cachedLinkedFile !== undefined) {
-      updateFileManagerWithLinkedNote(cachedLinkedFile, fsPath, thunkApi);
+      await updateFileManagerWithLinkedNote(cachedLinkedFile, fsPath, thunkApi);
       return cachedLinkedFile;
     }
 
@@ -83,7 +84,10 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       thunkApi
     );
 
+    const linkNodes = getLinkNodesFromMDAST(syntaxTree);
+
     const frontMatterNode = getFrontMatterNodeFromMDAST(syntaxTree);
+
     const newLinkedFile: LinkedFile = {
       fsPath,
       fileReferences,
@@ -91,9 +95,10 @@ const updateLinkedFileSyntaxTree = createAsyncThunk<
       // it would be reasonable to add that information
       type: "note",
       frontMatterNode,
+      linkNodes,
     };
 
-    updateFileManagerWithLinkedNote(newLinkedFile, fsPath, thunkApi);
+    void updateFileManagerWithLinkedNote(newLinkedFile, fsPath, thunkApi);
 
     // add the file to the cache
     await getCache().setCachedLinkedFileFromDocument(
