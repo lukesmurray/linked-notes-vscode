@@ -1,4 +1,7 @@
+import { exec } from "child_process";
+import path from "path";
 import * as vscode from "vscode";
+import { getLogger } from "../core/logger/getLogger";
 import { RootState } from "../reducers";
 import { selectDefaultBibUri } from "../reducers/configuration";
 
@@ -33,7 +36,7 @@ export function isDefaultBibFile(uri: vscode.Uri, state: RootState): boolean {
 }
 
 export async function findAllMarkdownFilesInWorkspace(): Promise<vscode.Uri[]> {
-  return (await vscode.workspace.findFiles(MARKDOWN_FILE_GLOB_PATTERN)).filter(
+  return (await findNonIgnoredFiles(MARKDOWN_FILE_GLOB_PATTERN)).filter(
     (f) => f.scheme === "file"
   );
 }
@@ -46,4 +49,82 @@ export async function delay(ms: number): Promise<void> {
 // very useful in filter functions
 export function isNotNullOrUndefined<T>(t: T | undefined | null): t is T {
   return t !== undefined && t !== null;
+}
+
+// TODO: https://github.com/TomasHubelbauer/vscode-extension-findFilesWithExcludes
+// TODO: https://github.com/Microsoft/vscode/issues/48674 for finding MarkDown files that VS Code considers not ignored
+// TODO: https://github.com/Microsoft/vscode/issues/47645 for finding MarkDown files no matter the extension (VS Code language to extension)
+// TODO: https://github.com/Microsoft/vscode/issues/11838 for maybe telling if file is MarkDown using an API
+// TODO: https://github.com/Microsoft/vscode/blob/release/1.27/extensions/git/src/api/git.d.ts instead of Git shell if possible
+async function findNonIgnoredFiles(
+  pattern: string,
+  checkGitIgnore = true
+): Promise<vscode.Uri[]> {
+  const exclude = [
+    ...Object.keys(
+      (await vscode.workspace
+        .getConfiguration("search", null)
+        .get("exclude")) ?? {}
+    ),
+    ...Object.keys(
+      (await vscode.workspace.getConfiguration("files", null).get("exclude")) ??
+        {}
+    ),
+  ].join(",");
+
+  const uris = await vscode.workspace.findFiles(pattern, `{${exclude}}`);
+  if (!checkGitIgnore) {
+    return uris;
+  }
+
+  const workspaceRelativePaths = uris.map((uri) =>
+    vscode.workspace.asRelativePath(uri, false)
+  );
+  for (const workspaceDirectory of vscode.workspace.workspaceFolders ?? []) {
+    const workspaceDirectoryPath = workspaceDirectory.uri.fsPath;
+    try {
+      const { stdout, stderr } = await new Promise<{
+        stdout: string | undefined;
+        stderr: string | undefined;
+      }>((resolve, reject) => {
+        exec(
+          `git check-ignore ${workspaceRelativePaths.join(" ")}`,
+          { cwd: workspaceDirectoryPath },
+          // https://git-scm.com/docs/git-check-ignore#_exit_status
+          // @ts-expect-error
+          (error: Error & { code?: 0 | 1 | 128 }, stdout, stderr) => {
+            if (
+              error !== undefined &&
+              error !== null &&
+              error.code !== 0 &&
+              error.code !== 1
+            ) {
+              reject(error);
+              return;
+            }
+
+            resolve({ stdout, stderr });
+          }
+        );
+      });
+
+      if ((stderr?.length ?? 0) !== 0) {
+        throw new Error(stderr);
+      }
+
+      for (const relativePath of stdout?.split?.("\n") ?? []) {
+        const uri = vscode.Uri.file(
+          path.join(workspaceDirectoryPath, relativePath)
+        );
+        const index = uris.findIndex((u) => u.fsPath === uri.fsPath);
+        if (index > -1) {
+          uris.splice(index, 1);
+        }
+      }
+    } catch (error) {
+      void getLogger().error("find markdown files error");
+    }
+  }
+
+  return uris;
 }

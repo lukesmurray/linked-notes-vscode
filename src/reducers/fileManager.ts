@@ -114,7 +114,7 @@ function throwTitleCollisionError(
   title: string,
   fsPath1: string,
   fsPath2: string
-): never {
+): void {
   const errorMessage = `Multiple documents have the same title ${title}. ${fsPath1} and ${fsPath2}`;
   const openBothButton = "Open Side by Side";
   void getLogger()
@@ -140,5 +140,4 @@ function throwTitleCollisionError(
         );
       }
     });
-  throw new Error(errorMessage);
 }
