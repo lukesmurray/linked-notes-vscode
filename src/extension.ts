@@ -234,6 +234,7 @@ export async function activate(
       }
     }
     if (reIndex) {
+      getLogger().info("indexing because of rename");
       await indexMarkdownFiles();
     }
   });
@@ -254,6 +255,7 @@ export async function activate(
       }
     }
     if (reIndex) {
+      getLogger().info("indexing because of delete");
       await indexMarkdownFiles();
     }
   });
@@ -272,6 +274,7 @@ export async function activate(
         void getLogger().error("failed to update bibliographic items");
       });
     }
+    getLogger().info("indexing because of bib");
     await indexMarkdownFiles();
   };
   bibFileWatcher.onDidChange(bibFileWatcherHandler);

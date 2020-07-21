@@ -30,20 +30,23 @@ export async function indexMarkdownFiles(): Promise<void> {
             if (currentPromise.canceled) {
               throw new Error("cancelled");
             }
-            return await Promise.resolve(
-              vscode.workspace
-                .openTextDocument(uri)
-                .then((doc) => flagLinkedFileForUpdate(store, doc))
-                .then(() => {
-                  if (currentPromise.canceled) {
-                    throw new Error("cancelled");
-                  }
-                  progress.report({
-                    message: `indexed ${parsedCount++}/${totalFileCount} files`,
-                    increment: 1 / totalFileCount,
-                  });
-                })
-            );
+            return await Promise.resolve(vscode.workspace.openTextDocument(uri))
+              .then((doc) => flagLinkedFileForUpdate(store, doc))
+              .then(() => {
+                if (currentPromise.canceled) {
+                  throw new Error("cancelled");
+                }
+                progress.report({
+                  message: `indexed ${parsedCount++}/${totalFileCount} files`,
+                  increment: 1 / totalFileCount,
+                });
+              })
+              .catch((err: Error) =>
+                getLogger().info(
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  `error indexing markdown files ${err.toString()}`
+                )
+              );
           })
         );
       });
