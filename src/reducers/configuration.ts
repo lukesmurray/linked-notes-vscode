@@ -25,7 +25,7 @@ export const updateConfiguration = createAsyncThunk<
     if (current.defaultBib !== next.defaultBib) {
       thunkApi.dispatch(updateDefaultBib(next.defaultBib));
       thunkApi.dispatch(updateBibliographicItems()).catch(() => {
-        getLogger().error("failed to update bibliographic items");
+        return getLogger().error("failed to update bibliographic items");
       });
     }
     return undefined;

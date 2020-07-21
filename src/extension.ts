@@ -273,13 +273,16 @@ export async function activate(
       store.dispatch(updateBibliographicItems()).catch(() => {
         void getLogger().error("failed to update bibliographic items");
       });
+      getLogger().info("indexing because of bib");
+      await indexMarkdownFiles();
     }
-    getLogger().info("indexing because of bib");
-    await indexMarkdownFiles();
   };
   bibFileWatcher.onDidChange(bibFileWatcherHandler);
   bibFileWatcher.onDidCreate(bibFileWatcherHandler);
   bibFileWatcher.onDidDelete(bibFileWatcherHandler);
+
+  // commented out the markdown file watcher because it does not respect gitignore
+  // https://github.com/microsoft/vscode/issues/62725
 
   // // watch markdown files
   const markdownFileWatcher = vscode.workspace.createFileSystemWatcher(
