@@ -11,6 +11,7 @@
       "status: notes",
       "# “certain”, “highly, likely”, “likely”, “possible”, “unlikely”, “highly, unlikely”, “remote”, “impossible”",
       "confidence: certain",
+      "toc: false",
       "---",
       "",
       "# LINKED_NOTES_TITLE",

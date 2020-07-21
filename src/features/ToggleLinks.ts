@@ -100,14 +100,12 @@ function linkifiedPath(
   wikilink: WikilinkFileReference,
   store: LinkedNotesStore
 ): string {
-  const targetPath = currentFileReferenceFsPath(wikilink, store);
-  if (targetPath === undefined) {
+  const target = currentFileReferenceFsPath(wikilink, store);
+  if (target === undefined) {
     return "";
   }
-  const relativePath = path.relative(
-    wikilink.sourceFsPath,
-    currentFileReferenceFsPath(wikilink, store) ?? ""
-  );
+  const source = wikilink.sourceFsPath;
+  const relativePath = path.relative(path.parse(source).dir, target);
   // convert the extension to html
   const pos = relativePath.lastIndexOf(".");
   return relativePath.substr(0, pos < 0 ? relativePath.length : pos) + ".html";
