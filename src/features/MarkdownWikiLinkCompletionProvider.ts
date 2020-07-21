@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { getWikilinkCompletionRange } from "../core/completion/getWikilinkCompletionRange";
 import { getWikilinkCompletionReplacementRange } from "../core/completion/getWikilinkCompletionReplacementRange";
+import { fsPathMarkdownString } from "../core/fsPath/fsPathMarkdownString";
+import { getCurrentFSPathForTitle } from "../reducers/fileManager";
 import { selectWikilinkCompletions } from "../reducers/linkedFiles";
 import { LinkedNotesStore } from "../store";
 
@@ -25,6 +27,7 @@ class MarkdownWikilinkCompletionProvider
           match,
           vscode.CompletionItemKind.File
         );
+
         completion.insertText = new vscode.SnippetString(
           // TODO(lukemurray): if we find ourselves editing completions then it
           // may be worth using a placeholder for the completion and then
@@ -50,6 +53,18 @@ class MarkdownWikilinkCompletionProvider
         return completion;
       });
     }
+  }
+
+  public async resolveCompletionItem(
+    item: vscode.CompletionItem,
+    token: vscode.CancellationToken
+  ): Promise<vscode.CompletionItem> {
+    const fsPath = getCurrentFSPathForTitle(this.store.getState())(item.label);
+    item.documentation = await fsPathMarkdownString(fsPath, this.store);
+    if (fsPath === undefined) {
+      item.detail = "Not materialized.";
+    }
+    return item;
   }
 }
 
