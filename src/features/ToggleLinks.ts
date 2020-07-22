@@ -21,9 +21,10 @@ type CommandWithStoreAccess = (store: LinkedNotesStore) => () => void;
 
 const contains = (parent: UNIST.Node, child: UNIST.Node): boolean => {
   return (
-    (parent.position?.start?.offset ?? -1) <=
-      (child.position?.start?.offset ?? -1) &&
-    (parent.position?.end?.offset ?? -1) >= (child.position?.end?.offset ?? -1)
+    (parent.position?.start?.offset ?? NaN) <=
+      (child.position?.start?.offset ?? NaN) &&
+    (parent.position?.end?.offset ?? NaN) >=
+      (child.position?.end?.offset ?? NaN)
   );
 };
 
@@ -39,7 +40,10 @@ export const ConvertWikilinksToLinks: CommandWithStoreAccess = (
   for (const wikilink of wikilinks) {
     // if the wikilinks is not contained in a link with wikilinks
     if (
-      linksWithWikilinks.findIndex((l) => contains(l, wikilink.node)) === -1
+      linksWithWikilinks.findIndex(
+        (l) =>
+          l.sourceFsPath === wikilink.sourceFsPath && contains(l, wikilink.node)
+      ) === -1
     ) {
       if (wikilink.node.position !== undefined) {
         workspaceEdit.replace(
@@ -73,8 +77,14 @@ export const ConvertLinksToWikilinks: CommandWithStoreAccess = (
   await vscode.workspace.applyEdit(workspaceEdit);
 };
 
-function getLinksWithWikilinks(
-  store: LinkedNotesStore
+/**
+ * Get the links which contain wikilinks inside of them
+ * @param store the linked notes store
+ * @param exitEarly option to exit as soon as a wikilink inside of a link is found
+ */
+export function getLinksWithWikilinks(
+  store: LinkedNotesStore,
+  exitEarly: boolean = false
 ): Array<MDAST.Link & { sourceFsPath: string }> {
   const linksWithWikilinks: Array<MDAST.Link & { sourceFsPath: string }> = [];
   const linkedFiles = selectLinkedFiles(store.getState());
@@ -89,6 +99,9 @@ function getLinksWithWikilinks(
       if (link.children.length === 1 && isWikilinkNode(link.children[0])) {
         if (link.position !== undefined) {
           linksWithWikilinks.push({ ...link, sourceFsPath: linkedFile.fsPath });
+          if (exitEarly) {
+            return linksWithWikilinks;
+          }
         }
       }
     }
@@ -106,7 +119,7 @@ function linkifiedPath(
   }
   const source = wikilink.sourceFsPath;
   const relativePath = path.relative(path.parse(source).dir, target);
-  // convert the extension to html
+  // remove the extension
   const pos = relativePath.lastIndexOf(".");
-  return relativePath.substr(0, pos < 0 ? relativePath.length : pos) + ".html";
+  return relativePath.substr(0, pos < 0 ? relativePath.length : pos);
 }

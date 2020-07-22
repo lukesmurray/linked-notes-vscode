@@ -16,6 +16,7 @@ import {
   waitForAllLinkedFilesToUpdate,
 } from "../reducers/linkedFiles";
 import { LinkedNotesStore } from "../store";
+import { getLinksWithWikilinks } from "./ToggleLinks";
 
 class MarkdownRenameProvider implements vscode.RenameProvider {
   private readonly store: LinkedNotesStore;
@@ -31,6 +32,13 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
   ): vscode.ProviderResult<
     vscode.Range | { range: vscode.Range; placeholder: string }
   > {
+    if (getLinksWithWikilinks(this.store, true).length !== 0) {
+      const message =
+        "Convert Links to Wikilinks before renaming to avoid breaking links.";
+      void getLogger().info(message);
+      throw new Error(message);
+    }
+
     const ref = positionFileReference(position, document, this.store);
     if (ref !== undefined) {
       return fileReferenceContentRange(ref);
@@ -101,8 +109,13 @@ class MarkdownRenameProvider implements vscode.RenameProvider {
               `The reference ${newName} already exist. Support for merging tags is not implemented yet`
             );
           }
+
           // check that the old document exists
-          if (fs.existsSync(oldUri.fsPath)) {
+          // don't rename index file usually at the root of a directory
+          if (
+            fs.existsSync(oldUri.fsPath) &&
+            path.parse(oldUri.fsPath).name !== "index"
+          ) {
             // apply the rename
             workspaceEdit.renameFile(oldUri, newUri);
           }

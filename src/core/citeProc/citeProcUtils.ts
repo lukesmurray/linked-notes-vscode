@@ -45,7 +45,9 @@ function getCitationKeyCompletionFilterText(
 ): string {
   return `${bibliographicItem.id} ${
     bibliographicItem.title ?? ""
-  } ${getBibliographicItemAuthorString(bibliographicItem)}`;
+  } ${getBibliographicItemAuthorString(bibliographicItem)} ${
+    bibliographicItem.URL ?? ""
+  }`;
 }
 
 export function getBibliographicItemTitleString(
