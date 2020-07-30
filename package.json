@@ -2,7 +2,7 @@
   "name": "linked-notes-vscode",
   "displayName": "Linked Notes VSCode",
   "description": "Linked Note Taking and Wiki",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "publisher": "lukesmurray",
   "repository": {
     "url": "https://github.com/lukesmurray/linked-notes-vscode.git",
