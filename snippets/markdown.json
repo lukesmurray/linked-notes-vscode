@@ -9,6 +9,7 @@
       "#   - TODO fill in keywords",
       "# description: TODO fill in a description",
       "# subtitle: TODO fill in a subtitle",
+      "# image: TODO add root relative image link",
       "toc: false",
       "---",
       "",
