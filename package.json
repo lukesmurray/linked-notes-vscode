@@ -151,7 +151,7 @@
     "abortcontroller-polyfill": "^1.4.0",
     "ahocorasick": "^1.0.2",
     "citeproc": "^2.3.22",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "markdown-it-regex": "^0.2.0",
     "mdast-util-to-string": "^1.1.0",
     "memoize-one": "^5.1.1",
