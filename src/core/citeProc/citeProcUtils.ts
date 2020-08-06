@@ -1,17 +1,26 @@
 import vscode from "vscode";
-import { NameVariable } from "../../types/csl-data";
+import { DateVariable, NameVariable } from "../../types/csl-data";
 import { BibliographicItem } from "../remarkPlugins/remarkCiteproc";
 
 export function getCitationKeyHoverText(
-  bibliographicItem: BibliographicItem
+  bibliographicItem: BibliographicItem,
+  includeTitle: boolean = true
 ): vscode.MarkdownString {
-  return new vscode.MarkdownString(
-    [
-      `${getBibliographicItemTitleString(bibliographicItem)}`,
-      ``,
-      `Authors: ${getBibliographicItemAuthorString(bibliographicItem, ", ")}`,
-    ].join("\n")
+  const lines = includeTitle
+    ? [`${getBibliographicItemTitleString(bibliographicItem)}`, ``]
+    : [];
+  lines.push(
+    `Authors: ${getBibliographicItemAuthorString(bibliographicItem, ", ")}  `
   );
+  const dateString = getBibliographicItemDateString(bibliographicItem);
+  if (dateString !== undefined) {
+    lines.push(`Date: ${dateString}  `);
+  }
+  if (bibliographicItem.URL !== undefined) {
+    lines.push(`URL: ${bibliographicItem.URL}  `);
+  }
+
+  return new vscode.MarkdownString(lines.join("\n"));
 }
 
 export function getCitationKeyCompletionItem(
@@ -35,9 +44,7 @@ export function getCitationKeyCompletionItem(
 function getCitationKeyCompletionDocumentation(
   bibliographicItem: BibliographicItem
 ): vscode.MarkdownString {
-  return new vscode.MarkdownString(
-    `Authors: ${getBibliographicItemAuthorString(bibliographicItem, ", ")}`
-  );
+  return getCitationKeyHoverText(bibliographicItem, false);
 }
 
 function getCitationKeyCompletionFilterText(
@@ -62,6 +69,56 @@ export function getBibliographicItemTitleString(
     bibliographicItem["reviewed-title"] ??
     `No Title - ${bibliographicItem.id}`
   );
+}
+
+function getBibliographicItemDateString(
+  bibliographicItem: BibliographicItem,
+  separator: string = "-"
+): string | undefined {
+  const dateFields = ["original-date", "issued", "submitted"] as const;
+  for (const dateField of dateFields) {
+    const dateString = getBibliographicItemDateFieldString(
+      bibliographicItem,
+      dateField,
+      separator
+    );
+    if (dateString !== undefined) {
+      return dateString;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Get the Keys in T which are of type TT
+ */
+type KeysOfType<T, TT> = NonNullable<
+  {
+    [K in keyof T]: T[K] extends TT ? K : never;
+  }[keyof T]
+>;
+
+/**
+ * Get the keys from the BibliographicItem which reference dates
+ */
+type BibliographicItemDateKey = KeysOfType<
+  BibliographicItem,
+  DateVariable | undefined
+>;
+
+function getBibliographicItemDateFieldString(
+  bibliographicItem: BibliographicItem,
+  dateField: BibliographicItemDateKey,
+  separator: string
+): string | undefined {
+  const date = bibliographicItem[dateField];
+  if (date !== undefined) {
+    const dateParts = date["date-parts"];
+    if (dateParts !== undefined && dateParts.length > 0) {
+      return dateParts[0].join(separator);
+    }
+  }
+  return undefined;
 }
 
 function getBibliographicItemAuthorString(
