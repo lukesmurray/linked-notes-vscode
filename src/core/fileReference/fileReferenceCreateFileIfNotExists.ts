@@ -57,16 +57,26 @@ export function writeDefaultNoteText(
     .then(() =>
       vscode.workspace.openTextDocument(newFileUri).then((doc) => {
         const titlePlaceholder = "LINKED_NOTES_TITLE";
-        const titlePlaceHolderStart = doc.getText().indexOf(titlePlaceholder);
-        if (titlePlaceHolderStart !== -1) {
-          const range = new vscode.Range(
-            doc.positionAt(titlePlaceHolderStart),
-            doc.positionAt(titlePlaceHolderStart + titlePlaceholder.length)
-          );
-          const edit = new vscode.WorkspaceEdit();
-          edit.replace(newFileUri, range, title);
-          return vscode.workspace.applyEdit(edit);
+        let searchIndex = 0;
+        const edit = new vscode.WorkspaceEdit();
+        let found = false;
+        while (true) {
+          const titlePlaceHolderStart = doc
+            .getText()
+            .indexOf(titlePlaceholder, searchIndex);
+          if (titlePlaceHolderStart !== -1) {
+            found = true;
+            const range = new vscode.Range(
+              doc.positionAt(titlePlaceHolderStart),
+              doc.positionAt(titlePlaceHolderStart + titlePlaceholder.length)
+            );
+            edit.replace(newFileUri, range, title);
+          } else {
+            break;
+          }
+          searchIndex = titlePlaceHolderStart + titlePlaceholder.length;
         }
+        return found ? vscode.workspace.applyEdit(edit) : undefined;
       })
     );
 }
