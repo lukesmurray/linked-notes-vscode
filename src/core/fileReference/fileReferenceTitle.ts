@@ -35,7 +35,7 @@ function citationKeyFileReferenceTitle(
   ];
   if (bibliographicItem === undefined) {
     const message = `no citation associated with the id ${ref.node.data.bibliographicId}`;
-    getLogger().error(message);
+    void getLogger().error(message);
     throw new Error(message);
   }
   return `${citationKeyTitleGuid}${bibliographicItem.id}`;

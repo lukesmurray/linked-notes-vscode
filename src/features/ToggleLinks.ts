@@ -120,6 +120,18 @@ function linkifiedPath(
   const source = wikilink.sourceFsPath;
   const relativePath = path.relative(path.parse(source).dir, target);
   // remove the extension
-  const pos = relativePath.lastIndexOf(".");
-  return relativePath.substr(0, pos < 0 ? relativePath.length : pos);
+  const extPos = relativePath.lastIndexOf(".");
+  const pathWithoutExtension = relativePath.substr(
+    0,
+    extPos < 0 ? relativePath.length : extPos
+  );
+  // TODO(lukemurray): this is basically just for HUGO
+  // should be configurable
+  // remove _index from the end
+  const _indexPos = relativePath.lastIndexOf("_index");
+  const pathWithoutIndex = pathWithoutExtension.substr(
+    0,
+    _indexPos < 0 ? relativePath.length : _indexPos
+  );
+  return pathWithoutIndex;
 }

@@ -16,7 +16,8 @@ export async function updateFileManagerWithLinkedNote(
 
   let errorMessage = "";
   if (titleFileReferenceList.length > 1) {
-    errorMessage = `document has multiple titles ${fsPath}`;
+    // allow multiple titles since we can have front matter and heading
+    // errorMessage = `document has multiple titles ${fsPath}`;
   } else if (titleFileReferenceList.length === 0) {
     errorMessage = `document missing title ${fsPath}`;
   }
