@@ -11,9 +11,8 @@
       "# subtitle: TODO fill in a subtitle",
       "# image: TODO add root relative image link",
       "toc: false",
+      "title: LINKED_NOTES_TITLE",
       "---",
-      "",
-      "# LINKED_NOTES_TITLE",
       "",
       ""
     ]
