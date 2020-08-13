@@ -1,11 +1,11 @@
+import * as vscode from "vscode";
+import { assertNever } from "../common/typeGuards";
 import {
   CitationKeyFileReference,
   FileReference,
-  WikilinkFileReference,
   TitleFileReference,
+  WikilinkFileReference,
 } from "../common/types";
-import { assertNever } from "../common/typeGuards";
-import * as vscode from "vscode";
 import { unistPositionToVscodeRange } from "../common/unistPositionToVscodeRange";
 import { incrementUnistPoint } from "../remarkPlugins/util/incrementUnistPoint";
 
@@ -55,12 +55,17 @@ function titleFileReferenceContentRange(
   if (ref.node.position === undefined) {
     return undefined;
   }
-  return unistPositionToVscodeRange({
-    ...ref.node.position,
-    // TODO(lukemurray): actually want to get the position of the child text nodes
-    // this doesn't work for SE text headings
-    // Foobar
-    // =
-    start: incrementUnistPoint(ref.node.position.start, 2),
-  });
+
+  if (ref.node.data.location === "heading") {
+    return unistPositionToVscodeRange({
+      ...ref.node.position,
+      // TODO(lukemurray): actually want to get the position of the child text nodes
+      // this doesn't work for SE text headings
+      // Foobar
+      // =
+      start: incrementUnistPoint(ref.node.position.start, 2),
+    });
+  } else if (ref.node.data.location === "frontmatter") {
+    return unistPositionToVscodeRange(ref.node.position);
+  }
 }
