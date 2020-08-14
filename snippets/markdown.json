@@ -11,6 +11,7 @@
       "# subtitle: TODO fill in a subtitle",
       "# image: TODO add root relative image link",
       "toc: false",
+      "markup: pandoc",
       "title: LINKED_NOTES_TITLE",
       "---",
       "",
