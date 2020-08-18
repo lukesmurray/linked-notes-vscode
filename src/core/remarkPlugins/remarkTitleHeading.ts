@@ -52,7 +52,7 @@ function remarkTitleHeading(
       if (frontMatter.title !== undefined) {
         const title = (frontMatter.title as string) + "";
         const titlePropertyMatch = frontMatterRaw.match(
-          new RegExp(`title(?:(?: = )|(?:: ))([^#]*)`)
+          /^title(?:(?: = )|(?:: ))([^#]*)/m
         );
         // get the offset of the line which contains the title
         // TODO(lukemurray): this is pretty crude, would be better to use a YAML or TOML ast
