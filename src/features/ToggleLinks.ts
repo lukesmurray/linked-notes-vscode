@@ -46,13 +46,14 @@ export const ConvertWikilinksToLinks: CommandWithStoreAccess = (
       ) === -1
     ) {
       if (wikilink.node.position !== undefined) {
+        const relativePath = wikilinkToRelativePath(wikilink, store);
+        // TODO(lukemurray): this is very much a HUGO related configuration, relref and markdown extension
+        const uri =
+          relativePath.length !== 0 ? `{{<relref"${relativePath}">}}` : "";
         workspaceEdit.replace(
           fsPathUri(wikilink.sourceFsPath),
           unistPositionToVscodeRange(wikilink.node.position),
-          `[[[${mdastUtilToString(wikilink.node)}]]](${linkifiedPath(
-            wikilink,
-            store
-          )})`
+          `[[[${mdastUtilToString(wikilink.node)}]]](${uri})`
         );
       }
     }
@@ -71,6 +72,7 @@ export const ConvertLinksToWikilinks: CommandWithStoreAccess = (
       fsPathUri(l.sourceFsPath),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       unistPositionToVscodeRange(l.position!),
+      // simply the `title` without an extension
       `[[${((l.children[0] as unknown) as Wikilink).data.title}]]`
     );
   });
@@ -109,7 +111,12 @@ export function getLinksWithWikilinks(
   return linksWithWikilinks;
 }
 
-function linkifiedPath(
+/**
+ * Get the relative path from the source of a wikilink to the target of the wikilink
+ *
+ * If no file exists returns an empty path ""
+ */
+function wikilinkToRelativePath(
   wikilink: WikilinkFileReference,
   store: LinkedNotesStore
 ): string {
@@ -119,19 +126,5 @@ function linkifiedPath(
   }
   const source = wikilink.sourceFsPath;
   const relativePath = path.relative(path.parse(source).dir, target);
-  // remove the extension
-  const extPos = relativePath.lastIndexOf(".");
-  const pathWithoutExtension = relativePath.substr(
-    0,
-    extPos < 0 ? relativePath.length : extPos
-  );
-  // TODO(lukemurray): this is basically just for HUGO
-  // should be configurable
-  // remove _index from the end
-  const _indexPos = relativePath.lastIndexOf("_index");
-  const pathWithoutIndex = pathWithoutExtension.substr(
-    0,
-    _indexPos < 0 ? relativePath.length : _indexPos
-  );
-  return pathWithoutIndex;
+  return relativePath;
 }
