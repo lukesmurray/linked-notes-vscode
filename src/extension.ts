@@ -190,10 +190,10 @@ export async function activate(
   });
 
   // listen for when documents are changed in the workspace
-  vscode.workspace.onDidChangeTextDocument((e) => {
-    if (isMarkdownFile(e.document.uri)) {
-      void flagLinkedFileForUpdate(store, e.document);
-    } else if (isDefaultBibFile(e.document.uri, store.getState())) {
+  vscode.workspace.onDidSaveTextDocument((e) => {
+    if (isMarkdownFile(e.uri)) {
+      void flagLinkedFileForUpdate(store, e);
+    } else if (isDefaultBibFile(e.uri, store.getState())) {
       store.dispatch(updateBibliographicItems()).catch(() => {
         void getLogger().error("failed to update bibliographic items");
       });
