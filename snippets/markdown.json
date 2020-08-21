@@ -5,8 +5,10 @@
     "body": [
       "---",
       "date: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
-      "# keywords:",
-      "#   - TODO fill in keywords",
+      "# categories:",
+      "#   - TODO fill in categories",
+      "# tags:",
+      "#   - TODO fill in tags",
       "# description: TODO fill in a description",
       "# subtitle: TODO fill in a subtitle",
       "# image: TODO add root relative image link",
