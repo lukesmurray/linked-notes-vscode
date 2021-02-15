@@ -2,7 +2,38 @@
 
 ![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/lukesmurray.linked-notes-vscode)
 
-Linked Notes VSCode is an extension for taking markdown notes with support for pandoc citeproc citations and bidirectional wikilinks. Some features which make linked notes nice are the ability to rename links, hover information for links and citations, and autocomplete for links and citations.
+⚠️ **Deprecated**
+
+Alternatives
+
+- [vscode-markdown-notes](https://github.com/kortina/vscode-markdown-notes)
+- [vscode-memo](https://github.com/svsool/vscode-memo)
+
+## Post Mortem
+
+I made this extension over the summer of 2020 to satisfy a personal itch.
+At the time I was taking note in roam research and found the experience frustrating.
+I missed things like autocomplete, vim, keyboard shortcuts, and split panes.
+I decided to try and roll my own roam extension in vscode.
+
+The basic idea of the extension was to take a directory of markdown files, parse them into **abstract syntax trees** (ASTs) using [remark-parse](https://github.com/remarkjs/remark/tree/main/packages/remark-parse), and use the (AST) to support things like [Go to Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition), `[[backlinks]]`, and other _hypertexty_ features.
+
+_So what went wrong?_
+
+- _parsing blocks the ui_
+  - When parsing large directories of markdown notes the vscode UI becomes unresponsive. The solution would be to translate the code into a language server, but because this was an experiment I decided it was not worth the effort. Other extensions ran into this issue but because they used regex approaches rather than parsing approaches they were able to hide the issue slightly better.
+- _carefully choose your cache_
+  - The worst decision I made when creating this project was deciding to use redux toolkit and reselect to implement a cache of notes which can be lazily modified. Although caching is a good idea redux is bad at expressing aggregate caches. Anytime I needed to cache an aggregate value computed from all the notes I had to recompute that value when any note changed. A good example is the list of completions. That list is computed based on the contents of all the ASTs, but needs to be recomputed whenever any single AST changes.
+
+If I were to do this project again I would roll my own cache and implement the extension as a language server.
+
+_Why I won't be doing it again_
+
+The only references I was able to support in linked-notes were file references.
+Unfortunately, file references simply aren't enough.
+We need much finer grained references to create the type of interesting linked note experiences we want.
+Roam research allows for things like embedding and linking to any individual bullet.
+Unfortunately it's impossible to implement something similar in plaintext without massively degrading the user experience, for example by adding globally unique identifiers to every line.
 
 ## Quick Start
 
