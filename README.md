@@ -12,7 +12,7 @@ Alternatives
 ## Post Mortem
 
 I made this extension over the summer of 2020 to satisfy a personal itch.
-At the time I was taking note in roam research and found the experience frustrating.
+At the time I was taking notes in roam research and found the experience frustrating.
 I missed things like autocomplete, vim, keyboard shortcuts, and split panes.
 I decided to try and roll my own roam extension in vscode.
 
